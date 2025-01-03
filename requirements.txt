@@ -1,0 +1,21 @@
+npm install --save express
+npm install --save lodash
+npm install --save concurrently
+npm install --save nodemon
+npm install --save mongoose
+npm install --save cookie-session
+npm install --save passport passport-google-oauth20
+npm install --save passport-local
+npm install --save axios
+npm install --save redux react-redux redux-thunk redux-form
+npm install --save react-router-dom
+npm install --save path-parser body-parser
+npm install --save bcrypt 
+    - 'Recommended by Mongo: https://www.mongodb.com/blog/post/password-authentication-with-mongoose-part-1'
+    - 'Ref: https://github.com/kelektiv/node.bcrypt.js'
+
+npm install --save bootstrap
+
+MONGO:
+username: alexanderkotz
+pass: VW1tK8BtT6Ui07G4

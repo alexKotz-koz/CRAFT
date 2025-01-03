@@ -1,0 +1,22 @@
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+const bcrypt = require('bcrypt');
+const SALT_WORK_FACTOR = 10;
+
+const UserSchema = new Schema({
+  googleId: String,
+  userName: { type: String, required: true, index: { unique: true } },
+  password: String,
+  firstName: { type: String, required: true },
+  lastName: String,
+  email: { type: String, required: true },
+  role: {
+    type: String,
+    enum: ['facilitator', 'participant', 'admin'],
+    required: true
+  }
+});
+
+
+
+mongoose.model('users', UserSchema);
