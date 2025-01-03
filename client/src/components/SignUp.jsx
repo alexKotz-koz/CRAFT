@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createUser  } from "../store/slices/authSlice";
 
-import validateEmails from "../utils/validateEmails";
 import SignUpField from "./form/FormField";
 import FORM_FIELDS from "./form/signupFormFields";
 
