@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 export const fetchUser = createAsyncThunk("auth/fetchUser", async () => {
-  const res = await axios.get("/api/current_user");
+  const res = await axios.get("/auth/current_user");
   return res.data;
 });
 
@@ -45,16 +45,20 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchUser.fulfilled, (state, action) => {
+        //console.log("fetchUser payload: ", action.payload)
         state.user = action.payload || false;
       })
       .addCase(createUser.rejected, (state, action) =>{
+        //console.log("createUser payload: ", action.payload)
         state.error = action.payload;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
+        //console.log("loginUser payload: ", action.payload)
         state.user = action.payload || false;
         state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
+        //console.log("loginUser payload: ", action.payload)
         state.error = action.payload;
       });
   },

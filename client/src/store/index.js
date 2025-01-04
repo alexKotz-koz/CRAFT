@@ -6,3 +6,5 @@ export const store = configureStore({
     auth: authReducer,
   },
 });
+
+console.log("Store: ", store);

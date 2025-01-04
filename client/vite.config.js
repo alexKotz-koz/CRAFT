@@ -9,10 +9,7 @@ export default defineConfig({
       "/auth": {
         target: "http://localhost:5001",
         changeOrigin: true,
-
-      },
-      "/api": {
-        target: "http://localhost:5001",
+        secure: false
       },
       "/auth/google": {
         target: "http://localhost:5001",
