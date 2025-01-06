@@ -6,7 +6,6 @@ import { validateEmail } from "../../utils/validation";
 import FormField from "../form/FormField";
 
 const StudyParticipants = ({ onSubmit, onCancel, onKeyDown, initialValues }) => {
-  console.log("init: ", initialValues)
   const [email, setEmail] = useState("");
   const [emailList, setEmailList] = useState([]);
   const [invalidEmail, setInvalidEmail] = useState(false);

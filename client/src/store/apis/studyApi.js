@@ -1,20 +1,18 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 const studyApi = createApi({
-    reducerPath: 'auth',
+    reducerPath: 'study',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'http://localhost:5173'
+        baseUrl: '/api'
     }),
     endpoints(builder){
         return{
-            fetchUser: builder.query({
-                query: (user) => {
+            createStudy: builder.mutation({
+                query: (study) => {
                     return {
-                        url: '/auth/current_user',
-                        params: {
-                            userId: user.id,
-                        },
-                        method: 'GET',
+                        url: '/study/new',
+                        method: 'POST',
+                        body: study,
                     };
                 },
             }),
@@ -22,3 +20,5 @@ const studyApi = createApi({
     }
 
 });
+export const { useCreateStudyMutation } = studyApi;
+export { studyApi };

@@ -5,6 +5,7 @@ const passport = require('passport');
 const bodyParser = require('body-parser');
 const keys = require('./config/keys');
 require('./models/User');
+require('./models/Study')
 require('./services/passport');
 
 mongoose.Promise = global.Promise;
@@ -24,6 +25,7 @@ app.use(
 app.use(passport.initialize()); // Passport initialize session communication via cookies
 app.use(passport.session()); 
 
+require('./routes/studyRoutes')(app);
 require('./routes/authRoutes')(app);
 
 // Error-handling middleware

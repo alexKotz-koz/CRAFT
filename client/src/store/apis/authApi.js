@@ -1,17 +1,16 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { values } from 'lodash';
 
 const authApi = createApi({
     reducerPath: 'auth',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'http://localhost:5173'
+        baseUrl: '/auth'
     }),
     endpoints(builder){
         return{
             fetchAllUsers: builder.query({
                 query: () => {
                     return {
-                        url: '/auth/all_users',
+                        url: '/all_users',
                         method: 'GET',
                     };
                 },
@@ -20,7 +19,7 @@ const authApi = createApi({
                 providesTags: ['User'],
                 query: () => {
                     return {
-                        url: '/auth/current_user',
+                        url: '/current_user',
                         method: 'GET',
                     };
                 },
@@ -28,7 +27,7 @@ const authApi = createApi({
             createUser: builder.mutation({
                 query: (values) => {
                     return {
-                        url: '/auth/signup',
+                        url: '/signup',
                         method: 'POST',
                         body: values,
                     };
@@ -38,7 +37,7 @@ const authApi = createApi({
                 invalidatesTags: ['User'], //triggers a fetchUser query when called
                 query: (values) => {
                     return {
-                        url: '/auth/login',
+                        url: '/login',
                         method: 'POST',
                         body: values,
                     }

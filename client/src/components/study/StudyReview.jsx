@@ -1,11 +1,9 @@
 import { forEach } from "lodash";
 import { Field, Form } from "react-final-form";
 
-const StudyReview = ({ onSubmit, onCancel, formValues }) => {
-    console.log(formValues);
+const StudyReview = ({ onSubmit, onCancel, formValues, isLoading, error }) => {
     var emailList = formValues.emailList;
     var promptList = formValues.promptList;
-    console.log(emailList, " ", promptList)
 
     return (
         <div>
@@ -39,6 +37,8 @@ const StudyReview = ({ onSubmit, onCancel, formValues }) => {
                                 Submit
                             </button>
                         </div>
+
+                        {error && <p>Error: {error.message}</p>}
                     </form>
                 )}
             />
