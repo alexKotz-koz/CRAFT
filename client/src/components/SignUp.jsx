@@ -1,23 +1,22 @@
 import { Form, Field } from "react-final-form";
 import { Link, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { createUser  } from "../store/slices/authSlice";
-
 import SignUpField from "./form/FormField";
 import FORM_FIELDS from "./form/signupFormFields";
+import { useCreateUserMutation } from "../store";
 
 const SignUp = () => {
     const navigate = useNavigate();
-    const dispatch = useDispatch();
-    const error = useSelector((state) => state.auth.error);
 
-    
-    const handleFormSubmit = async (values) => {
+    const [createUser, { isLoading, error }] = useCreateUserMutation();
+
+    const handleFormSubmit = async(values) => {
         try {
-            await dispatch(createUser({ values, navigate }));
-        } catch (error) {
-            console.error("handleFormSubmit",error);
+            await createUser(values).unwrap(); //handle the promise returned by the mutation
+            navigate('/login');
+        } catch (error){
+            console.error("handleFormSubmit", error);
         }
+
     };
 
     const validate = (values) => {
@@ -60,10 +59,10 @@ const SignUp = () => {
                             )}
                         </Field>
                         ))}
-                        {error && <div style={{ color: 'red' }}>{error}</div>}
+                        {error && <div style={{ color: 'red' }}>{error.data.error.error}</div>}
 
                         <Link to="/login">Cancel</Link>
-                        <button type="submit">Submit</button>
+                        <button type="submit" disabled={isLoading}>Submit</button>
                     </form>
                 )}
             />

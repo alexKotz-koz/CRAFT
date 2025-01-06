@@ -1,19 +1,20 @@
 import { Form, Field } from 'react-final-form';
-import { useDispatch, useSelector } from 'react-redux';
-import { loginUser } from '../store/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 import FormField from './form/FormField';
 import FORM_FIELDS from './form/loginFormFields';
+import { useLoginUserMutation } from '../store';
 
 const Login = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const error = useSelector((state) => state.auth.error);
+
+  const [loginUser, { isLoading, error }] = useLoginUserMutation();
 
   const handleFormSubmit = async (values) => {
     try {
-      await dispatch(loginUser({ values, navigate }));
+      await loginUser(values).unwrap();
+      navigate('/');
     } catch (error) {
+      
       console.error("handleFormSubmit", error);
     }
   };
@@ -42,8 +43,8 @@ const Login = () => {
                             )}
                         </Field>
                         ))}
-            {error && <div style={{ color: 'red' }}>{error}</div>}
-            <button type="submit">Login</button>
+            {error && <div style={{ color: 'red' }}>{error.data.error.error}</div>}
+            <button type="submit" disabled={isLoading}>Login</button>
           </form>
         )}
       />

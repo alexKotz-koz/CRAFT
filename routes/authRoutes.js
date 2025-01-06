@@ -49,6 +49,7 @@ module.exports = (app) => {
                 role,
                 password: hashed,
             });
+            console.log("Auth Route newUSer: ", newUser);
             await newUser.save();
             res.json({ user: newUser });
         } catch (error) {
@@ -87,4 +88,12 @@ module.exports = (app) => {
         console.log(req.user);
         res.send(req.user);
       });
+    app.get("/auth/all_users", async (req, res) => {
+        try {
+            const allUsers = await User.find();
+            res.send(allUsers);
+        } catch (err) {
+            return next(err);
+        }
+    });
 };

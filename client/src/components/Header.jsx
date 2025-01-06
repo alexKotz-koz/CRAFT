@@ -1,14 +1,13 @@
-import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
-import { logout } from "../store/slices/authSlice";
+import { Link, useNavigate } from "react-router-dom";
+import { useFetchUserQuery } from "../store";
 
 const Header = () => {
-  const dispatch = useDispatch();
-  const auth = useSelector((state) => state.auth.user);
   //console.log("Header Auth", auth);
-
+  const navigate = useNavigate();
+  const { data, error, isLoading } = useFetchUserQuery();
+ 
   const handleLogout = () => {
-    dispatch(logout());
+    navigate('/');
     // Optionally, you can also navigate to the login page or home page
   };
 
@@ -18,14 +17,14 @@ const Header = () => {
         <li>
           <Link to="/studies" className="nav-link active">My Studies</Link>
         </li>
-        {(auth?.role === "facilitator" || auth?.role === "admin") && (
+        {(data?.role === "facilitator" || data?.role === "admin") && (
         <li className="nav-item">
           <Link to="/study/new" className="nav-link active">New Study</Link>
         </li>
       )}
         <li className="nav-item dropdown">
         <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-          {auth?.userName || ''}
+          {data?.userName || ''}
         </a>
         <ul className="dropdown-menu">
           <li><a className="dropdown-item" href="#">Action</a></li>
@@ -54,10 +53,8 @@ const Header = () => {
 
   const renderContent = () => {
     //console.log("Render Content Auth State:", auth);
-    switch (auth) {
+    switch (data) {
       case null:
-        return null;
-      case false:
         return renderLoggedOut();
       default:
         return renderLoggedIn();
@@ -67,7 +64,7 @@ const Header = () => {
   return (
     <nav className="navbar navbar-expand-lg bg-body-tertiary">
       <div className="container-fluid">
-        <Link to={auth ? "/" : "/login"} className="navbar-brand">
+        <Link to={data ? "/home" : "/"} className="navbar-brand">
           Feedback System
         </Link>
         <div className="collapse navbar-collapse show">
