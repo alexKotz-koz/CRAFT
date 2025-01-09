@@ -15,6 +15,9 @@ const Header = () => {
     return (
       <div className="d-flex">
         <li>
+          <Link to='/home' className="nav-link active">Home</Link>
+        </li>
+        <li>
           <Link to="/studies" className="nav-link active">My Studies</Link>
         </li>
         {(data?.role === "facilitator" || data?.role === "admin") && (

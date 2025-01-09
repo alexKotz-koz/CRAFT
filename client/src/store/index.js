@@ -22,9 +22,13 @@ export {
   useFetchAllUsersQuery, 
   useFetchUserQuery, 
   useCreateUserMutation,
-  useLoginUserMutation 
+  useLoginUserMutation,
+  useFetchUsernameQuery,
+  useLazyFetchUsernameQuery,
+  usePasswordResetMutation, 
 } from './apis/authApi';
 
 export {
   useCreateStudyMutation,
+  useFetchFacilitatorStudiesQuery,
 } from './apis/studyApi';

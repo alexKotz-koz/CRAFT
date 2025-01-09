@@ -1,4 +1,3 @@
-import { forEach } from "lodash";
 import { Field, Form } from "react-final-form";
 
 const StudyReview = ({ onSubmit, onCancel, formValues, isLoading, error }) => {
@@ -15,20 +14,23 @@ const StudyReview = ({ onSubmit, onCancel, formValues, isLoading, error }) => {
                         <label>Study Name</label>
                         <div >{formValues.name}</div>
 
+                        <label>Description</label>
+                        <div>{formValues.description}</div>
+
                         <label>Instructions</label>
                         <div>{formValues.instructions}</div>
 
                         <label>Participants</label>
 
-                        {emailList.map((email, index) => (
-                            <div key={index}>{email}</div>
+                        {emailList.map(({email, userName}, index) => (
+                            <div key={index}>Email: {email} | Username: {userName}</div>
                         ))}
 
                         <label>Prompts</label>
                         {promptList.map((prompt, index) => (
                             <div key={index}>{prompt}</div>
                         ))}
-
+                        {error && <p>Error: {error.data.error}</p>}
                         <div className="d-flex justify-content-between mt-3">
                             <button type="button" className="btn btn-secondary" onClick={onCancel}>
                                 Back
@@ -38,7 +40,7 @@ const StudyReview = ({ onSubmit, onCancel, formValues, isLoading, error }) => {
                             </button>
                         </div>
 
-                        {error && <p>Error: {error.message}</p>}
+
                     </form>
                 )}
             />

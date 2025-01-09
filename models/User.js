@@ -7,14 +7,14 @@ const UserSchema = new Schema({
   googleId: String,
   userName: { type: String, required: true, index: { unique: true } },
   password: String,
-  firstName: { type: String, required: true },
-  lastName: String,
+  //firstName: { type: String, required: true }, --Later implementation
+  //lastName: String, --Later implementation
   email: { type: String, required: true },
   role: {
     type: String,
     enum: ['facilitator', 'participant', 'admin'],
     required: true
-  }
+  },
 });
 
 

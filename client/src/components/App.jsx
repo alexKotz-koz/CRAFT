@@ -8,7 +8,7 @@ import Home from './Home';
 import Landing from './Landing';
 import StudyNewWizard from './study/StudyNewWizard';
 import Study from './study/Study';
-
+import PasswordReset from "./PasswordReset";
 import Test from './Test';
 
 import { useFetchUserQuery } from '../store';
@@ -32,6 +32,7 @@ const App = () => {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/study" element={<Study />} />
         <Route path='/study/new' element={<StudyNewWizard />} />
+        <Route path='/password_reset' element={<PasswordReset />} />
       </Routes>
       </BrowserRouter>
     </div>

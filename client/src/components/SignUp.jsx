@@ -9,29 +9,33 @@ const SignUp = () => {
 
     const [createUser, { isLoading, error }] = useCreateUserMutation();
 
-    const handleFormSubmit = async(values) => {
+    const handleFormSubmit = async (values) => {
         try {
             await createUser(values).unwrap(); //handle the promise returned by the mutation
             navigate('/login');
-        } catch (error){
+        } catch (error) {
             console.error("handleFormSubmit", error);
         }
 
     };
 
     const validate = (values) => {
-      const errors = {};
-      const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
-    
-      FORM_FIELDS.forEach(({ name }) => {
-        if (!values[name]) {
-          errors[name] = "You must provide a value";
-        } else if (name === "email" && !emailRegex.test(values[name])) {
-          errors[name] = "You must provide a valid email address";
-        }
-      });
-    
-      return errors;
+        const errors = {};
+        const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+        console.log(values)
+        FORM_FIELDS.forEach(({ name }) => {
+            if (!values[name]) {
+                errors[name] = "You must provide a value";
+            } else if (name === "email" && !emailRegex.test(values[name])) {
+                errors[name] = "You must provide a valid email address";
+            } else if (name === "confirm") {
+                if(values['confirm'] !== values['password']){
+                    errors[name] = "Passwords do not match";
+                }
+            }
+        });
+
+        return errors;
     };
 
     return (
@@ -41,23 +45,25 @@ const SignUp = () => {
                 validate={validate}
                 render={({ handleSubmit }) => (
                     <form onSubmit={handleSubmit}>
-                        {FORM_FIELDS.map(({ label, name, type, options }) => (
-                        <Field
-                            key={name}
-                            name={name}
-                            type={type}
-                            options={options}
-                        >
-                            {({ input, meta }) => (
-                            <SignUpField
-                                input={input}
-                                label={label}
+                        {FORM_FIELDS.map(({ label, name, type, options, required }) => (
+                            <Field
+                                key={name}
+                                name={name}
                                 type={type}
                                 options={options}
-                                meta={meta}
-                            />
-                            )}
-                        </Field>
+                                required={required}
+                            >
+                                {({ input, meta }) => (
+                                    <SignUpField
+                                        input={input}
+                                        label={label}
+                                        type={type}
+                                        options={options}
+                                        meta={meta}
+                                        required={required}
+                                    />
+                                )}
+                            </Field>
                         ))}
                         {error && <div style={{ color: 'red' }}>{error.data.error.error}</div>}
 

@@ -7,9 +7,9 @@ const StudyPromptSchema = require('./StudyPrompt');
 const StudySchema = new Schema({
     name: {type: String, required: true},
     instructions: {type: String, required: true},
-    participants: {type: [String], required: true},
+    description: {type: String, required: true},
     prompts: {type: [String], required: true},
-    //participants: [StudyParticipantSchema], -- Future implementation
+    participants:{type: [StudyParticipantSchema], required: true},
     //prompts: [StudyPromptSchema], --Future implementation
     _user: { type: Schema.Types.ObjectId, ref: 'User'},
     dateCreated: {type: Date, default: Date.now},

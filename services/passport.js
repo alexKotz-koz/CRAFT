@@ -19,28 +19,23 @@ passport.deserializeUser((id, done) => {
 
 passport.use(
   new LocalStrategy(
-    { usernameField: 'userName' }, 
-    async (userName, password, done) => {
+    { usernameField: 'email' }, 
+    async (email, password, done) => {
       try {
-          // Find the user by username in the database
-          const user = await User.findOne({ userName });
-          // If the user does not exist, return an error
-          if (!user) {
-              return done(null, false, { error: "Incorrect username" });
-          }
 
-          // Compare the provided password with the 
-          // hashed password in the database
+          const user = await User.findOne({ email });
+
+          if (!user) {
+              return done(null, false, { error: "Incorrect email" });
+          }
           const passwordsMatch = await bcrypt.compare(
               password,
               user.password
           );
 
-          // If the passwords match, return the user object
           if (passwordsMatch) {
             return done(null, user);
           } else {
-              // If the passwords don't match, return an error
               return done(null, false, { error: "Incorrect password" });
           }
       } catch (err) {

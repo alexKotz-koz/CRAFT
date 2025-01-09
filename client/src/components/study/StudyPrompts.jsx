@@ -14,7 +14,6 @@ const StudyPrompts = ({ onSubmit, onCancel, onKeyDown, initialValues }) => {
         setpromptList(initialValues || []);
     }, [initialValues]);
 
-
     const handleInputChange = (e) => {
         setPrompt(e.target.value);
     };

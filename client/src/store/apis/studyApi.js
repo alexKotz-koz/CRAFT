@@ -5,8 +5,9 @@ const studyApi = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: '/api'
     }),
-    endpoints(builder){
-        return{
+    endpoints(builder) {
+        return {
+            invalidatesTags: ['facilitatorStudies'],
             createStudy: builder.mutation({
                 query: (study) => {
                     return {
@@ -16,9 +17,21 @@ const studyApi = createApi({
                     };
                 },
             }),
+            fetchFacilitatorStudies: builder.query({
+                providesTags: ['facilitatorStudies'],
+                query: (user) => {
+                    return {
+                        url: '/study/my_studies',
+                        method: 'GET',
+                    }
+                }
+            }),
         };
     }
 
 });
-export const { useCreateStudyMutation } = studyApi;
+export const { 
+    useCreateStudyMutation, 
+    useFetchFacilitatorStudiesQuery 
+} = studyApi;
 export { studyApi };

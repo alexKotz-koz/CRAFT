@@ -27,7 +27,7 @@ const authApi = createApi({
             createUser: builder.mutation({
                 query: (values) => {
                     return {
-                        url: '/signup',
+                        url: '/create_user',
                         method: 'POST',
                         body: values,
                     };
@@ -40,10 +40,26 @@ const authApi = createApi({
                         url: '/login',
                         method: 'POST',
                         body: values,
-                    }
-                }
-            })
-
+                    };
+                },
+            }),
+            fetchUsername: builder.query({
+                query: () => {
+                    return {
+                        url: '/generate_username',
+                        method: 'GET',
+                    };
+                },
+            }),
+            passwordReset: builder.mutation({
+                query: (values) => {
+                    return{
+                        url: '/password_reset',
+                        method: 'POST',
+                        body: values,
+                    };
+                },
+            }),
         };
     }
 
@@ -53,6 +69,9 @@ export const {
     useFetchAllUsersQuery, 
     useFetchUserQuery, 
     useCreateUserMutation,
-    useLoginUserMutation 
+    useLoginUserMutation,
+    useFetchUsernameQuery,
+    useLazyFetchUsernameQuery,
+    usePasswordResetMutation, 
 } = authApi;
 export { authApi };

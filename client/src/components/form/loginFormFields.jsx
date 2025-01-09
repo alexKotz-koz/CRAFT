@@ -1,6 +1,6 @@
 const FORM_FIELDS = [
-    { label: "Username", name: "userName", type: "text" },
-    { label: "Password", name: "password", type: "password" }
+    { label: "Email", name: "email", type: "text", required: true },
+    { label: "Password", name: "password", type: "password", required: true }
 ];
 
 

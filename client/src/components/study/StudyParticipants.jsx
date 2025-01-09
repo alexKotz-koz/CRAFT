@@ -4,11 +4,15 @@ import PropTypes from 'prop-types';
 import { GoPersonAdd, GoTrash } from "react-icons/go";
 import { validateEmail } from "../../utils/validation";
 import FormField from "../form/FormField";
+import { useLazyFetchUsernameQuery } from "../../store";
+
 
 const StudyParticipants = ({ onSubmit, onCancel, onKeyDown, initialValues }) => {
   const [email, setEmail] = useState("");
   const [emailList, setEmailList] = useState([]);
   const [invalidEmail, setInvalidEmail] = useState(false);
+  const [fetchUsername, { isLoading, data, error }] = useLazyFetchUsernameQuery();
+
 
   useEffect(() => {
     setEmailList(initialValues || []);
@@ -18,20 +22,30 @@ const StudyParticipants = ({ onSubmit, onCancel, onKeyDown, initialValues }) => 
     setEmail(e.target.value);
   };
 
-  const handleAddEmail = () => {
+  const handleAddEmail = async () => {
     setInvalidEmail(false);
-    if (email && !emailList.includes(email)) {
+    if (email && !emailList.some(item => item.email === email)) {
       if (!validateEmail(email)) {
         setInvalidEmail(true);
         return;
       }
-      setEmailList([...emailList, email]);
+
+      // Fetch a new username
+      const result = await fetchUsername().unwrap();
+      if (result.error) {
+        console.error("Failed to fetch username:", result.error);
+        return;
+      }
+
+      const userName = result.userName;
+      console.log(userName);
+      setEmailList([...emailList, { email, userName }]);
       setEmail("");
     }
   };
 
   const handleRemoveEmail = (emailToRemove) => {
-    setEmailList(emailList.filter(email => email !== emailToRemove));
+    setEmailList(emailList.filter(item => item.email !== emailToRemove));
   };
 
   const handleFormSubmit = (values) => {
@@ -50,7 +64,6 @@ const StudyParticipants = ({ onSubmit, onCancel, onKeyDown, initialValues }) => 
         render={({ handleSubmit }) => (
           <form onSubmit={handleSubmit} onKeyDown={onKeyDown} className="needs-validation" noValidate>
             <div className="mb-3">
-
               <label className="form-label">Email</label>
               <input
                 type="email"
@@ -74,13 +87,13 @@ const StudyParticipants = ({ onSubmit, onCancel, onKeyDown, initialValues }) => 
             </button>
             <div className="mt-3">
               <ul className="list-group">
-                {emailList.map((email, index) => (
+                {emailList.map((item, index) => (
                   <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                    {email}
+                    {item.email} ({item.userName})
                     <button
                       type="button"
                       className="btn btn-danger btn-sm"
-                      onClick={() => handleRemoveEmail(email)}
+                      onClick={() => handleRemoveEmail(item.email)}
                     >
                       <GoTrash />
                     </button>
@@ -96,11 +109,9 @@ const StudyParticipants = ({ onSubmit, onCancel, onKeyDown, initialValues }) => 
                 Next
               </button>
             </div>
-
           </form>
         )}
       />
-
     </div>
   );
 }
