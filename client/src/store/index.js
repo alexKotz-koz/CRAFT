@@ -30,5 +30,7 @@ export {
 
 export {
   useCreateStudyMutation,
-  useFetchFacilitatorStudiesQuery,
+  useFetchStudiesQuery,
+  useCreateStudyResponseMutation,
+  useFetchStudyQuery
 } from './apis/studyApi';

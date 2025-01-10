@@ -16,12 +16,13 @@ const StudyMeta = ({ onSubmit, onCancel, initialValues }) => {
         initialValues={initialValues}
         render={({ handleSubmit }) => (
           <form onSubmit={handleSubmit} className="needs-validation" noValidate>
-            {FORM_FIELDS.map(({ label, name, type, options }) => (
+            {FORM_FIELDS.map(({ label, name, type, options, required }) => (
               <Field
                 key={name}
                 type={type}
                 label={label}
                 name={name}
+                required={required}
               >
                 {({ input, meta }) => {
                   return (
@@ -31,6 +32,7 @@ const StudyMeta = ({ onSubmit, onCancel, initialValues }) => {
                       type={type}
                       options={options}
                       meta={meta}
+                      required={required}
                     />
                   );
                 }}

@@ -7,7 +7,7 @@ const studyApi = createApi({
     }),
     endpoints(builder) {
         return {
-            invalidatesTags: ['facilitatorStudies'],
+            invalidatesTags: ['Study'],
             createStudy: builder.mutation({
                 query: (study) => {
                     return {
@@ -17,14 +17,32 @@ const studyApi = createApi({
                     };
                 },
             }),
-            fetchFacilitatorStudies: builder.query({
-                providesTags: ['facilitatorStudies'],
+            fetchStudies: builder.query({
+                providesTags: ['Study'],
                 query: (user) => {
                     return {
                         url: '/study/my_studies',
                         method: 'GET',
-                    }
-                }
+                    };
+                },
+            }),
+            createStudyResponse: builder.mutation({
+                query: (response) => {
+                    console.log("api response: ", response)
+                    return{
+                        url: '/study/response',
+                        method: 'POST',
+                        body: response
+                    };
+                },
+            }),
+            fetchStudy: builder.query({
+                query: (studyId) => {
+                    return {
+                        url: `/study/${studyId}`,
+                        method: 'GET'
+                    };
+                },
             }),
         };
     }
@@ -32,6 +50,8 @@ const studyApi = createApi({
 });
 export const { 
     useCreateStudyMutation, 
-    useFetchFacilitatorStudiesQuery 
+    useFetchStudiesQuery,
+    useCreateStudyResponseMutation, 
+    useFetchStudyQuery,
 } = studyApi;
 export { studyApi };

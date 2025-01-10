@@ -1,12 +1,12 @@
 import { Form, Field } from 'react-final-form';
 import { useNavigate } from 'react-router-dom';
 
-import FormField from './form/FormField';
-import FORM_FIELDS from './form/loginFormFields';
+import FormField from '../form/FormField';
+import FORM_FIELDS from '../form/loginFormFields';
 
-import { useLoginUserMutation } from '../store';
+import { useLoginUserMutation } from '../../store';
 
-import ButtonLink from './tools/ButtonLink';
+import ButtonLink from '../tools/ButtonLink';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -51,7 +51,7 @@ const Login = () => {
                         ))}
             {errorLogin && <div style={{ color: 'red' }}>{error.data.error.error}</div>}
             <button type="submit" disabled={isLoadingLogin}>Login</button>
-            <ButtonLink to='/password_reset' text='Reset Password'/>
+            <ButtonLink to='/password_reset' text='Reset Password' additionalClasses='btn-primary'/>
           </form>
         )}
       />

@@ -1,10 +1,10 @@
 import { Form, Field } from 'react-final-form';
 import { useNavigate } from 'react-router-dom';
 
-import FormField from './form/FormField';
-import FORM_FIELDS from './form/passwordResetFormFields';
+import FormField from '../form/FormField';
+import FORM_FIELDS from '../form/passwordResetFormFields';
 
-import { usePasswordResetMutation } from '../store';
+import { usePasswordResetMutation } from '../../store';
 
 const PasswordReset = () => {
     const navigate = useNavigate();

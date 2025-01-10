@@ -1,8 +1,8 @@
 import { Form, Field } from "react-final-form";
 import { Link, useNavigate } from "react-router-dom";
-import SignUpField from "./form/FormField";
-import FORM_FIELDS from "./form/signupFormFields";
-import { useCreateUserMutation } from "../store";
+import SignUpField from "../form/FormField";
+import FORM_FIELDS from "../form/signupFormFields";
+import { useCreateUserMutation } from "../../store";
 
 const SignUp = () => {
     const navigate = useNavigate();

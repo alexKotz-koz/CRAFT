@@ -82,15 +82,6 @@ const StudyNewWizard = () => {
         setCurrentStage(currentStage - 1);
     };
 
-    const handleKeyDown = (event) => {
-        if(event.key === 'Enter'){
-            event.preventDefault();
-        }
-    };
-
-
-
-
     const renderContent = () => {
         switch (currentStage) {
         case 0:
@@ -106,7 +97,6 @@ const StudyNewWizard = () => {
             <StudyParticipants
                 onCancel={handleBack}
                 onSubmit={handleNext}
-                onKeyDown={handleKeyDown}
                 initialValues={formValues.emailList || []}
             />
             );
@@ -115,7 +105,6 @@ const StudyNewWizard = () => {
             <StudyPrompts
                 onCancel={handleBack}
                 onSubmit={handleNext}
-                onKeyDown={handleKeyDown}
                 initialValues={formValues.promptList || []}
             />
             );

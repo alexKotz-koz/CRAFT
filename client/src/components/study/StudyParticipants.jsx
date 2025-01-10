@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
-import { Field, Form } from "react-final-form";
+import { Form } from "react-final-form";
 import PropTypes from 'prop-types';
 import { GoPersonAdd, GoTrash } from "react-icons/go";
 import { validateEmail } from "../../utils/validation";
-import FormField from "../form/FormField";
 import { useLazyFetchUsernameQuery } from "../../store";
 
 
-const StudyParticipants = ({ onSubmit, onCancel, onKeyDown, initialValues }) => {
+const StudyParticipants = ({ onSubmit, onCancel, initialValues }) => {
   const [email, setEmail] = useState("");
   const [emailList, setEmailList] = useState([]);
   const [invalidEmail, setInvalidEmail] = useState(false);
@@ -56,13 +55,20 @@ const StudyParticipants = ({ onSubmit, onCancel, onKeyDown, initialValues }) => 
     onSubmit({ ...values, emailList });
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddEmail();
+    }
+  };
+
   return (
     <div>
       <h3>Add Participants</h3>
       <Form
         onSubmit={handleFormSubmit}
         render={({ handleSubmit }) => (
-          <form onSubmit={handleSubmit} onKeyDown={onKeyDown} className="needs-validation" noValidate>
+          <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="needs-validation" noValidate>
             <div className="mb-3">
               <label className="form-label">Email</label>
               <input

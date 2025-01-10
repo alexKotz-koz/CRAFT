@@ -6,7 +6,7 @@ import { GoPlus, GoTrash } from "react-icons/go";
 // - Add property to the prompt (type), where faciliatators can select different types of prompts
 
 
-const StudyPrompts = ({ onSubmit, onCancel, onKeyDown, initialValues }) => {
+const StudyPrompts = ({ onSubmit, onCancel, initialValues }) => {
     const [prompt, setPrompt] = useState("");
     const [promptList, setpromptList] = useState([]);
     const [invalidPromptList, setInvalidPromptList] = useState(false);
@@ -37,15 +37,21 @@ const StudyPrompts = ({ onSubmit, onCancel, onKeyDown, initialValues }) => {
         onSubmit({ ...values, promptList });
     };
 
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleAddPrompt();
+        }
+      };
+
     return (
         <div>
             <h3>Add Prompts</h3>
             <Form
                 onSubmit={handleFormSubmit}
                 render={({ handleSubmit }) => (
-                    <form onSubmit={handleSubmit} onKeyDown={onKeyDown} className="needs-validation" noValidate>
+                    <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="needs-validation" noValidate>
                         <div className="mb-3">
-
                             <label className="form-label">Prompt</label>
                             <input
                                 type="text"
