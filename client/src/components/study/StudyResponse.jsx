@@ -1,9 +1,10 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useCreateStudyResponseMutation, useFetchStudyQuery } from "../../store";
 import { Form, Field } from "react-final-form";
 
 
 const StudyResponse = ({ user }) => {
+    const navigate = useNavigate();
     const { studyId } = useParams();
     const { data: study, error: studyError, isLoading: studyIsLoading } = useFetchStudyQuery(studyId);
     const [createResponse, { error: responseError, isLoading: responseIsLoading }] = useCreateStudyResponseMutation();
@@ -15,7 +16,7 @@ const StudyResponse = ({ user }) => {
         return <div>Error: {responseError?.data.message || studyError?.data.message}</div>;
     }
 
-    const handleFormSubmit = (values) => {
+    const handleFormSubmit = async (values) => {
         const responses = Object.keys(values).map((key) => ({
             prompt: key,
             response: values[key],
@@ -27,7 +28,13 @@ const StudyResponse = ({ user }) => {
             participant: user._id,
             dateCreated: Date.now(),
         };
-        createResponse(response);
+        try{
+            await createResponse(response).unwrap();
+            navigate('/home');
+        } catch(err){
+            console.error("Failed to create response: ", err);
+        }
+
     };
 
     return (

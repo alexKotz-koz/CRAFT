@@ -7,8 +7,9 @@ const studyApi = createApi({
     }),
     endpoints(builder) {
         return {
-            invalidatesTags: ['Study'],
+            
             createStudy: builder.mutation({
+                invalidatesTags: ['Study'],
                 query: (study) => {
                     return {
                         url: '/study/new',
@@ -27,6 +28,7 @@ const studyApi = createApi({
                 },
             }),
             createStudyResponse: builder.mutation({
+                invalidatesTags: ['Study'],
                 query: (response) => {
                     console.log("api response: ", response)
                     return{

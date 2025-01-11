@@ -12,7 +12,7 @@ function Test() {
         <div>
             Test
             {results.data && results.data.map((user) => (
-                <div key={user._id}>{user.userName}</div>
+                <div key={user._id}>{user.username}</div>
             ))}
         </div>
     );

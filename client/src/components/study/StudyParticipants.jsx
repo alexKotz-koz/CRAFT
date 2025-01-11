@@ -36,9 +36,9 @@ const StudyParticipants = ({ onSubmit, onCancel, initialValues }) => {
         return;
       }
 
-      const userName = result.userName;
-      console.log(userName);
-      setEmailList([...emailList, { email, userName }]);
+      const username = result.username;
+      console.log(username);
+      setEmailList([...emailList, { email, username }]);
       setEmail("");
     }
   };
@@ -95,7 +95,7 @@ const StudyParticipants = ({ onSubmit, onCancel, initialValues }) => {
               <ul className="list-group">
                 {emailList.map((item, index) => (
                   <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                    {item.email} ({item.userName})
+                    {item.email} ({item.username})
                     <button
                       type="button"
                       className="btn btn-danger btn-sm"

@@ -28,6 +28,7 @@ app.use(passport.session());
 
 require('./routes/studyRoutes')(app);
 require('./routes/authRoutes')(app);
+require('./routes/discussionRoutes')(app);
 
 // Error-handling middleware
 app.use((err, req, res, next) => {

@@ -22,7 +22,6 @@ const SignUp = () => {
     const validate = (values) => {
         const errors = {};
         const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
-        console.log(values)
         FORM_FIELDS.forEach(({ name }) => {
             if (!values[name]) {
                 errors[name] = "You must provide a value";

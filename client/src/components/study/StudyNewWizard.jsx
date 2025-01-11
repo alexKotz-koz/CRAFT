@@ -26,7 +26,7 @@ const StudyNewWizard = () => {
 
     const generateCSVContent = (participants) => {
         const headers = ['Email', 'Username', 'Password'];
-        const rows = participants.map(participant => [participant.email, participant.userName, participant.password]);
+        const rows = participants.map(participant => [participant.email, participant.username, participant.password]);
         const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
         return csvContent;
     };
@@ -57,7 +57,7 @@ const StudyNewWizard = () => {
                 const tempPassword = generateTemporaryPassword();
                 const newUser = {
                     email: participant.email,
-                    userName: participant.userName,
+                    username: participant.username,
                     password: tempPassword,
                     role: 'participant'
                 };

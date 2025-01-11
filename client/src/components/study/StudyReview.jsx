@@ -22,8 +22,8 @@ const StudyReview = ({ onSubmit, onCancel, formValues, isLoading, error }) => {
 
                         <label>Participants</label>
 
-                        {emailList.map(({email, userName}, index) => (
-                            <div key={index}>Email: {email} | Username: {userName}</div>
+                        {emailList.map(({email, username}, index) => (
+                            <div key={index}>Email: {email} | Username: {username}</div>
                         ))}
 
                         <label>Prompts</label>

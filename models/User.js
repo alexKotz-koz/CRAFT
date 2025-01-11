@@ -5,7 +5,7 @@ const SALT_WORK_FACTOR = 10;
 
 const UserSchema = new Schema({
   googleId: String,
-  userName: { type: String, required: true, index: { unique: true } },
+  username: { type: String, required: true, index: { unique: true } },
   password: String,
   //firstName: { type: String, required: true }, --Later implementation
   //lastName: String, --Later implementation

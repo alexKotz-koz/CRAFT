@@ -10,7 +10,6 @@ const PasswordReset = () => {
     const navigate = useNavigate();
 
     const [passwordReset, { isLoading, error }] = usePasswordResetMutation();
-    console.log("error", error)
     const handleFormSubmit = async (values) => {
       try {
         await passwordReset(values).unwrap();
@@ -21,7 +20,6 @@ const PasswordReset = () => {
     };
 
     const validate = (values) => {
-        console.log("validate", values);
         const errors = {};
         if (values.newPassword === values.currentPassword){
             errors.newPassword = "New password cannot be the same as your old password";

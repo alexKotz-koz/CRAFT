@@ -41,7 +41,7 @@ const Home = () => {
         const chunkIndex = Math.floor(index / 4);
 
         if (!resultArray[chunkIndex]) {
-            resultArray[chunkIndex] = []; // start a new chunk
+            resultArray[chunkIndex] = [];
         }
 
         resultArray[chunkIndex].push(item);
@@ -50,6 +50,7 @@ const Home = () => {
     }, []);
 
     const renderFacilitator = () => {
+        console.log(studyChunks)
         return (
             <div>
                 {studyChunks.map((chunk, chunkIndex) => (
@@ -63,7 +64,9 @@ const Home = () => {
                                         </h5>
                                         <p className="card-text description">{study.description}</p>
                                         <div className="mb-3">
-                                            <p className="card-text fw-bold mt-3">Number of Participants: {study.participants.length}</p>
+                                            <p className="card-text">
+                                                Completed Studies: {study.participants.filter(p => p.responded).length} / {study.participants.length}
+                                            </p>
                                         </div>
 
                                         <div className="d-flex justify-content-center mt-auto mb-3">
@@ -86,9 +89,51 @@ const Home = () => {
         );
     };
 
-    const handleResponseClick = (studyId) => {
-        navigate(`/study/response/${studyId}`);
-    }
+    const handleResponseClick = (status, studyId) => {
+        switch (status) {
+            case true:
+                break;
+            default:
+                navigate(`/study/response/${studyId}`);
+                break;
+        }
+        
+    };
+
+    const handleDiscussionBoardClick = () => {
+        navigate('/');
+    };
+
+    const renderCompletedStudyCard = (status, studyId) => {
+        switch (status) {
+            case true:
+                return (
+                    <div className="btn-group mt-auto" role="group">
+                        <button
+                            className="btn btn-success text-decoration-none text-white"
+                            onClick={() => handleResponseClick(status, studyId)}
+                        >
+                            View Response
+                        </button>
+                        <button
+                            className="btn btn-secondary text-decoration-none text-white"
+                            onClick={() => navigate(`/discussion/${studyId}`)}
+                        >
+                            View Discussion
+                        </button>
+                    </div>
+                );
+            default:
+                return (
+                    <button
+                        className="btn btn-success text-decoration-none text-white mt-auto"
+                        onClick={() => handleResponseClick(status, studyId)}
+                    >
+                        Start
+                    </button>
+                );
+        }
+    };
 
     const renderParticipant = () => {
         return (
@@ -112,12 +157,7 @@ const Home = () => {
                                     <div className="mb-3">
                                         {/* Additional content */}
                                     </div>
-                                    <button
-                                        className="btn btn-success text-decoration-none text-white"
-                                        onClick={()=>handleResponseClick(study._id)}
-                                    >
-                                        {respondedStatus[study._id] ? "View Response" : "Start"}
-                                    </button>
+                                    {renderCompletedStudyCard(respondedStatus[study._id], study._id)}
                                 </div>
                             </div>
                         </div>

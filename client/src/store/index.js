@@ -2,16 +2,19 @@ import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { authApi } from "./apis/authApi";
 import { studyApi } from "./apis/studyApi";
+import { discussionApi } from "./apis/discussionApi";
 
 export const store = configureStore({
   reducer: {
     [authApi.reducerPath]: authApi.reducer,
     [studyApi.reducerPath]: studyApi.reducer,
+    [discussionApi.reducerPath]: discussionApi.reducer,
   },
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware()
       .concat(authApi.middleware)
-      .concat(studyApi.middleware);
+      .concat(studyApi.middleware)
+      .concat(discussionApi.middleware);
   }
 });
 
@@ -34,3 +37,7 @@ export {
   useCreateStudyResponseMutation,
   useFetchStudyQuery
 } from './apis/studyApi';
+
+export {
+  useFetchInitialResponsesQuery
+} from './apis/discussionApi';

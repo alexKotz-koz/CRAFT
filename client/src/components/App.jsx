@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-
 import Header from './Header';
 import SignUp from './auth/SignUp';
 import Login from './auth/Login';
@@ -9,12 +8,14 @@ import Landing from './Landing';
 import StudyNewWizard from './study/StudyNewWizard';
 import Study from './study/Study';
 import PasswordReset from "./auth/PasswordReset";
+import StudyResponse from "./study/StudyResponse";
+import DiscussionBoard from "./discussion-board/DiscussionBoard";
 
 import { useFetchUserQuery } from '../store';
 
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import StudyResponse from "./study/StudyResponse";
+
 
 const App = () => {
 
@@ -35,6 +36,7 @@ const App = () => {
         <Route path='/study/new' element={<StudyNewWizard />} />
         <Route path='/study/response/:studyId' element={<StudyResponse user={user} />} />
         <Route path='/password_reset' element={<PasswordReset />} />
+        <Route path='/discussion/:studyId' element={<DiscussionBoard />} />
       </Routes>
       </BrowserRouter>
     </div>

@@ -49,7 +49,7 @@ const Login = () => {
                             )}
                         </Field>
                         ))}
-            {errorLogin && <div style={{ color: 'red' }}>{error.data.error.error}</div>}
+            {errorLogin && <div style={{ color: 'red' }}>{errorLogin.data.error.error}</div>}
             <button type="submit" disabled={isLoadingLogin}>Login</button>
             <ButtonLink to='/password_reset' text='Reset Password' additionalClasses='btn-primary'/>
           </form>

@@ -26,33 +26,33 @@ module.exports = (app) => {
     );
 
     app.get('/auth/generate_username', requireLogin, async (req, res) => {
-        let userName;
+        let username;
         let existingUser;
 
         do {
-            userName = generateUsername();
-            console.log("Generated Username: ", userName);
-            existingUser = await User.findOne({ userName });
+            username = generateUsername();
+            console.log("Generated username: ", username);
+            existingUser = await User.findOne({ username });
         } while (existingUser);
 
-        res.json({ userName });
+        res.json({ username });
     });
 
     /* Future implementation signup
     app.post('/auth/signup', async (req, res) => {
         try {
-            const { userName, password, email, firstName, lastName, role} = req.body;
-            if (!userName && !email && !password) {
+            const { username, password, email, firstName, lastName, role} = req.body;
+            if (!username && !email && !password) {
                 return res
                     .status(403)
                     .json({ error: "All Fields are required" });
             }
 
-            const existingUser = await User.findOne({ userName });
+            const existingUser = await User.findOne({ username });
             if (existingUser) {
                 return res
                     .status(409)
-                    .json({ error: "Username already exists" });
+                    .json({ error: "username already exists" });
             }
             const salt = await bcrypt.genSalt(10); //default
             const hashed = await bcrypt.hash(password, salt);
@@ -60,7 +60,7 @@ module.exports = (app) => {
 
             const newUser = new User({
                 email,
-                userName,
+                username,
                 firstName,
                 lastName,
                 role,
@@ -76,8 +76,6 @@ module.exports = (app) => {
 
     app.post('/auth/password_reset', async (req, res) => {
         const { email, currentPassword, newPassword } = req.body;
-        console.log("req.body", req.body);
-
         try {
             const user = await User.findOne({ email });
             if (!user) {
@@ -112,13 +110,12 @@ module.exports = (app) => {
             }
 
 
-            let userName;
+            let username;
             let existingUser;
 
             do {
-                userName = generateUsername();
-                console.log("Generated Username: ", userName);
-                existingUser = await User.findOne({ userName });
+                username = generateUsername();
+                existingUser = await User.findOne({ username });
             } while (existingUser);
 
             const salt = await bcrypt.genSalt(10); //default
@@ -127,11 +124,10 @@ module.exports = (app) => {
 
             const newUser = new User({
                 email,
-                userName,
+                username,
                 role,
                 password: hashed,
             });
-            console.log("Auth Route newUSer: ", newUser);
             await newUser.save();
             res.json({ user: newUser });
         } catch (error) {
@@ -153,7 +149,7 @@ module.exports = (app) => {
 
                 const newUser = new User({
                     email: user.email,
-                    userName: user.userName,
+                    username: user.username,
                     password: hashedPassword,
                     role: 'participant',
                 });
@@ -201,7 +197,6 @@ module.exports = (app) => {
     });
 
     app.get("/auth/current_user", (req, res) => {
-        console.log(req.user);
         res.send(req.user);
     });
 
