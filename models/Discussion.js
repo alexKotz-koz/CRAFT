@@ -19,3 +19,5 @@ const DiscussionSchema = new Schema({
 
 mongoose.model('Discussion', DiscussionSchema);
 mongoose.model('Comment', CommentSchema);
+
+module.export = { CommentSchema };

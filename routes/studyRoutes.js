@@ -47,7 +47,7 @@ module.exports = (app) => {
             const discussion = new Discussion({
                 study: study._id,
                 prompts: studyPrompts,
-                initialResponses: null, // Set this to the appropriate initial response if available
+                initialResponses: null,
                 comments: []
             });
     
@@ -82,11 +82,11 @@ module.exports = (app) => {
                 { $set: { 'participants.$.responded': true } }
             );
 
+            // Update the Discussion.initialResponses array with the new response
             await Discussion.findOneAndUpdate(
                 { study: studyId },
-                { initialResponses: studyResponse._id }
+                { $push: { initialResponses: studyResponse._id } }
             );
-
             res.send(studyResponse);
         } catch (err) {
             res.status(422).send(err);
