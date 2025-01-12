@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const studyPromptSchema = new Schema({
-    prompt: {type: String, required: true},
-    response: {type: String, required: true},
+const StudyPromptSchema = new Schema({
+    study: { type: Schema.Types.ObjectId, ref: 'Study', required: true },
+    prompt: { type: String, required: true },
 });
 
-module.exports = studyPromptSchema;
+mongoose.model('StudyPrompt', StudyPromptSchema);

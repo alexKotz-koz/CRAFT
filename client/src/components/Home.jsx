@@ -29,7 +29,7 @@ const Home = () => {
     }
 
     if (userError || studiesError) {
-        return <div>Error: {userError?.message || studiesError?.message}</div>;
+        return <div>Error: {userError?.data.error || studiesError?.data.error}</div>;
     }
 
     if (!user) {

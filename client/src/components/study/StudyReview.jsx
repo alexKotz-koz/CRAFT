@@ -30,7 +30,7 @@ const StudyReview = ({ onSubmit, onCancel, formValues, isLoading, error }) => {
                         {promptList.map((prompt, index) => (
                             <div key={index}>{prompt}</div>
                         ))}
-                        {error && <p>Error: {error.data.error}</p>}
+                        {error && <p>Error: {error.data.message}</p>}
                         <div className="d-flex justify-content-between mt-3">
                             <button type="button" className="btn btn-secondary" onClick={onCancel}>
                                 Back

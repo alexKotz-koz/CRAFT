@@ -9,11 +9,13 @@ const StudyResponse = ({ user }) => {
     const { data: study, error: studyError, isLoading: studyIsLoading } = useFetchStudyQuery(studyId);
     const [createResponse, { error: responseError, isLoading: responseIsLoading }] = useCreateStudyResponseMutation();
 
+    console.log(study)
+
     if (studyIsLoading || responseIsLoading) {
         return <div>Loading...</div>;
     }
     if (responseError || studyError) {
-        return <div>Error: {responseError?.data.message || studyError?.data.message}</div>;
+        return <div>Error: {responseError?.data.error || studyError?.data.error}</div>;
     }
 
     const handleFormSubmit = async (values) => {
@@ -52,10 +54,10 @@ const StudyResponse = ({ user }) => {
                         {
                             study.prompts.map((prompt, index) => (
                                 <div key={index}>
-                                    <label className="form-label">{prompt}</label>
+                                    <label className="form-label">{prompt.prompt}</label>
                                     <div>
                                         <Field
-                                            name={prompt}
+                                            name={prompt._id}
                                             component="textarea"
                                             className="form-control"
                                             placeholder="Your response"

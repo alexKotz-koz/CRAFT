@@ -7,7 +7,7 @@ const discussionApi = createApi({
     }),
     endpoints(builder) {
         return {
-            fetchInitialResponses: builder.query({
+            fetchDiscussion: builder.query({
                 query: (studyId) => {
                     return {
                         url: `/discussion/${studyId}`,
@@ -21,6 +21,6 @@ const discussionApi = createApi({
 });
 
 export const {
-    useFetchInitialResponsesQuery,
+    useFetchDiscussionQuery,
 } = discussionApi;
 export {discussionApi};

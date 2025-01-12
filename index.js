@@ -7,6 +7,8 @@ const keys = require('./config/keys');
 require('./models/User');
 require('./models/Study');
 require('./models/StudyResponse');
+require('./models/StudyPrompt');
+require('./models/Discussion');
 require('./services/passport');
 
 mongoose.Promise = global.Promise;

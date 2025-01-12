@@ -1,44 +1,67 @@
 const mongoose = require('mongoose');
-const Study = mongoose.model('study');
+const Study = mongoose.model('Study');
 const StudyResponse = mongoose.model('StudyResponse');
+const StudyPrompt = mongoose.model('StudyPrompt');
+const Discussion = mongoose.model('Discussion');
 
 const requireLogin = require('../middlewares/requireLogin');
 
 
 module.exports = (app) => {
     app.post('/api/study/new', requireLogin, async (req, res) => {
-
         const { name, instructions, description, participants, prompts } = req.body;
-
-        const existingStudy = await Study.findOne({
-            name
-        });
+    
+        const existingStudy = await Study.findOne({ name });
         if (existingStudy) {
-            return res.status(409).send("Study with that name already exists, please select a different study name.")
+            return res.status(409).send("Study with that name already exists, please select a different study name.");
         }
-
+    
         const study = new Study({
             name,
             instructions,
             description,
             participants,
-            prompts,
             _user: req.user.id,
             dateCreated: Date.now(),
             dateModified: Date.now(),
         });
-
+    
         try {
             await study.save();
-            res.send(study);
+    
+            // Create StudyPrompt documents with the studyId
+            const studyPrompts = await Promise.all(prompts.map(async prompt => {
+                const studyPrompt = new StudyPrompt({
+                    study: study._id,
+                    prompt: prompt.prompt
+                });
+                await studyPrompt.save();
+                return studyPrompt._id;
+            }));
+    
+            // Update the Study document with the saved StudyPrompt IDs
+            study.prompts = studyPrompts;
+            await study.save();
+    
+            // Create a new Discussion for the newly created Study
+            const discussion = new Discussion({
+                study: study._id,
+                prompts: studyPrompts,
+                initialResponses: null, // Set this to the appropriate initial response if available
+                comments: []
+            });
+    
+            await discussion.save();
+    
+            res.send({ study, discussion });
         } catch (err) {
             res.status(422).send(err);
         }
     });
 
     app.post('/api/study/response', requireLogin, async (req, res) => {
-        
-        const { studyId, responses, participant, dateCreated} = req.body;
+
+        const { studyId, responses, participant, dateCreated } = req.body;
 
         const studyResponse = new StudyResponse({
             study: studyId,
@@ -59,6 +82,11 @@ module.exports = (app) => {
                 { $set: { 'participants.$.responded': true } }
             );
 
+            await Discussion.findOneAndUpdate(
+                { study: studyId },
+                { initialResponses: studyResponse._id }
+            );
+
             res.send(studyResponse);
         } catch (err) {
             res.status(422).send(err);
@@ -69,7 +97,7 @@ module.exports = (app) => {
         let studies;
         switch (req.user.role) {
             case 'facilitator':
-            case 'admin': 
+            case 'admin':
                 studies = await Study.find({ _user: req.user.id });
                 break;
             case 'participant':
@@ -82,10 +110,11 @@ module.exports = (app) => {
         res.send(studies)
 
     });
-    app.get('/api/study/:studyId', requireLogin, async (req, res) => {
-        const {studyId} = req.params;
-        try{
-            const study = await Study.findById(studyId);
+     app.get('/api/study/:studyId', requireLogin, async (req, res) => {
+        const { studyId } = req.params;
+        try {
+            const study = await Study.findById(studyId).populate('prompts', 'prompt');
+            console.log(study);
             if (!study) {
                 return res.status(404).send("Study not found");
             }
@@ -93,5 +122,5 @@ module.exports = (app) => {
         } catch (err) {
             res.status(422).send(err);
         }
-    })
+    });
 };

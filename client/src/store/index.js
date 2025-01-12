@@ -39,5 +39,5 @@ export {
 } from './apis/studyApi';
 
 export {
-  useFetchInitialResponsesQuery
+  useFetchDiscussionQuery,
 } from './apis/discussionApi';

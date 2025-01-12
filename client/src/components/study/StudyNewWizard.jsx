@@ -49,7 +49,7 @@ const StudyNewWizard = () => {
             instructions: formValues.instructions,
             description: formValues.description,
             participants: formValues.emailList,
-            prompts: formValues.promptList,
+            prompts: formValues.promptList.map(prompt => ({ prompt })) // Ensure prompts are objects with prompt field
         }
         try {
             const fullParticipants = [];

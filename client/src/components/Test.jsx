@@ -6,7 +6,7 @@ function Test() {
     console.log(results);
 
     if (results.isLoading) return <div>Loading...</div>;
-    if (results.error) return <div>Error: {results.error.message}</div>;
+    if (results.error) return <div>Error: {results.error.data.error}</div>;
 
     return (
         <div>

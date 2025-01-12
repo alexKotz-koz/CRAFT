@@ -1,6 +1,6 @@
 const passport = require('passport');
 const mongoose = require('mongoose');
-const User = mongoose.model('users');
+const User = mongoose.model('User');
 const bcrypt = require('bcryptjs');
 const requireLogin = require('../middlewares/requireLogin');
 const getRandomWords = require('./usernameGeneration/generateUsername');
@@ -93,7 +93,7 @@ module.exports = (app) => {
             user.password = hashedNewPassword;
             await user.save();
 
-            res.json({ message: "Password updated successfully" });
+            res.json({ error: "Password updated successfully" });
         } catch (error) {
             console.error("Error updating password:", error);
             res.status(500).json({ error: "Internal server error" });
