@@ -47,7 +47,7 @@ module.exports = (app) => {
             const discussion = new Discussion({
                 study: study._id,
                 prompts: studyPrompts,
-                initialResponses: null,
+                initialResponses: [],
                 comments: []
             });
     

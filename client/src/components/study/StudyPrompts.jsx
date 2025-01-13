@@ -2,16 +2,13 @@ import { useState, useEffect } from "react";
 import { Form } from "react-final-form";
 import { GoPlus, GoTrash } from "react-icons/go";
 
-//TODO:
-// - Add property to the prompt (type), where faciliatators can select different types of prompts
-
-
 const StudyPrompts = ({ onSubmit, onCancel, initialValues }) => {
     const [prompt, setPrompt] = useState("");
-    const [promptList, setpromptList] = useState([]);
+    const [promptList, setPromptList] = useState([]);
     const [invalidPromptList, setInvalidPromptList] = useState(false);
+
     useEffect(() => {
-        setpromptList(initialValues || []);
+        setPromptList(initialValues || []);
     }, [initialValues]);
 
     const handleInputChange = (e) => {
@@ -20,13 +17,13 @@ const StudyPrompts = ({ onSubmit, onCancel, initialValues }) => {
 
     const handleAddPrompt = () => {
         if (prompt && !promptList.includes(prompt)) {
-            setpromptList([...promptList, prompt]);
+            setPromptList([...promptList, prompt]);
             setPrompt("");
         }
     };
 
     const handleRemovePrompt = (promptToRemove) => {
-        setpromptList(promptList.filter(prompt => prompt !== promptToRemove));
+        setPromptList(promptList.filter(prompt => prompt !== promptToRemove));
     };
 
     const handleFormSubmit = (values) => {
@@ -39,10 +36,10 @@ const StudyPrompts = ({ onSubmit, onCancel, initialValues }) => {
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
-          e.preventDefault();
-          handleAddPrompt();
+            e.preventDefault();
+            handleAddPrompt();
         }
-      };
+    };
 
     return (
         <div>
@@ -97,11 +94,9 @@ const StudyPrompts = ({ onSubmit, onCancel, initialValues }) => {
                                 Next
                             </button>
                         </div>
-
                     </form>
                 )}
             />
-
         </div>
     );
 };

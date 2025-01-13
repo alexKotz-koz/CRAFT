@@ -2,7 +2,7 @@ import { useState } from "react";
 import { GoChevronDown, GoChevronLeft } from 'react-icons/go';
 import InitialResponse from "./InitialResponse";
 
-function Prompt({ prompt, responses, promptIndex }) {
+function Prompt({ prompt, responses, promptIndex, studyId, currentUser }) {
     const [isExpanded, setIsExpanded] = useState(false);
 
     // Handle click for the dropdown
@@ -28,14 +28,24 @@ function Prompt({ prompt, responses, promptIndex }) {
             </div>
             {isExpanded && (
                 <div className="card-body">
-                    {responses.map((response, idx) => (
-                        <InitialResponse
-                            key={idx}
-                            username={response.participant}
-                            dateCreated={response.dateCreated}
-                            response={response.responses[promptIndex].response}
-                        />
-                    ))}
+                    {responses.map((response, idx) => {
+                        console.log(response); // Log the value of response
+                        return (
+                            <InitialResponse
+                                key={idx}
+                                username={response.participant}
+                                dateCreated={response.dateCreated}
+                                response={response.responses[promptIndex].response}
+                                studyId={studyId}
+                                promptId={response.responses[promptIndex].prompt}
+                                responseId={response._id}
+                                currentUser={currentUser}
+                                upvotes={response.responses[promptIndex].upvotes} // Pass upvotes
+                                downvotes={response.responses[promptIndex].downvotes} // Pass downvotes
+                                voters={response.responses[promptIndex].voters} // Pass voters
+                            />
+                        );
+                    })}
                 </div>
             )}
         </div>

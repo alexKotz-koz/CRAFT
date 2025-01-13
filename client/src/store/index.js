@@ -40,4 +40,5 @@ export {
 
 export {
   useFetchDiscussionQuery,
+  useCreateVoteMutation,
 } from './apis/discussionApi';

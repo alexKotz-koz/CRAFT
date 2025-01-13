@@ -8,10 +8,21 @@ const discussionApi = createApi({
     endpoints(builder) {
         return {
             fetchDiscussion: builder.query({
+                providesTags: ['vote'],
                 query: (studyId) => {
                     return {
                         url: `/discussion/${studyId}`,
                         method: 'GET',
+                    };
+                },
+            }),
+            createVote: builder.mutation({
+                invalidatesTags: ['vote'],
+                query: ({ studyId, promptId, responseId, voteType }) => {
+                    return {
+                        url: `/discussion/${studyId}/${promptId}/${responseId}`,
+                        method: 'POST',
+                        body: { voteType },
                     };
                 },
             }),
@@ -22,5 +33,6 @@ const discussionApi = createApi({
 
 export const {
     useFetchDiscussionQuery,
+    useCreateVoteMutation,
 } = discussionApi;
-export {discussionApi};
+export { discussionApi };
