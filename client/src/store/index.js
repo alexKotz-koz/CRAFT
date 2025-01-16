@@ -41,4 +41,8 @@ export {
 export {
   useFetchDiscussionQuery,
   useCreateVoteMutation,
+  useCreateCommentMutation,
+  useCreateCommentVoteMutation,
+  useCreateSubCommentMutation,
+  useFetchSubCommentsQuery
 } from './apis/discussionApi';

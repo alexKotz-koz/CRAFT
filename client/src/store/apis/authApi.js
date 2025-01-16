@@ -34,7 +34,7 @@ const authApi = createApi({
                 },
             }),
             loginUser: builder.mutation({
-                invalidatesTags: ['User'], //triggers a fetchUser query when called
+                invalidatesTags: ['User'], 
                 query: (values) => {
                     return {
                         url: '/login',

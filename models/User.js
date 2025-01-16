@@ -9,7 +9,7 @@ const UserSchema = new Schema({
   password: String,
   //firstName: { type: String, required: true }, --Later implementation
   //lastName: String, --Later implementation
-  email: { type: String, required: true },
+  email: { type: String, required: true, index: { unique: true } },
   role: {
     type: String,
     enum: ['facilitator', 'participant', 'admin'],

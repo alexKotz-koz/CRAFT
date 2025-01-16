@@ -21,7 +21,8 @@ const StudyNewWizard = () => {
     };
 
     const generateTemporaryPassword = () => {
-        return Math.random().toString(36).slice(-8); 
+        return 'test';
+        //return Math.random().toString(36).slice(-8); 
     };
 
     const generateCSVContent = (participants) => {

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Discussion = mongoose.model('Discussion');
 const StudyResponse = mongoose.model('StudyResponse');
+const { Comment, InitialResponseComment, SubComment } = require('../models/Comment');
 const requireLogin = require('../middlewares/requireLogin');
 
 module.exports = (app) => {
@@ -8,29 +9,37 @@ module.exports = (app) => {
         const { studyId } = req.params;
         try {
             const discussion = await Discussion.findOne({ study: studyId })
-                .populate('comments.user', 'username')
-                .populate('prompts', 'prompt')
+                .populate('prompts', 'prompt') // Populate prompts with their "prompt" field
                 .populate({
                     path: 'initialResponses',
-                    populate: {
-                        path: 'participant',
-                        select: 'username'
-                    }
+                    populate: [
+                        {
+                            path: 'participant', // Populate participant in initialResponses
+                            select: 'username'
+                        },
+                        {
+                            path: 'responses.comments', // Populate comments in responses
+                            populate: [
+                                { path: 'user', select: 'username' }, // Populate user in comments
+                            ]
+                        }
+                    ]
                 });
-            console.log("Discussion Returned from query: ", discussion);
+
             if (!discussion) {
                 return res.status(404).send("No discussion found for this study");
             }
 
             res.send(discussion);
         } catch (err) {
-            console.log("Error: ", err)
+            console.error("Error fetching discussion:", err);
             res.status(422).send(err);
         }
     });
 
-    app.post('/api/discussion/:studyId/:promptId/:responseId', requireLogin, async (req, res) => {
-        const { studyId, promptId, responseId } = req.params;
+
+    app.post('/api/discussion/:promptId/:responseId/vote', requireLogin, async (req, res) => {
+        const { promptId, responseId } = req.params;
         const { voteType } = req.body; // Expecting { voteType: 'upvote' } or { voteType: 'downvote' }
         const userId = req.user._id; // Assuming req.user contains the authenticated user's info
 
@@ -61,13 +70,127 @@ module.exports = (app) => {
                 { new: true }
             );
 
-            if (!updatedResponse) {
-                return res.status(404).send("Response not found");
-            }
-
             res.send(updatedResponse);
         } catch (err) {
             console.log("Error: ", err);
+            res.status(422).send(err);
+        }
+    });
+
+    app.post('/api/discussion/:promptId/:responseId/comment', requireLogin, async (req, res) => {
+        const { promptId, responseId } = req.params;
+        const { content } = req.body;
+        const userId = req.user._id;
+
+        try {
+            const studyResponse = await StudyResponse.findById(responseId);
+            if (!studyResponse) {
+                return res.status(404).send("Response not found");
+            }
+
+            const response = studyResponse.responses.find(r => r.prompt.toString() === promptId);
+            if (!response) {
+                return res.status(404).send("Response not found");
+            }
+
+            // Create a new comment
+            const newComment = new InitialResponseComment({
+                user: userId,
+                content,
+                response: response._id
+            });
+
+            await newComment.save();
+
+            // Add the new comment to the response's comments array
+            response.comments.push(newComment._id);
+
+            // Save the updated StudyResponse document
+            await studyResponse.save();
+
+            // Populate the user field in the new comment
+            await newComment.populate('user', 'username');
+
+            res.send(newComment);
+        } catch (err) {
+            console.log("Error: ", err);
+            res.status(422).send(err);
+        }
+    });
+    app.post('/api/discussion/:commentId/vote', requireLogin, async (req, res) => {
+        const { commentId } = req.params;
+        const { voteType } = req.body;
+        const userId = req.user._id;
+        console.log(`Route: comment ${commentId}, vote ${voteType}, user ${userId}`);
+
+        try {
+            const comment = await Comment.findById(commentId);
+            if (!comment) {
+                return res.status(404).send("Comment not found");
+            }
+            if (comment.voters.includes(userId)) {
+                return res.status(400).send("You have already voted for this comment");
+            }
+            const update = voteType === 'upvote'
+                ? { $inc: { upvotes: 1 }, $push: { voters: userId } }
+                : { $inc: { downvotes: 1 }, $push: { voters: userId } };
+
+            console.log(`Route: update ${JSON.stringify(update)}`);
+
+            const updatedComment = await Comment.findOneAndUpdate(
+                { _id: commentId },
+                update,
+                { new: true }
+            );
+            console.log(`Route: updatedComment ${updatedComment}`);
+
+            res.send(updatedComment);
+        } catch (err) {
+            console.error("Error updating comment:", err);
+            res.status(422).send(err);
+        }
+    });
+    app.post('/api/discussion/:commentId/subcomment', requireLogin, async (req, res) => {
+        const { commentId } = req.params;
+        const { content } = req.body;
+        const userId = req.user._id;
+
+        try {
+
+            const comment = await Comment.findById(commentId);
+            if (!comment) {
+                return res.status(404).send("Comment not found");
+            }
+
+            // Create a new comment
+            const newComment = new SubComment({
+                user: userId,
+                content,
+                parentComment: commentId
+            });
+
+            await newComment.save();
+
+            // Populate the user field in the new comment
+            await newComment.populate('user', 'username');
+
+            res.send(newComment);
+
+
+        } catch (err) {
+            console.error("Error posting subcomment: ", err);
+            res.status(422).send(err);
+        }
+    });
+
+    app.get('/api/discussion/:commentId/subcomment', requireLogin, async (req, res) => {
+        const { commentId } = req.params;
+        try {
+            const subcomments = await SubComment.find({ parentComment: commentId }).populate('user', 'username');
+            console.log("Route: ", subcomments)
+            res.send(subcomments);
+        } catch (err) {
+            console.error("Error fetching subcomments:", err);
             res.status(422).send(err);
         }
     });

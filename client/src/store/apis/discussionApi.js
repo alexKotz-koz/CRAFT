@@ -8,7 +8,7 @@ const discussionApi = createApi({
     endpoints(builder) {
         return {
             fetchDiscussion: builder.query({
-                providesTags: ['vote'],
+                providesTags: ['vote', 'comment'],
                 query: (studyId) => {
                     return {
                         url: `/discussion/${studyId}`,
@@ -18,11 +18,52 @@ const discussionApi = createApi({
             }),
             createVote: builder.mutation({
                 invalidatesTags: ['vote'],
-                query: ({ studyId, promptId, responseId, voteType }) => {
+                query: ({ promptId, responseId, voteType }) => {
                     return {
-                        url: `/discussion/${studyId}/${promptId}/${responseId}`,
+                        url: `/discussion/${promptId}/${responseId}/vote`,
                         method: 'POST',
                         body: { voteType },
+                    };
+                },
+            }),
+            createCommentVote: builder.mutation({
+                invalidatesTags: ['vote'],
+                query: ({ commentId, voteType }) => {
+                    return {
+                        url: `/discussion/${commentId}/vote`,
+                        method: 'POST',
+                        body: { voteType },
+                    };
+                }
+            }),
+            createComment: builder.mutation({
+                invalidatesTags: ['comment'],
+                query: ({ promptId, responseId, content }) => {
+                    return {
+                        url: `/discussion/${promptId}/${responseId}/comment`,
+                        method: 'POST',
+                        body: { content },
+                    };
+                },
+            }),
+            createSubComment: builder.mutation({
+                invalidatesTags: ['subcomment'],
+                query: ({ commentId, content }) => {
+                    console.log("API commentID: ", commentId)
+                    return {
+                        url: `/discussion/${commentId}/subcomment`,
+                        method: 'POST',
+                        body: { content }
+                    };
+                },
+            }),
+            fetchSubComments: builder.query({
+                providesTags: ['subcomment'],
+                query: ({ commentId }) => {
+                    console.log("API comment", commentId)
+                    return {
+                        url: `/discussion/${commentId}/subcomment`,
+                        method: 'GET'
                     };
                 },
             }),
@@ -34,5 +75,9 @@ const discussionApi = createApi({
 export const {
     useFetchDiscussionQuery,
     useCreateVoteMutation,
+    useCreateCommentMutation,
+    useCreateCommentVoteMutation,
+    useCreateSubCommentMutation,
+    useFetchSubCommentsQuery
 } = discussionApi;
 export { discussionApi };

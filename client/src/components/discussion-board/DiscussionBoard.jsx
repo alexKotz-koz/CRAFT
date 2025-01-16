@@ -6,7 +6,6 @@ const DiscussionBoard = () => {
     const { studyId } = useParams();
     const { data: discussion, error: errorDiscussion, isLoading: isLoadingDiscussion } = useFetchDiscussionQuery(studyId);
     const { data: user, error: errorUser, isLoading: isLoadingUser } = useFetchUserQuery();
-    console.log("discussion discussion: ", discussion);
 
     if (isLoadingDiscussion || isLoadingUser) {
         return <div>Loading...</div>;
@@ -19,7 +18,7 @@ const DiscussionBoard = () => {
     const prompts = discussion.prompts.length > 0 ? discussion.prompts.map(prompt => prompt.prompt) : [];
     const responses = discussion.initialResponses.length > 0 ? discussion.initialResponses : [];
 
-    console.log("responses", responses)
+    console.log("responses", discussion)
     return (
         <div className="container">
             <h3>Discussion Board</h3>

@@ -9,6 +9,7 @@ require('./models/Study');
 require('./models/StudyResponse');
 require('./models/StudyPrompt');
 require('./models/Discussion');
+require('./models/Comment');
 require('./services/passport');
 
 mongoose.Promise = global.Promise;

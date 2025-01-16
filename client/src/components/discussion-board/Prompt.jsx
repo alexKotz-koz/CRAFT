@@ -5,7 +5,6 @@ import InitialResponse from "./InitialResponse";
 function Prompt({ prompt, responses, promptIndex, studyId, currentUser }) {
     const [isExpanded, setIsExpanded] = useState(false);
 
-    // Handle click for the dropdown
     const handleClick = () => {
         setIsExpanded(!isExpanded);
     };
@@ -29,7 +28,6 @@ function Prompt({ prompt, responses, promptIndex, studyId, currentUser }) {
             {isExpanded && (
                 <div className="card-body">
                     {responses.map((response, idx) => {
-                        console.log(response); // Log the value of response
                         return (
                             <InitialResponse
                                 key={idx}
@@ -43,6 +41,7 @@ function Prompt({ prompt, responses, promptIndex, studyId, currentUser }) {
                                 upvotes={response.responses[promptIndex].upvotes} // Pass upvotes
                                 downvotes={response.responses[promptIndex].downvotes} // Pass downvotes
                                 voters={response.responses[promptIndex].voters} // Pass voters
+                                comments={response.responses[promptIndex].comments}
                             />
                         );
                     })}

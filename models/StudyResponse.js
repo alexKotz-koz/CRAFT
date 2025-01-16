@@ -1,12 +1,10 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const { CommentSchema } = require('./Discussion');
-
 const ResponseSchema = new Schema({
     prompt: { type: String, required: true },
     response: { type: String, required: true },
-    comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],
+    comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }], // Reference to comments
     upvotes: { type: Number, default: 0 },
     downvotes: { type: Number, default: 0 },
     voters: [{ type: Schema.Types.ObjectId, ref: 'User' }] // Track voters

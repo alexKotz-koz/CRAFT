@@ -1,30 +1,56 @@
-import { GoArrowUp, GoArrowDown, GoCommentDiscussion } from "react-icons/go";
-import { useCreateVoteMutation } from "../../store";
+import { useState } from "react";
+import { GoArrowUp, GoArrowDown, GoCommentDiscussion, GoPlus } from "react-icons/go";
+import { useCreateVoteMutation, useCreateCommentMutation } from "../../store";
+import Comment from "./Comment";
 
-const InitialResponse = ({ username, dateCreated, response, studyId, promptId, responseId, currentUser, upvotes, downvotes, voters }) => {
+const InitialResponse = ({ username, dateCreated, response, studyId, promptId, responseId, currentUser, upvotes, downvotes, voters, comments }) => {
     const [createVote, { error: errorVote, isLoading: isLoadingVote }] = useCreateVoteMutation();
+    const [createComment, { error: errorComment, isLoading: isLoadingComment }] = useCreateCommentMutation();
+    const [commentContent, setCommentContent] = useState("");
+    const [showComments, setShowComments] = useState(false);
+    const [showNewComment, setShowNewComment] = useState(false);
 
-    // Check if the current user has already voted
     const hasVoted = voters.includes(currentUser._id);
 
-    if (isLoadingVote) {
+    if (isLoadingVote || isLoadingComment) {
         return <div>Loading...</div>;
     }
 
-    if (errorVote) {
-        return <div>Error: {errorVote?.data}</div>;
+    if (errorVote || errorComment) {
+        return <div>Error: {errorVote?.data || errorComment?.data}</div>;
     }
 
     const upVote = () => {
-        createVote({ studyId, promptId, responseId, voteType: 'upvote' });
+        if (!hasVoted) {
+            createVote({ studyId, promptId, responseId, voteType: 'upvote' });
+        }
     };
 
     const downVote = () => {
-        createVote({ studyId, promptId, responseId, voteType: 'downvote' });
+        if (!hasVoted) {
+            createVote({ studyId, promptId, responseId, voteType: 'downvote' });
+        }
     };
 
     const toggleComments = () => {
-        // Implement comment toggling logic here
+        setShowComments(!showComments);
+    };
+
+    const toggleNewComment = () => {
+        setShowNewComment(!showNewComment);
+    };
+
+    const handleCommentSubmit = async (e) => {
+        e.preventDefault();
+        if (commentContent.trim()) {
+            await createComment({ promptId, responseId, content: commentContent });
+            setCommentContent("");
+        }
+    };
+
+    const disabledStyle = {
+        pointerEvents: 'none',
+        opacity: 0.5,
     };
 
     return (
@@ -41,17 +67,53 @@ const InitialResponse = ({ username, dateCreated, response, studyId, promptId, r
                             <>
                                 <div className="d-flex align-items-center mx-2">
                                     <span>{upvotes}</span>
-                                    <GoArrowUp onClick={upVote} disabled={hasVoted} />
+                                    <GoArrowUp onClick={upVote} style={hasVoted ? disabledStyle : {}} />
                                 </div>
                                 <div className="d-flex align-items-center mx-2">
                                     <span>{downvotes}</span>
-                                    <GoArrowDown onClick={downVote} disabled={hasVoted} />
+                                    <GoArrowDown onClick={downVote} style={hasVoted ? disabledStyle : {}} />
                                 </div>
                             </>
                         )}
+                        <span>{comments.length}</span>
                         <GoCommentDiscussion className="mx-2" onClick={toggleComments} />
                     </div>
+
                 </div>
+                {showComments && (
+                    <div className="mt-3">
+                        {comments.map((comment, idx) => (
+                            <Comment key={idx} comment={comment} currentUser={currentUser} />
+                        ))}
+                        {showNewComment && (
+                            <form onSubmit={handleCommentSubmit} className="mt-3">
+                                <div className="mb-3">
+                                    <textarea
+                                        className="form-control"
+                                        value={commentContent}
+                                        onChange={(e) => setCommentContent(e.target.value)}
+                                        placeholder="Add a comment"
+                                        rows="3"
+                                    ></textarea>
+                                </div>
+                                <button type="submit" className="btn btn-primary">Submit</button>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={() => setShowNewComment(!showNewComment)}>
+                                    Cancel
+                                </button>
+                            </form>
+                        )}
+                        {!showNewComment && 
+                            <div className="end-0 m-1" style={{ cursor: 'pointer' }} onClick={toggleNewComment}>
+                                <GoPlus />
+                                <span className="ms-1">Add a new comment</span>
+                            </div>
+                        }
+
+                    </div>
+                )}
             </div>
         </div>
     );
