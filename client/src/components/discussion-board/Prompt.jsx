@@ -18,9 +18,9 @@ function Prompt({ prompt, responses, promptIndex, studyId, currentUser }) {
                     </h5>
                     <div className="ms-auto">
                         {isExpanded ? (
-                            <GoChevronDown style={{ fontSize: '24px' }} />
+                            <GoChevronDown style={{ fontSize: '24px', cursor: 'pointer' }} />
                         ) : (
-                            <GoChevronLeft style={{ fontSize: '24px' }} />
+                            <GoChevronLeft style={{ fontSize: '24px', cursor: 'pointer' }} />
                         )}
                     </div>
                 </div>

@@ -11,6 +11,7 @@ const Home = () => {
     const { data: userStudies, error: studiesError, isLoading: isLoadingStudies } = useFetchStudiesQuery();
     const [respondedStatus, setRespondedStatus] = useState({});
 
+    // Participant: Upon initial render, get all studies associated with the logged in user && get the status (responded/not responded) for each study
     useEffect(() => {
         if (user && userStudies) {
             const status = {};
@@ -36,7 +37,7 @@ const Home = () => {
         return <div>No user data available</div>;
     }
 
-    // Group studies into chunks of 4
+    // Group studies into chunks of 4 for view
     const studyChunks = userStudies.reduce((resultArray, item, index) => {
         const chunkIndex = Math.floor(index / 4);
 
@@ -49,37 +50,44 @@ const Home = () => {
         return resultArray;
     }, []);
 
+    // FACILITATOR ///////////////////////////////////////////////////////////////////////////////////////////
     const renderFacilitator = () => {
         return (
             <div>
                 {studyChunks.map((chunk, chunkIndex) => (
                     <div className="row" key={chunkIndex}>
                         <div className="card-group">
-                            {chunk.map((study) => (
-                                <div className="col-3" key={study._id}>
-                                    <div className="card p-3 h-100">
-                                        <h5 className="card-title">
-                                            {study.name}
-                                        </h5>
-                                        <p className="card-text description">{study.description}</p>
-                                        <div className="mb-3">
-                                            <p className="card-text">
-                                                Completed Studies: {study.participants.filter(p => p.responded).length} / {study.participants.length}
-                                            </p>
-                                        </div>
+                            {chunk.map((study) => {
 
-                                        <div className="btn-group mt-auto mb-3">
-                                            <ButtonLink to='#' additionalClasses="btn-success card-link me-auto" text='Edit' />
-                                            <ButtonLink to='#' additionalClasses="btn-secondary card-link" text='View' />
-                                        </div>
-                                        <div className="card-footer">
-                                            <small className="text-body-secondary">Date Created:
-                                                {new Date(study.dateCreated).toLocaleDateString()}
-                                            </small>
+                                const studyId = study._id;
+                                const studyDiscussionLink = `/discussion/${studyId}`
+
+                                return (
+                                    <div className="col-3" key={study._id}>
+                                        <div className="card p-3 h-100">
+                                            <h5 className="card-title">
+                                                {study.name}
+                                            </h5>
+                                            <p className="card-text description">{study.description}</p>
+                                            <div className="mb-3">
+                                                <p className="card-text">
+                                                    Completed Studies: {study.participants.filter(p => p.responded).length} / {study.participants.length}
+                                                </p>
+                                            </div>
+
+                                            <div className="btn-group mt-auto mb-3">
+                                                <ButtonLink to='#' additionalClasses="btn-success card-link me-auto" text='Edit' />
+                                                <ButtonLink to={studyDiscussionLink} additionalClasses="btn-secondary card-link" text='View' />
+                                            </div>
+                                            <div className="card-footer">
+                                                <small className="text-body-secondary">Date Created:
+                                                    {new Date(study.dateCreated).toLocaleDateString()}
+                                                </small>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                )
+                            })}
                         </div>
                     </div>
                 ))}
@@ -88,6 +96,7 @@ const Home = () => {
         );
     };
 
+    // PARTICIPANT ///////////////////////////////////////////////////////////////////////////////////////////
     const handleResponseClick = (status, studyId) => {
         switch (status) {
             case true:
@@ -97,7 +106,7 @@ const Home = () => {
                 navigate(`/study/response/${studyId}`);
                 break;
         }
-        
+
     };
 
     const renderCompletedStudyCard = (status, studyId) => {

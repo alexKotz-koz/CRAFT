@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GoArrowUp, GoArrowDown, GoCommentDiscussion, GoPlus } from "react-icons/go";
 import { useCreateVoteMutation, useCreateCommentMutation } from "../../store";
 import Comment from "./Comment";
@@ -9,6 +9,7 @@ const InitialResponse = ({ username, dateCreated, response, studyId, promptId, r
     const [commentContent, setCommentContent] = useState("");
     const [showComments, setShowComments] = useState(false);
     const [showNewComment, setShowNewComment] = useState(false);
+    const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
 
     const hasVoted = voters.includes(currentUser._id);
 
@@ -21,13 +22,13 @@ const InitialResponse = ({ username, dateCreated, response, studyId, promptId, r
     }
 
     const upVote = () => {
-        if (!hasVoted) {
+        if (!hasVoted && isParticipant) {
             createVote({ studyId, promptId, responseId, voteType: 'upvote' });
         }
     };
 
     const downVote = () => {
-        if (!hasVoted) {
+        if (!hasVoted && isParticipant) {
             createVote({ studyId, promptId, responseId, voteType: 'downvote' });
         }
     };
@@ -37,12 +38,14 @@ const InitialResponse = ({ username, dateCreated, response, studyId, promptId, r
     };
 
     const toggleNewComment = () => {
-        setShowNewComment(!showNewComment);
+        if (isParticipant) {
+            setShowNewComment(!showNewComment);
+        }
     };
 
     const handleCommentSubmit = async (e) => {
         e.preventDefault();
-        if (commentContent.trim()) {
+        if (commentContent.trim() && isParticipant) {
             await createComment({ promptId, responseId, content: commentContent });
             setCommentContent("");
         }
@@ -67,18 +70,17 @@ const InitialResponse = ({ username, dateCreated, response, studyId, promptId, r
                             <>
                                 <div className="d-flex align-items-center mx-2">
                                     <span>{upvotes}</span>
-                                    <GoArrowUp onClick={upVote} style={hasVoted ? disabledStyle : {}} />
+                                    <GoArrowUp onClick={upVote} style={hasVoted || !isParticipant ? disabledStyle : {cursor: 'pointer'}} />
                                 </div>
                                 <div className="d-flex align-items-center mx-2">
                                     <span>{downvotes}</span>
-                                    <GoArrowDown onClick={downVote} style={hasVoted ? disabledStyle : {}} />
+                                    <GoArrowDown onClick={downVote} style={hasVoted || !isParticipant ? disabledStyle : {cursor: 'pointer'}} />
                                 </div>
                             </>
                         )}
                         <span>{comments.length}</span>
-                        <GoCommentDiscussion className="mx-2" onClick={toggleComments} />
+                        <GoCommentDiscussion className="mx-2" onClick={toggleComments} style={{ cursor: 'pointer' }} />
                     </div>
-
                 </div>
                 {showComments && (
                     <div className="mt-3">
@@ -105,13 +107,12 @@ const InitialResponse = ({ username, dateCreated, response, studyId, promptId, r
                                 </button>
                             </form>
                         )}
-                        {!showNewComment && 
+                        {!showNewComment && isParticipant &&
                             <div className="end-0 m-1" style={{ cursor: 'pointer' }} onClick={toggleNewComment}>
                                 <GoPlus />
                                 <span className="ms-1">Add a new comment</span>
                             </div>
                         }
-
                     </div>
                 )}
             </div>

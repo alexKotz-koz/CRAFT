@@ -9,8 +9,7 @@ const Comment = ({ comment, currentUser }) => {
     const [showReply, setShowReply] = useState(false);
     const { data: subcomments, error: errorFetchSubcomments, isLoading: isLoadingFetchSubcomments } = useFetchSubCommentsQuery({ commentId: comment._id });
 
-    console.log("COMMENT", comment); // Log the full comment object
-
+    const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
     const hasVotedComment = comment.voters ? comment.voters.includes(currentUser._id) : false; 
 
     if (isLoadingVote || isLoadingSubcomment || isLoadingFetchSubcomments) {
@@ -22,20 +21,20 @@ const Comment = ({ comment, currentUser }) => {
     }
 
     const upVote = (commentId) => {
-        if (!hasVotedComment) {
+        if (!hasVotedComment && isParticipant) {
             createVote({ commentId, voteType: 'upvote' });
         }
     };
 
     const downVote = (commentId) => {
-        if (!hasVotedComment) {
+        if (!hasVotedComment && isParticipant) {
             createVote({ commentId, voteType: 'downvote' });
         }
     };
 
     const handleReplySubmit = async (e) => {
         e.preventDefault();
-        if (subCommentContent.trim()) {
+        if (subCommentContent.trim() && isParticipant) {
             await createSubcomment({ commentId: comment._id, content: subCommentContent });
             setSubCommentContent("");
             setShowReply(false);
@@ -62,13 +61,14 @@ const Comment = ({ comment, currentUser }) => {
                 <div className="d-flex align-items-center">
                     <div className="d-flex align-items-center mx-2">
                         <span>{comment.upvotes}</span>
-                        <GoArrowUp onClick={() => upVote(comment._id)} style={hasVotedComment ? disabledStyle : {}} />
+                        <GoArrowUp onClick={() => upVote(comment._id)} style={hasVotedComment || !isParticipant ? disabledStyle : {cursor: 'pointer'}} />
                     </div>
                     <div className="d-flex align-items-center mx-2">
                         <span>{comment.downvotes}</span>
-                        <GoArrowDown onClick={() => downVote(comment._id)} style={hasVotedComment ? disabledStyle : {}} />
+                        <GoArrowDown onClick={() => downVote(comment._id)} style={hasVotedComment || !isParticipant ? disabledStyle : {cursor: 'pointer'}} />
                     </div>
-                    <GoReply className="mx-2" onClick={toggleReply} />
+                    {isParticipant ? <GoReply className="mx-2" onClick={toggleReply} style={{cursor: 'pointer'}} /> : ''}
+                    
                 </div>
                 {showReply && (
                     <form onSubmit={handleReplySubmit} className="mt-3">
@@ -79,9 +79,10 @@ const Comment = ({ comment, currentUser }) => {
                                 onChange={(e) => setSubCommentContent(e.target.value)}
                                 placeholder="Add a reply"
                                 rows="3"
+                                disabled={!isParticipant}
                             ></textarea>
                         </div>
-                        <button type="submit" className="btn btn-primary">Submit</button>
+                        <button type="submit" className="btn btn-primary" disabled={!isParticipant}>Submit</button>
                         <button type="button" className="btn btn-secondary" onClick={toggleReply}>Cancel</button>
                     </form>
                 )}
