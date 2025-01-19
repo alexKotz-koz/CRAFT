@@ -5,6 +5,7 @@ const { Comment, InitialResponseComment, SubComment } = require('../models/Comme
 const requireLogin = require('../middlewares/requireLogin');
 
 module.exports = (app) => {
+    // GET Discussion
     app.get('/api/discussion/:studyId', requireLogin, async (req, res) => {
         const { studyId } = req.params;
         try {
@@ -21,6 +22,7 @@ module.exports = (app) => {
                             path: 'responses.comments', // Populate comments in responses
                             populate: [
                                 { path: 'user', select: 'username' }, // Populate user in comments
+                                { path: 'comments', populate: { path: 'user', select: 'username' }} // Populate nested comments
                             ]
                         }
                     ]
@@ -37,7 +39,7 @@ module.exports = (app) => {
         }
     });
 
-
+    // Vote Initial Response
     app.post('/api/discussion/:promptId/:responseId/vote', requireLogin, async (req, res) => {
         const { promptId, responseId } = req.params;
         const { voteType } = req.body; // Expecting { voteType: 'upvote' } or { voteType: 'downvote' }
@@ -77,6 +79,7 @@ module.exports = (app) => {
         }
     });
 
+    // Comment on Initial Response
     app.post('/api/discussion/:promptId/:responseId/comment', requireLogin, async (req, res) => {
         const { promptId, responseId } = req.params;
         const { content } = req.body;
@@ -117,6 +120,8 @@ module.exports = (app) => {
             res.status(422).send(err);
         }
     });
+
+    // Vote on Subcomment
     app.post('/api/discussion/:commentId/vote', requireLogin, async (req, res) => {
         const { commentId } = req.params;
         const { voteType } = req.body;
@@ -150,6 +155,8 @@ module.exports = (app) => {
             res.status(422).send(err);
         }
     });
+
+    // Comment on Comment
     app.post('/api/discussion/:commentId/subcomment', requireLogin, async (req, res) => {
         const { commentId } = req.params;
         const { content } = req.body;
@@ -183,6 +190,7 @@ module.exports = (app) => {
         }
     });
 
+    // GET all subcomments for a specific user
     app.get('/api/discussion/:commentId/subcomment', requireLogin, async (req, res) => {
         const { commentId } = req.params;
         try {

@@ -21,15 +21,15 @@ const Comment = ({ comment, currentUser }) => {
         return <div>Error: {errorVote?.data || errorSubcomment?.data || errorFetchSubcomments?.data}</div>;
     }
 
-    const upVote = () => {
+    const upVote = (commentId) => {
         if (!hasVotedComment) {
-            createVote({ commentId: comment._id, voteType: 'upvote' });
+            createVote({ commentId, voteType: 'upvote' });
         }
     };
 
-    const downVote = () => {
+    const downVote = (commentId) => {
         if (!hasVotedComment) {
-            createVote({ commentId: comment._id, voteType: 'downvote' });
+            createVote({ commentId, voteType: 'downvote' });
         }
     };
 
@@ -62,11 +62,11 @@ const Comment = ({ comment, currentUser }) => {
                 <div className="d-flex align-items-center">
                     <div className="d-flex align-items-center mx-2">
                         <span>{comment.upvotes}</span>
-                        <GoArrowUp onClick={upVote} style={hasVotedComment ? disabledStyle : {}} />
+                        <GoArrowUp onClick={() => upVote(comment._id)} style={hasVotedComment ? disabledStyle : {}} />
                     </div>
                     <div className="d-flex align-items-center mx-2">
                         <span>{comment.downvotes}</span>
-                        <GoArrowDown onClick={downVote} style={hasVotedComment ? disabledStyle : {}} />
+                        <GoArrowDown onClick={() => downVote(comment._id)} style={hasVotedComment ? disabledStyle : {}} />
                     </div>
                     <GoReply className="mx-2" onClick={toggleReply} />
                 </div>
@@ -86,25 +86,7 @@ const Comment = ({ comment, currentUser }) => {
                     </form>
                 )}
                 {subcomments && subcomments.map((subcomment) => (
-                    <div key={subcomment._id} className="card mt-2">
-                        <div className="card-body">
-                            <div className="d-flex justify-content-between align-items-center">
-                                <h6 className="card-title mb-0">{subcomment.user.username}</h6>
-                                <small className="text-muted">{new Date(subcomment.dateCreated).toLocaleDateString()}</small>
-                            </div>
-                            <p className="card-text mt-2">{subcomment.content}</p>
-                            <div className="d-flex align-items-center">
-                                <div className="d-flex align-items-center mx-2">
-                                    <span>{subcomment.upvotes}</span>
-                                    <GoArrowUp onClick={upVote} style={hasVotedComment ? disabledStyle : {}} />
-                                </div>
-                                <div className="d-flex align-items-center mx-2">
-                                    <span>{subcomment.downvotes}</span>
-                                    <GoArrowDown onClick={downVote} style={hasVotedComment ? disabledStyle : {}} />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <Comment key={subcomment._id} comment={subcomment} currentUser={currentUser} />
                 ))}
             </div>
         </div>

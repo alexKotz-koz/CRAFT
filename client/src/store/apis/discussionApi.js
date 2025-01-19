@@ -8,7 +8,7 @@ const discussionApi = createApi({
     endpoints(builder) {
         return {
             fetchDiscussion: builder.query({
-                providesTags: ['vote', 'comment'],
+                providesTags: ['vote', 'comment', 'subcomment'],
                 query: (studyId) => {
                     return {
                         url: `/discussion/${studyId}`,
@@ -27,7 +27,7 @@ const discussionApi = createApi({
                 },
             }),
             createCommentVote: builder.mutation({
-                invalidatesTags: ['vote'],
+                invalidatesTags: ['vote', 'subcomment'],
                 query: ({ commentId, voteType }) => {
                     return {
                         url: `/discussion/${commentId}/vote`,
@@ -49,7 +49,6 @@ const discussionApi = createApi({
             createSubComment: builder.mutation({
                 invalidatesTags: ['subcomment'],
                 query: ({ commentId, content }) => {
-                    console.log("API commentID: ", commentId)
                     return {
                         url: `/discussion/${commentId}/subcomment`,
                         method: 'POST',
