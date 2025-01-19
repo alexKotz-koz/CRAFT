@@ -17,9 +17,6 @@ const Header = () => {
         <li>
           <Link to='/home' className="nav-link active">Home</Link>
         </li>
-        <li>
-          <Link to="/studies" className="nav-link active">My Studies</Link>
-        </li>
         {(data?.role === "facilitator" || data?.role === "admin") && (
         <li className="nav-item">
           <Link to="/study/new" className="nav-link active">New Study</Link>
@@ -44,11 +41,11 @@ const Header = () => {
   const renderLoggedOut = () => {
     return (
       <div className="d-flex">
+                <li className="nav-item">
+          <Link to="/login" className="nav-link active">Login</Link>
+        </li>
         <li className="nav-item me-2">
           <Link to="/signup" className="nav-link active">Sign Up</Link>
-        </li>
-        <li className="nav-item">
-          <Link to="/login" className="nav-link active">Login</Link>
         </li>
       </div>
     );

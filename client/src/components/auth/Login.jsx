@@ -18,40 +18,43 @@ const Login = () => {
       await loginUser(values).unwrap();
       navigate('/home');
     } catch (error) {
-      
+
       console.error("handleFormSubmit", error);
     }
   };
 
   return (
-    <div>
+    <div className='form-signin w-50 m-auto'>
       <Form
         onSubmit={handleFormSubmit}
         render={({ handleSubmit }) => (
           <form onSubmit={handleSubmit}>
             {FORM_FIELDS.map(({ label, name, type, options, required }) => (
-                        <Field
-                            key={name}
-                            name={name}
-                            type={type}
-                            options={options}
-                            required={required}
-                        >
-                            {({ input, meta }) => (
-                            <FormField
-                                input={input}
-                                label={label}
-                                type={type}
-                                options={options}
-                                meta={meta}
-                                required={required}
-                            />
-                            )}
-                        </Field>
-                        ))}
+              <Field
+                key={name}
+                name={name}
+                type={type}
+                options={options}
+                required={required}
+              >
+                {({ input, meta }) => (
+                  <FormField
+                    input={input}
+                    label={label}
+                    type={type}
+                    options={options}
+                    meta={meta}
+                    required={required}
+                  />
+                )}
+              </Field>
+            ))}
             {errorLogin && <div style={{ color: 'red' }}>{errorLogin.data.error.error}</div>}
-            <button type="submit" disabled={isLoadingLogin}>Login</button>
-            <ButtonLink to='/password_reset' text='Reset Password' additionalClasses='btn-primary'/>
+            <div className='d-grid gap-2 d-sm-flex justify-content-sm-center'>
+              <button type="submit" disabled={isLoadingLogin} className='btn btn-primary px-4 gap-3' >Login</button>
+              <ButtonLink to='/password_reset' text='Reset Password' additionalClasses='btn btn-secondary px-4' />
+            </div>
+
           </form>
         )}
       />

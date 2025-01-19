@@ -50,7 +50,6 @@ const Home = () => {
     }, []);
 
     const renderFacilitator = () => {
-        console.log(studyChunks)
         return (
             <div>
                 {studyChunks.map((chunk, chunkIndex) => (
@@ -69,9 +68,9 @@ const Home = () => {
                                             </p>
                                         </div>
 
-                                        <div className="d-flex justify-content-center mt-auto mb-3">
-                                            <ButtonLink to='#' additionalClasses="btn-primary card-link me-auto" text='Edit' />
-                                            <ButtonLink to='#' additionalClasses="btn-primary card-link" text='View' />
+                                        <div className="btn-group mt-auto mb-3">
+                                            <ButtonLink to='#' additionalClasses="btn-success card-link me-auto" text='Edit' />
+                                            <ButtonLink to='#' additionalClasses="btn-secondary card-link" text='View' />
                                         </div>
                                         <div className="card-footer">
                                             <small className="text-body-secondary">Date Created:
@@ -92,6 +91,7 @@ const Home = () => {
     const handleResponseClick = (status, studyId) => {
         switch (status) {
             case true:
+                navigate(`/study/${studyId}`);
                 break;
             default:
                 navigate(`/study/response/${studyId}`);
@@ -100,15 +100,12 @@ const Home = () => {
         
     };
 
-    const handleDiscussionBoardClick = () => {
-        navigate('/');
-    };
-
     const renderCompletedStudyCard = (status, studyId) => {
         switch (status) {
             case true:
                 return (
                     <div className="btn-group mt-auto" role="group">
+
                         <button
                             className="btn btn-success text-decoration-none text-white"
                             onClick={() => handleResponseClick(status, studyId)}
@@ -154,9 +151,6 @@ const Home = () => {
                                         )}
                                     </div>
                                     <p className="card-text description">{study.description}</p>
-                                    <div className="mb-3">
-                                        {/* Additional content */}
-                                    </div>
                                     {renderCompletedStudyCard(respondedStatus[study._id], study._id)}
                                 </div>
                             </div>
@@ -179,7 +173,7 @@ const Home = () => {
     };
 
     return (
-        <div className="container">
+        <div className="container py-2 px-5 text-center">
             <h3>My Studies</h3>
             {renderContent()}
         </div>

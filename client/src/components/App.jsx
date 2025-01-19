@@ -32,7 +32,7 @@ const App = () => {
         <Route path='/home' element={<Home />} />
         <Route path='/login' element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/study" element={<Study />} />
+        <Route path="/study/:studyId" element={<Study user={user}  />} />
         <Route path='/study/new' element={<StudyNewWizard />} />
         <Route path='/study/response/:studyId' element={<StudyResponse user={user} />} />
         <Route path='/password_reset' element={<PasswordReset />} />

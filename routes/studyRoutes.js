@@ -110,14 +110,34 @@ module.exports = (app) => {
         res.send(studies)
 
     });
-     app.get('/api/study/:studyId', requireLogin, async (req, res) => {
+    app.get('/api/study/:studyId', requireLogin, async (req, res) => {
         const { studyId } = req.params;
+        const userId = req.user._id;
+
         try {
-            const study = await Study.findById(studyId).populate('prompts', 'prompt');
-            console.log(study);
+            const study = await Study.findById(studyId)
+                .populate('prompts', 'prompt')
+                .populate({
+                    path: 'responses',
+                    match: { participant: userId }, // Filter responses by logged-in user
+                    populate: [
+                        {
+                            path: 'responses',
+                            select: 'response'
+                        },
+                        {
+                            path: 'responses.comments', // Populate comments in responses
+                            populate: [
+                                { path: 'user', select: 'username' }, // Populate user in comments
+                            ]
+                        }
+                    ]
+                });
+
             if (!study) {
                 return res.status(404).send("Study not found");
             }
+
             res.send(study);
         } catch (err) {
             res.status(422).send(err);

@@ -21,7 +21,7 @@ const DiscussionBoard = () => {
     console.log("responses", discussion)
     return (
         <div className="container">
-            <h3>Discussion Board</h3>
+            <h3 className="mt-4 mb-5 text-center">Discussion Board</h3>
             {prompts.map((prompt, index) => (
                 <Prompt key={index} prompt={prompt} responses={responses} promptIndex={index} studyId={studyId} currentUser={user} />                
             ))}
