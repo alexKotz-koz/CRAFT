@@ -21,6 +21,8 @@ const InitialResponse = ({ username, dateCreated, response, studyId, promptId, r
         return <div>Error: {errorVote?.data || errorComment?.data}</div>;
     }
 
+
+
     const upVote = () => {
         if (!hasVoted && isParticipant) {
             createVote({ studyId, promptId, responseId, voteType: 'upvote' });
@@ -48,6 +50,7 @@ const InitialResponse = ({ username, dateCreated, response, studyId, promptId, r
         if (commentContent.trim() && isParticipant) {
             await createComment({ promptId, responseId, content: commentContent });
             setCommentContent("");
+            setShowNewComment(false);
         }
     };
 
@@ -108,7 +111,7 @@ const InitialResponse = ({ username, dateCreated, response, studyId, promptId, r
                             </form>
                         )}
                         {!showNewComment && isParticipant &&
-                            <div className="end-0 m-1" style={{ cursor: 'pointer' }} onClick={toggleNewComment}>
+                            <div className="end-0 m-1 btn btn-warning" style={{ cursor: 'pointer' }} onClick={toggleNewComment}>
                                 <GoPlus />
                                 <span className="ms-1">Add a new comment</span>
                             </div>

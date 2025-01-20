@@ -9,7 +9,7 @@ const StudyMeta = ({ onSubmit, onCancel, initialValues }) => {
 
   return (
     <div>
-      <h3>Create New Study</h3>
+      <h3 className="text-center">Create New Study</h3>
       <Form
         onSubmit={onSubmit}
         validate={validateForm}

@@ -124,7 +124,7 @@ const StudyNewWizard = () => {
         }
     };
 
-    return <div>{renderContent()}</div>;
+    return <div className="container d-flex flex-column w-75">{renderContent()}</div>;
 };
 
 export default StudyNewWizard;

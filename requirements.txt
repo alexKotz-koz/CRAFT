@@ -16,6 +16,8 @@ npm install --save bcrypt
 
 npm install --save bootstrap
 
+npm install --save recharts
+
 MONGO:
 username: alexanderkotz
 pass: VW1tK8BtT6Ui07G4

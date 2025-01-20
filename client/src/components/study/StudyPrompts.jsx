@@ -43,7 +43,7 @@ const StudyPrompts = ({ onSubmit, onCancel, initialValues }) => {
 
     return (
         <div>
-            <h3>Add Prompts</h3>
+            <h3 className="text-center">Add Prompts</h3>
             <Form
                 onSubmit={handleFormSubmit}
                 render={({ handleSubmit }) => (

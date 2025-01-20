@@ -5,33 +5,46 @@ const StudyReview = ({ onSubmit, onCancel, formValues, isLoading, error }) => {
     var promptList = formValues.promptList;
 
     return (
-        <div>
-            <h3>Review Your Study</h3>
+        <div className="container mt-5">
+            <h3 className="text-center mb-4">Review Your Study</h3>
             <Form
                 onSubmit={onSubmit}
                 render={({ handleSubmit }) => (
                     <form onSubmit={handleSubmit}>
-                        <label>Study Name</label>
-                        <div >{formValues.name}</div>
+                        <div className="mb-3">
+                            <h4>Study Name</h4>
+                            <div className="fw-bold">{formValues.name}</div>
+                        </div>
 
-                        <label>Description</label>
-                        <div>{formValues.description}</div>
+                        <div className="mb-3">
+                            <h4 className="form-label">Description</h4>
+                            <div>{formValues.description}</div>
+                        </div>
 
-                        <label>Instructions</label>
-                        <div>{formValues.instructions}</div>
+                        <div className="mb-3">
+                            <h4 className="form-label">Instructions</h4>
+                            <div>{formValues.instructions}</div>
+                        </div>
 
-                        <label>Participants</label>
+                        <div className="mb-3">
+                            <h4 className="form-label">Participants</h4>
+                            {emailList.map(({ email, username }, index) => (
+                                <div key={index} className="mb-2">
+                                    <span className="fw-bold">Email:</span> {email} | <span className="fw-bold">Username:</span> {username}
+                                </div>
+                            ))}
+                        </div>
 
-                        {emailList.map(({email, username}, index) => (
-                            <div key={index}>Email: {email} | Username: {username}</div>
-                        ))}
+                        <div className="mb-3">
+                            <h4 className="form-label">Prompts</h4>
+                            {promptList.map((prompt, index) => (
+                                <div key={index} className="mb-2">{prompt}</div>
+                            ))}
+                        </div>
 
-                        <label>Prompts</label>
-                        {promptList.map((prompt, index) => (
-                            <div key={index}>{prompt}</div>
-                        ))}
-                        {error && <p>Error: {error.data.message}</p>}
-                        <div className="d-flex justify-content-between mt-3">
+                        {error && (error.data.message || error.data.error) && <p className="text-danger">Error: {error.data.message || error.data.error}</p>}
+
+                        <div className="d-flex justify-content-between mt-4">
                             <button type="button" className="btn btn-secondary" onClick={onCancel}>
                                 Back
                             </button>
@@ -39,12 +52,9 @@ const StudyReview = ({ onSubmit, onCancel, formValues, isLoading, error }) => {
                                 Submit
                             </button>
                         </div>
-
-
                     </form>
                 )}
             />
-
         </div>
     );
 };

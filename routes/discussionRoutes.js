@@ -74,7 +74,6 @@ module.exports = (app) => {
 
             res.send(updatedResponse);
         } catch (err) {
-            console.log("Error: ", err);
             res.status(422).send(err);
         }
     });
@@ -116,7 +115,6 @@ module.exports = (app) => {
 
             res.send(newComment);
         } catch (err) {
-            console.log("Error: ", err);
             res.status(422).send(err);
         }
     });
@@ -126,7 +124,6 @@ module.exports = (app) => {
         const { commentId } = req.params;
         const { voteType } = req.body;
         const userId = req.user._id;
-        console.log(`Route: comment ${commentId}, vote ${voteType}, user ${userId}`);
 
         try {
             const comment = await Comment.findById(commentId);
@@ -140,14 +137,12 @@ module.exports = (app) => {
                 ? { $inc: { upvotes: 1 }, $push: { voters: userId } }
                 : { $inc: { downvotes: 1 }, $push: { voters: userId } };
 
-            console.log(`Route: update ${JSON.stringify(update)}`);
 
             const updatedComment = await Comment.findOneAndUpdate(
                 { _id: commentId },
                 update,
                 { new: true }
             );
-            console.log(`Route: updatedComment ${updatedComment}`);
 
             res.send(updatedComment);
         } catch (err) {
@@ -195,7 +190,6 @@ module.exports = (app) => {
         const { commentId } = req.params;
         try {
             const subcomments = await SubComment.find({ parentComment: commentId }).populate('user', 'username');
-            console.log("Route: ", subcomments)
             res.send(subcomments);
         } catch (err) {
             console.error("Error fetching subcomments:", err);

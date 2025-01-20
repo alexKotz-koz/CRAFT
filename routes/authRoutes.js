@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const User = mongoose.model('User');
 const bcrypt = require('bcryptjs');
 const requireLogin = require('../middlewares/requireLogin');
+const requireFacilitatorPermissions = require('../middlewares/requireFacilitatorPermissions');
 const getRandomWords = require('./usernameGeneration/generateUsername');
 
 function generateUsername() {
@@ -31,7 +32,6 @@ module.exports = (app) => {
 
         do {
             username = generateUsername();
-            console.log("Generated username: ", username);
             existingUser = await User.findOne({ username });
         } while (existingUser);
 
@@ -95,7 +95,6 @@ module.exports = (app) => {
 
             res.json({ error: "Password updated successfully" });
         } catch (error) {
-            console.error("Error updating password:", error);
             res.status(500).json({ error: "Internal server error" });
         }
     });
@@ -135,7 +134,7 @@ module.exports = (app) => {
         }
     });
 
-    app.post('/auth/batch_create_users', requireLogin, async (req, res,) => {
+    app.post('/auth/batch_create_users', requireLogin, requireFacilitatorPermissions, async (req, res,) => {
         const { users } = req.body;
 
         const session = await mongoose.startSession();

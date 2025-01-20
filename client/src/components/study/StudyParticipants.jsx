@@ -64,7 +64,7 @@ const StudyParticipants = ({ onSubmit, onCancel, initialValues }) => {
 
   return (
     <div>
-      <h3>Add Participants</h3>
+      <h3 className="text-center">Add Participants</h3>
       <Form
         onSubmit={handleFormSubmit}
         render={({ handleSubmit }) => (
@@ -91,6 +91,7 @@ const StudyParticipants = ({ onSubmit, onCancel, initialValues }) => {
             >
               <GoPersonAdd /> Add
             </button>
+            {emailList.length > 0 && <div className="mt-2 text-muted">Email (Auto-generated Username)</div>}
             <div className="mt-3">
               <ul className="list-group">
                 {emailList.map((item, index) => (

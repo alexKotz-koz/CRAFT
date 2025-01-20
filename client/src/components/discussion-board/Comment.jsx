@@ -10,7 +10,7 @@ const Comment = ({ comment, currentUser }) => {
     const { data: subcomments, error: errorFetchSubcomments, isLoading: isLoadingFetchSubcomments } = useFetchSubCommentsQuery({ commentId: comment._id });
 
     const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
-    const hasVotedComment = comment.voters ? comment.voters.includes(currentUser._id) : false; 
+    const hasVotedComment = comment.voters ? comment.voters.includes(currentUser._id) : false;
 
     if (isLoadingVote || isLoadingSubcomment || isLoadingFetchSubcomments) {
         return <div>Loading...</div>;
@@ -19,6 +19,7 @@ const Comment = ({ comment, currentUser }) => {
     if (errorVote || errorSubcomment || errorFetchSubcomments) {
         return <div>Error: {errorVote?.data || errorSubcomment?.data || errorFetchSubcomments?.data}</div>;
     }
+
 
     const upVote = (commentId) => {
         if (!hasVotedComment && isParticipant) {
@@ -61,14 +62,14 @@ const Comment = ({ comment, currentUser }) => {
                 <div className="d-flex align-items-center">
                     <div className="d-flex align-items-center mx-2">
                         <span>{comment.upvotes}</span>
-                        <GoArrowUp onClick={() => upVote(comment._id)} style={hasVotedComment || !isParticipant ? disabledStyle : {cursor: 'pointer'}} />
+                        <GoArrowUp onClick={() => upVote(comment._id)} style={hasVotedComment || !isParticipant ? disabledStyle : { cursor: 'pointer' }} />
                     </div>
                     <div className="d-flex align-items-center mx-2">
                         <span>{comment.downvotes}</span>
-                        <GoArrowDown onClick={() => downVote(comment._id)} style={hasVotedComment || !isParticipant ? disabledStyle : {cursor: 'pointer'}} />
+                        <GoArrowDown onClick={() => downVote(comment._id)} style={hasVotedComment || !isParticipant ? disabledStyle : { cursor: 'pointer' }} />
                     </div>
-                    {isParticipant ? <GoReply className="mx-2" onClick={toggleReply} style={{cursor: 'pointer'}} /> : ''}
-                    
+                    {isParticipant ? <GoReply className="mx-2" onClick={toggleReply} style={{ cursor: 'pointer' }} /> : ''}
+
                 </div>
                 {showReply && (
                     <form onSubmit={handleReplySubmit} className="mt-3">
@@ -82,8 +83,11 @@ const Comment = ({ comment, currentUser }) => {
                                 disabled={!isParticipant}
                             ></textarea>
                         </div>
-                        <button type="submit" className="btn btn-primary" disabled={!isParticipant}>Submit</button>
-                        <button type="button" className="btn btn-secondary" onClick={toggleReply}>Cancel</button>
+                        <div className='mb-3'>
+                            <button type="submit" className="btn btn-primary" disabled={!isParticipant}>Submit</button>
+                            <button type="button" className="btn btn-secondary" onClick={toggleReply}>Cancel</button>
+                        </div>
+
                     </form>
                 )}
                 {subcomments && subcomments.map((subcomment) => (
