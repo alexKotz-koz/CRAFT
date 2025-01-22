@@ -3,12 +3,14 @@ const Study = mongoose.model('Study');
 const StudyResponse = mongoose.model('StudyResponse');
 const StudyPrompt = mongoose.model('StudyPrompt');
 const Discussion = mongoose.model('Discussion');
+const Comment = mongoose.model('Comment');
 
 const requireLogin = require('../middlewares/requireLogin');
 const requireFacilitatorPermissions = require('../middlewares/requireFacilitatorPermissions');
 
 
 module.exports = (app) => {
+    // Create a new study
     app.post('/api/study/new', requireLogin, requireFacilitatorPermissions, async (req, res) => {
         const { name, instructions, description, participants, prompts } = req.body;
     
@@ -60,6 +62,7 @@ module.exports = (app) => {
         }
     });
 
+    // Create a new Initial Response to the study
     app.post('/api/study/response', requireLogin, async (req, res) => {
 
         const { studyId, responses, participant, dateCreated } = req.body;
@@ -94,6 +97,7 @@ module.exports = (app) => {
         }
     });
 
+    // Get all studies that are associated with the current user
     app.get('/api/study/my_studies', requireLogin, async (req, res) => {
         let studies;
         switch (req.user.role) {
@@ -111,6 +115,8 @@ module.exports = (app) => {
         res.send(studies)
 
     });
+
+    //Get a study by a studyId
     app.get('/api/study/:studyId', requireLogin, async (req, res) => {
         const { studyId } = req.params;
         const userId = req.user._id;
@@ -156,19 +162,18 @@ module.exports = (app) => {
                     ]
                 });
                 break;
-            
-
         }
-
         try {
-
             if (!study) {
                 return res.status(404).send("Study not found");
             }
-
             res.send(study);
         } catch (err) {
             res.status(422).send(err);
         }
     });
+    app.get('/api/study/:studyId/comments', requireLogin, async (req, res) => {
+        const { studyId } = req.params;
+
+    })
 };

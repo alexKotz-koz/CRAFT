@@ -46,6 +46,14 @@ const studyApi = createApi({
                     };
                 },
             }),
+            fetchStudyComments: builder.query({
+                query: (studyId) => {
+                    return {
+                        url: `/study/${studyId}/comments`,
+                        method: 'GET'
+                    };
+                },
+            }),
         };
     }
 
@@ -55,5 +63,6 @@ export const {
     useFetchStudiesQuery,
     useCreateStudyResponseMutation, 
     useFetchStudyQuery,
+    useFetchStudyCommentsQuery
 } = studyApi;
 export { studyApi };

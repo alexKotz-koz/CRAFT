@@ -1,15 +1,18 @@
 import { useParams } from "react-router-dom";
-import { useFetchStudyQuery } from "../../../store";
+import { useFetchStudyQuery, useFetchSubCommentsQuery } from "../../../store";
 import SimplePieChart from "./SimplePieChart";
-import { PieChart, Pie, Cell, Tooltip, Legend, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { ResponsiveContainer, Tooltip, Legend, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 
 const StudyStatistics = () => {
 
     const { studyId } = useParams();
     const { data: study, error: errorStudy, isLoading: isLoadingStudy } = useFetchStudyQuery(studyId);
+    //const { data: comments, error: errorComments, isLoading: isLoadingComments } = useFetchSubCommentsQuery()
 
     const studyDiscussionLink = `/discussion/${studyId}`
+
+    console.log(study)
 
     if (isLoadingStudy) {
         return <div>Loading...</div>;
@@ -42,12 +45,46 @@ const StudyStatistics = () => {
     // Comments over Time
     const commentData = [];
     responses.forEach(response => {
-        responses.forEach(subResponse => {
-            
-        })
-    })
+        response.responses.forEach(subResponse => {
+            if (subResponse.comments.length > 0) {
+                subResponse.comments.forEach(comment => {
+                    console.log("comment ", comment)
+                    const commentDate = new Date(comment.dateCreated);
+                    const year = commentDate.getFullYear();
+                    const month = commentDate.getMonth() + 1; // Months are zero-indexed
+                    const day = commentDate.getDate();
+                    const hour = commentDate.getHours();
+
+                    // Create a new date object in the desired format
+                    const formattedDate = `${year}-${month}-${day} ${hour}:00`;
+
+                    // Add to commentData array
+                    commentData.push({ date: formattedDate, count: 1 });
+                });
+            }
+        });
+    });
+
+    // Aggregate comment counts by date
+    const aggregatedCommentData = commentData.reduce((acc, curr) => {
+        const existing = acc.find(item => item.date === curr.date);
+        if (existing) {
+            existing.count += 1;
+        } else {
+            acc.push(curr);
+        }
+        return acc;
+    }, []);
+
+    // Sort the aggregated data by date in ascending order
+    aggregatedCommentData.sort((a, b) => new Date(a.date) - new Date(b.date));
 
 
+    // Function to format the date labels
+    const formatXAxis = (tickItem) => {
+        const date = new Date(tickItem);
+        return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()} ${date.getHours()}:00`;
+    };
 
     return (
         <div className="container">
@@ -55,7 +92,20 @@ const StudyStatistics = () => {
             <div className="row">
                 <SimplePieChart data={respondedData} title="Responded" />
                 <div className="col-8">
-
+                    <h5 className="text-center">Comments</h5>
+                    <ResponsiveContainer width="100%" height={400}>
+                        <LineChart
+                            data={aggregatedCommentData}
+                            margin={{ top: 5, right: 30, left: 20, bottom: 100 }}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="date" tickFormatter={formatXAxis} angle={-45} textAnchor="end" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend layout="vertical" align="right" verticalAlign="middle" />
+                            <Line type="monotone" dataKey="count" stroke="#0088FE" activeDot={{ r: 8 }} />
+                        </LineChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
         </div>
