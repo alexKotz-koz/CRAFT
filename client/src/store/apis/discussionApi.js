@@ -38,21 +38,21 @@ const discussionApi = createApi({
             }),
             createComment: builder.mutation({
                 invalidatesTags: ['comment'],
-                query: ({ promptId, responseId, content }) => {
+                query: ({ promptId, responseId, content, studyId }) => {
                     return {
                         url: `/discussion/${promptId}/${responseId}/comment`,
                         method: 'POST',
-                        body: { content },
+                        body: { content, studyId },
                     };
                 },
             }),
             createSubComment: builder.mutation({
                 invalidatesTags: ['subcomment'],
-                query: ({ commentId, content }) => {
+                query: ({ commentId, content, studyId }) => {
                     return {
                         url: `/discussion/${commentId}/subcomment`,
                         method: 'POST',
-                        body: { content }
+                        body: { content, studyId }
                     };
                 },
             }),

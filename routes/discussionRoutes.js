@@ -81,7 +81,7 @@ module.exports = (app) => {
     // Comment on Initial Response
     app.post('/api/discussion/:promptId/:responseId/comment', requireLogin, async (req, res) => {
         const { promptId, responseId } = req.params;
-        const { content } = req.body;
+        const { content, studyId } = req.body;
         const userId = req.user._id;
 
         try {
@@ -99,7 +99,8 @@ module.exports = (app) => {
             const newComment = new InitialResponseComment({
                 user: userId,
                 content,
-                response: response._id
+                response: response._id,
+                studyId,
             });
 
             await newComment.save();
@@ -154,7 +155,7 @@ module.exports = (app) => {
     // Comment on Comment
     app.post('/api/discussion/:commentId/subcomment', requireLogin, async (req, res) => {
         const { commentId } = req.params;
-        const { content } = req.body;
+        const { content, studyId } = req.body;
         const userId = req.user._id;
 
         try {
@@ -168,7 +169,8 @@ module.exports = (app) => {
             const newComment = new SubComment({
                 user: userId,
                 content,
-                parentComment: commentId
+                parentComment: commentId,
+                studyId
             });
 
             await newComment.save();

@@ -8,7 +8,8 @@ const BaseCommentSchema = new Schema({
     upvotes: { type: Number, default: 0 },
     downvotes: { type: Number, default: 0 },
     dateCreated: { type: Date, default: Date.now },
-    voters: [{ type: Schema.Types.ObjectId, ref: 'User' }] // Track voters
+    voters: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    studyId: { type: Schema.Types.ObjectId, ref: 'Study', required: true } 
 }, { discriminatorKey: 'kind', timestamps: true });
 
 // Create the base model

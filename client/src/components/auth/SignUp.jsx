@@ -28,7 +28,7 @@ const SignUp = () => {
             } else if (name === "email" && !emailRegex.test(values[name])) {
                 errors[name] = "You must provide a valid email address";
             } else if (name === "confirm") {
-                if(values['confirm'] !== values['password']){
+                if (values['confirm'] !== values['password']) {
                     errors[name] = "Passwords do not match";
                 }
             }
@@ -65,9 +65,9 @@ const SignUp = () => {
                             </Field>
                         ))}
                         {error && <div style={{ color: 'red' }}>{error.data.error.error}</div>}
+                        <button type="submit" className="btn btn-primary px-4 gap-3" disabled={isLoading}>Submit</button>
+                        <Link to="/login" className="btn btn-secondary px-4">Cancel</Link>
 
-                        <Link to="/login">Cancel</Link>
-                        <button type="submit" disabled={isLoading}>Submit</button>
                     </form>
                 )}
             />

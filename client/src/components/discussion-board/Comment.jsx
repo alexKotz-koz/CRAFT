@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { GoArrowUp, GoArrowDown, GoReply } from "react-icons/go";
 import { useCreateCommentVoteMutation, useCreateSubCommentMutation, useFetchSubCommentsQuery } from "../../store";
 
-const Comment = ({ comment, currentUser }) => {
+const Comment = ({ comment, currentUser, studyId }) => {
     const [createVote, { error: errorVote, isLoading: isLoadingVote }] = useCreateCommentVoteMutation();
     const [createSubcomment, { error: errorSubcomment, isLoading: isLoadingSubcomment }] = useCreateSubCommentMutation();
     const [subCommentContent, setSubCommentContent] = useState("");
@@ -36,7 +36,7 @@ const Comment = ({ comment, currentUser }) => {
     const handleReplySubmit = async (e) => {
         e.preventDefault();
         if (subCommentContent.trim() && isParticipant) {
-            await createSubcomment({ commentId: comment._id, content: subCommentContent });
+            await createSubcomment({ commentId: comment._id, content: subCommentContent, studyId });
             setSubCommentContent("");
             setShowReply(false);
         }

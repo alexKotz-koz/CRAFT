@@ -48,7 +48,7 @@ const InitialResponse = ({ username, dateCreated, response, studyId, promptId, r
     const handleCommentSubmit = async (e) => {
         e.preventDefault();
         if (commentContent.trim() && isParticipant) {
-            await createComment({ promptId, responseId, content: commentContent });
+            await createComment({ promptId, responseId, content: commentContent, studyId });
             setCommentContent("");
             setShowNewComment(false);
         }
@@ -88,7 +88,7 @@ const InitialResponse = ({ username, dateCreated, response, studyId, promptId, r
                 {showComments && (
                     <div className="mt-3">
                         {comments.map((comment, idx) => (
-                            <Comment key={idx} comment={comment} currentUser={currentUser} />
+                            <Comment key={idx} comment={comment} currentUser={currentUser} studyId={studyId} />
                         ))}
                         {showNewComment && (
                             <form onSubmit={handleCommentSubmit} className="mt-3">
