@@ -1,7 +1,7 @@
 import { useState } from "react";
 import StudyMeta from "./StudyMeta";
 import StudyParticipants from "./StudyParticipants";
-import StudyPrompts from "./StudyPrompts";
+import StudyTasks from "./StudyTasks";
 import StudyReview from "./StudyReview";
 import { useNavigate } from "react-router-dom";
 import { useCreateStudyMutation, useCreateUserMutation } from "../../store";
@@ -14,12 +14,15 @@ const StudyNewWizard = () => {
     const [currentStage, setCurrentStage] = useState(0);
     const [formValues, setFormValues] = useState({});
     const [newParticipants, setNewParticipants] = useState([]);
+    const [submissionError, setSubmissionError] = useState(null);
+
     
     const handleNext = (values) => {
-        setCurrentStage(currentStage + 1);
         setFormValues({...formValues, ...values});
+        setCurrentStage(currentStage + 1);
     };
 
+    //!!!!!!!!!!!!!!!!!!!!!! UNCOMMENT when ready to ship !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     const generateTemporaryPassword = () => {
         return 'test';
         //return Math.random().toString(36).slice(-8); 
@@ -47,10 +50,9 @@ const StudyNewWizard = () => {
     const submitForm = async() => {
         const study = {
             name: formValues.name,
-            instructions: formValues.instructions,
             description: formValues.description,
             participants: formValues.emailList,
-            prompts: formValues.promptList.map(prompt => ({ prompt })) // Ensure prompts are objects with prompt field
+            tasks: formValues.taskList // Directly use the taskList array
         }
         try {
             const fullParticipants = [];
@@ -71,11 +73,14 @@ const StudyNewWizard = () => {
             const csvContent = generateCSVContent(fullParticipants);
             downloadCSV(csvContent);
 
+            console.log("final study: ", study)
+
             await createStudy(study).unwrap();
 
             navigate('/home');
         } catch (err) {
             console.error("StudyNewWizard: Failed to create study. ", err);
+            setSubmissionError(err);
         }
     }
 
@@ -103,10 +108,10 @@ const StudyNewWizard = () => {
             );
         case 2:
             return (
-            <StudyPrompts
+            <StudyTasks
                 onCancel={handleBack}
                 onSubmit={handleNext}
-                initialValues={formValues.promptList || []}
+                initialValues={formValues.taskList || []}
             />
             );
         case 3:
@@ -124,7 +129,15 @@ const StudyNewWizard = () => {
         }
     };
 
-    return <div className="container d-flex flex-column w-75">{renderContent()}</div>;
-};
+    return (
+        <div className="container d-flex flex-column w-75">
+            {renderContent()}
+            {submissionError && (
+                <div className="alert alert-danger mt-3">
+                    <strong>Error:</strong> {submissionError.message}
+                </div>
+            )}
+        </div>
+    );};
 
 export default StudyNewWizard;

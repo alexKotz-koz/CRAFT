@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Study = mongoose.model('Study');
 const StudyResponse = mongoose.model('StudyResponse');
 const StudyPrompt = mongoose.model('StudyPrompt');
+const StudyTask = mongoose.model('StudyTask');
 const Discussion = mongoose.model('Discussion');
 const Comment = mongoose.model('Comment');
 
@@ -11,54 +12,70 @@ const requireFacilitatorPermissions = require('../middlewares/requireFacilitator
 
 module.exports = (app) => {
     // Create a new study
+
     app.post('/api/study/new', requireLogin, requireFacilitatorPermissions, async (req, res) => {
-        const { name, instructions, description, participants, prompts } = req.body;
-    
+        console.log("POST New Study: ", req.body);
+        const { name, description, participants, tasks } = req.body;
+
         const existingStudy = await Study.findOne({ name });
         if (existingStudy) {
             return res.status(409).send("Study with that name already exists, please select a different study name.");
         }
-    
+
         const study = new Study({
             name,
-            instructions,
             description,
             participants,
-            _user: req.user.id,
-            dateCreated: Date.now(),
-            dateModified: Date.now(),
+            _createdBy: req.user.id,
+            _facilitator: req.user.id, // Future implementation -- allow sudo's to assign studies to facilitators
+            _dateCreated: Date.now(),
         });
-    
+
         try {
             await study.save();
-    
-            // Create StudyPrompt documents with the studyId
-            const studyPrompts = await Promise.all(prompts.map(async prompt => {
-                const studyPrompt = new StudyPrompt({
+
+            // Create StudyTask and StudyPrompt documents
+            const studyTasks = await Promise.all(tasks.map(async task => {
+                const studyPrompts = await Promise.all(task.prompts.map(async prompt => {
+                    const studyPrompt = new StudyPrompt({
+                        study: study._id,
+                        prompt: prompt
+                    });
+                    await studyPrompt.save();
+                    return studyPrompt._id;
+                }));
+
+                const studyTask = new StudyTask({
+                    name: task.name,
+                    instructions: task.description,
+                    prompts: studyPrompts,
                     study: study._id,
-                    prompt: prompt.prompt
+                    _createdBy: req.user.id,
+                    _dateCreated: Date.now()
                 });
-                await studyPrompt.save();
-                return studyPrompt._id;
+
+                await studyTask.save();
+
+
+                const discussion = new Discussion({
+                    study: study._id,
+                    task: studyTask._id,
+                    prompts: task.prompts,
+                    initialResponses: []
+                });
+
+                await discussion.save();
+                return studyTask._id;
             }));
-    
-            // Update the Study document with the saved StudyPrompt IDs
-            study.prompts = studyPrompts;
+
+            // Update the Study document with the saved StudyTask IDs
+            study.tasks = studyTasks;
             await study.save();
-    
-            // Create a new Discussion for the newly created Study
-            const discussion = new Discussion({
-                study: study._id,
-                prompts: studyPrompts,
-                initialResponses: [],
-                comments: []
-            });
-    
-            await discussion.save();
-    
-            res.send({ study, discussion });
+
+            res.send({ study });
         } catch (err) {
-            res.status(422).send(err);
+            console.error("Error creating study:", err);
+            res.status(422).send({ error: "Failed to create study", details: err.message });
         }
     });
 
@@ -172,8 +189,18 @@ module.exports = (app) => {
             res.status(422).send(err);
         }
     });
+
+    //Get all comments for a specific study
     app.get('/api/study/:studyId/comments', requireLogin, async (req, res) => {
         const { studyId } = req.params;
+        try {
+            const comments = await Comment.find({ studyId: studyId });
+            console.log(comments);
+            res.send(comments);
+        } catch (err) {
+            console.error("Error fetching comments for study:", JSON.stringify(err));
 
-    })
+            res.status(500).send(err)
+        }
+    });
 };

@@ -5,14 +5,12 @@ const StudyParticipantSchema = require('./StudyParticipant');
 
 const StudySchema = new Schema({
     name: { type: String, required: true },
-    instructions: { type: String, required: true },
     description: { type: String, required: true },
     participants: { type: [StudyParticipantSchema], required: true },
-    prompts: [{ type: Schema.Types.ObjectId, ref: 'StudyPrompt' }], // Reference to StudyPrompt
-    responses: [{ type: Schema.Types.ObjectId, ref: 'StudyResponse' }],
-    _user: { type: Schema.Types.ObjectId, ref: 'User' },
-    dateCreated: { type: Date, default: Date.now },
-    dateModified: { type: Date, default: Date.now }
+    tasks: [{ type: Schema.Types.ObjectId, ref: 'StudyTask' }], // Reference to StudyPrompt
+    _createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    _facilitator: { type: Schema.Types.ObjectId, ref: 'User' },
+    _dateCreated: { type: Date, default: Date.now }
 });
 
 mongoose.model('Study', StudySchema);

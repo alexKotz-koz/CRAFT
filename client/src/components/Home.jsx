@@ -60,8 +60,8 @@ const Home = () => {
                             {chunk.map((study) => {
 
                                 const studyId = study._id;
-                                const studyStatisticsLink = `/study/statistics/${studyId}`;
-                                
+                                const studyDashboardLink = `/study/dashboard/${studyId}`;
+
                                 return (
                                     <div className="col-3" key={study._id}>
                                         <div className="card p-3 h-100">
@@ -77,7 +77,7 @@ const Home = () => {
 
                                             <div className="btn-group mt-auto mb-3">
                                                 <ButtonLink to='#' additionalClasses="btn-success card-link me-auto" text='Edit' />
-                                                <ButtonLink to={studyStatisticsLink} additionalClasses="btn-secondary card-link" text='View' />
+                                                <ButtonLink to={studyDashboardLink} additionalClasses="btn-secondary card-link" text='View' />
                                             </div>
                                             <div className="card-footer">
                                                 <small className="text-body-secondary">Date Created:

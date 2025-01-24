@@ -1,18 +1,17 @@
 import { useParams } from "react-router-dom";
-import { useFetchStudyQuery, useFetchSubCommentsQuery } from "../../../store";
+import { useFetchStudyCommentsQuery, useFetchStudyQuery, useFetchSubCommentsQuery } from "../../../store";
 import SimplePieChart from "./SimplePieChart";
-import { ResponsiveContainer, Tooltip, Legend, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
+import TimeLinePlot from "./TimeLinePlot";
 
-
-const StudyStatistics = () => {
+const StudyDashboard = () => {
 
     const { studyId } = useParams();
     const { data: study, error: errorStudy, isLoading: isLoadingStudy } = useFetchStudyQuery(studyId);
-    //const { data: comments, error: errorComments, isLoading: isLoadingComments } = useFetchSubCommentsQuery()
+    const { data: comments, error: errorComments, isLoading: isLoadingComments } = useFetchStudyCommentsQuery(studyId);
 
     const studyDiscussionLink = `/discussion/${studyId}`
 
-    console.log(study)
+    console.log(comments)
 
     if (isLoadingStudy) {
         return <div>Loading...</div>;
@@ -80,36 +79,17 @@ const StudyStatistics = () => {
     aggregatedCommentData.sort((a, b) => new Date(a.date) - new Date(b.date));
 
 
-    // Function to format the date labels
-    const formatXAxis = (tickItem) => {
-        const date = new Date(tickItem);
-        return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()} ${date.getHours()}:00`;
-    };
-
     return (
-        <div className="container">
+        <div className="container-fluid">
             <h3 className="text-center mb-4">Study Statistics</h3>
+            
             <div className="row">
                 <SimplePieChart data={respondedData} title="Responded" />
-                <div className="col-8">
-                    <h5 className="text-center">Comments</h5>
-                    <ResponsiveContainer width="100%" height={400}>
-                        <LineChart
-                            data={aggregatedCommentData}
-                            margin={{ top: 5, right: 30, left: 20, bottom: 100 }}
-                        >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="date" tickFormatter={formatXAxis} angle={-45} textAnchor="end" />
-                            <YAxis />
-                            <Tooltip />
-                            <Legend layout="vertical" align="right" verticalAlign="middle" />
-                            <Line type="monotone" dataKey="count" stroke="#0088FE" activeDot={{ r: 8 }} />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </div>
+                <TimeLinePlot data={aggregatedCommentData} title="Comments" lineDataKey="count" />
+
             </div>
         </div>
     );
 };
 
-export default StudyStatistics;
+export default StudyDashboard;

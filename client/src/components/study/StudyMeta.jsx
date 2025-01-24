@@ -1,43 +1,55 @@
-import FORM_FIELDS from "../form/studyMetaFormFields";
 import { Form, Field } from "react-final-form";
 import PropTypes from 'prop-types';
-import FormField from "../form/FormField";
-import { validate } from "../../utils/validation";
 
 const StudyMeta = ({ onSubmit, onCancel, initialValues }) => {
-  const validateForm = (values) => validate(values, FORM_FIELDS);
+  const validate = (values) => {
+    const errors = {};
+    if (!values.name || !values.description) {
+      if (!values.name) {
+        errors.name = "You must provide a value";
+      }
+      if (!values.description) {
+        errors.description = "You must provide a value";
+      }
+    }
+    return errors;
+  };
 
   return (
     <div>
       <h3 className="text-center">Create New Study</h3>
       <Form
         onSubmit={onSubmit}
-        validate={validateForm}
         initialValues={initialValues}
-        render={({ handleSubmit }) => (
+        validate={validate}
+        render={({ handleSubmit, submitError }) => (
           <form onSubmit={handleSubmit} className="needs-validation" noValidate>
-            {FORM_FIELDS.map(({ label, name, type, options, required }) => (
+            <div className="mb-3">
+              <label className="form-label">Study Name</label>
               <Field
-                key={name}
-                type={type}
-                label={label}
-                name={name}
-                required={required}
-              >
-                {({ input, meta }) => {
-                  return (
-                    <FormField
-                      input={input}
-                      label={label}
-                      type={type}
-                      options={options}
-                      meta={meta}
-                      required={required}
-                    />
-                  );
-                }}
+                name="name"
+                component="input"
+                type="text"
+                className="form-control"
+                required
+              />
+              <Field name="name">
+                {({ meta }) => meta.error && meta.touched && <span className="text-danger">{meta.error}</span>}
               </Field>
-            ))}
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Study Description</label>
+              <Field
+                name="description"
+                component="input"
+                type="text"
+                className="form-control"
+                required
+              />
+              <Field name="description">
+                {({ meta }) => meta.error && meta.touched && <span className="text-danger">{meta.error}</span>}
+              </Field>
+            </div>
             <div className="d-flex justify-content-between mt-3">
               <button type="button" className="btn btn-secondary" onClick={onCancel}>
                 Cancel

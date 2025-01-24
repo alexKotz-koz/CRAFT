@@ -30,7 +30,6 @@ const studyApi = createApi({
             createStudyResponse: builder.mutation({
                 invalidatesTags: ['Study'],
                 query: (response) => {
-                    console.log("api response: ", response)
                     return{
                         url: '/study/response',
                         method: 'POST',

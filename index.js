@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const keys = require('./config/keys');
 require('./models/User');
 require('./models/Study');
+require('./models/StudyTask');
 require('./models/StudyResponse');
 require('./models/StudyPrompt');
 require('./models/Discussion');

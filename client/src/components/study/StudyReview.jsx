@@ -1,60 +1,47 @@
-import { Field, Form } from "react-final-form";
+import React from 'react';
 
-const StudyReview = ({ onSubmit, onCancel, formValues, isLoading, error }) => {
-    var emailList = formValues.emailList;
-    var promptList = formValues.promptList;
+const StudyReview = ({ onCancel, onSubmit, formValues, isLoading, error }) => {
+    const { name, description, emailList, taskList } = formValues;
 
     return (
-        <div className="container mt-5">
-            <h3 className="text-center mb-4">Review Your Study</h3>
-            <Form
-                onSubmit={onSubmit}
-                render={({ handleSubmit }) => (
-                    <form onSubmit={handleSubmit}>
-                        <div className="mb-3">
-                            <h4>Study Name</h4>
-                            <div className="fw-bold">{formValues.name}</div>
-                        </div>
-
-                        <div className="mb-3">
-                            <h4 className="form-label">Description</h4>
-                            <div>{formValues.description}</div>
-                        </div>
-
-                        <div className="mb-3">
-                            <h4 className="form-label">Instructions</h4>
-                            <div>{formValues.instructions}</div>
-                        </div>
-
-                        <div className="mb-3">
-                            <h4 className="form-label">Participants</h4>
-                            {emailList.map(({ email, username }, index) => (
-                                <div key={index} className="mb-2">
-                                    <span className="fw-bold">Email:</span> {email} | <span className="fw-bold">Username:</span> {username}
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="mb-3">
-                            <h4 className="form-label">Prompts</h4>
-                            {promptList.map((prompt, index) => (
-                                <div key={index} className="mb-2">{prompt}</div>
-                            ))}
-                        </div>
-
-                        {error && (error.data.message || error.data.error) && <p className="text-danger">Error: {error.data.message || error.data.error}</p>}
-
-                        <div className="d-flex justify-content-between mt-4">
-                            <button type="button" className="btn btn-secondary" onClick={onCancel}>
-                                Back
-                            </button>
-                            <button type="submit" className="btn btn-primary">
-                                Submit
-                            </button>
-                        </div>
-                    </form>
-                )}
-            />
+        <div>
+            <h3 className="text-center">Review Study</h3>
+            <div className="mt-3">
+                <p><strong>Name:</strong> {name}</p>
+                <p><strong>Description:</strong> {description}</p>
+                <p><strong>Participants:</strong></p>
+                <ul className="list-group">
+                    {emailList && emailList.map((participant, index) => (
+                        <li key={index} className="list-group-item">
+                            {participant.email}
+                        </li>
+                    ))}
+                </ul>
+                <p><strong>Tasks:</strong></p>
+                <ul className="list-group">
+                    {taskList && taskList.map((task, index) => (
+                        <li key={index} className="list-group-item">
+                            <p><strong>Name:</strong> {task.name}</p>
+                            <p><strong>Description:</strong> {task.description}</p>
+                            <p><strong>Prompts:</strong></p>
+                            <ul>
+                                {task.prompts.map((prompt, idx) => (
+                                    <li key={idx}>{prompt}</li>
+                                ))}
+                            </ul>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <div className="d-flex justify-content-between mt-3">
+                <button type="button" className="btn btn-secondary" onClick={onCancel}>
+                    Back
+                </button>
+                <button type="button" className="btn btn-primary" onClick={onSubmit} disabled={isLoading}>
+                    Submit
+                </button>
+            </div>
+            {error && <div className="text-danger mt-3">{error.message}</div>}
         </div>
     );
 };

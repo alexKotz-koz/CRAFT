@@ -10,7 +10,7 @@ import Study from './study/Study';
 import PasswordReset from "./auth/PasswordReset";
 import StudyResponse from "./study/StudyResponse";
 import DiscussionBoard from "./discussion-board/DiscussionBoard";
-import StudyStatistics from "./study/study-dashboard/StudyStatistics";
+import StudyDashboard from "./study/study-dashboard/StudyDashboard";
 
 import { useFetchUserQuery } from '../store';
 
@@ -36,7 +36,7 @@ const App = () => {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/study/:studyId" element={<Study user={user}  />} />
         <Route path='/study/new' element={<StudyNewWizard />} />
-        <Route path='/study/statistics/:studyId' element={<StudyStatistics />} />
+        <Route path='/study/dashboard/:studyId' element={<StudyDashboard />} />
         <Route path='/study/response/:studyId' element={<StudyResponse user={user} />} />
         <Route path='/password_reset' element={<PasswordReset />} />
         <Route path='/discussion/:studyId' element={<DiscussionBoard />} />
