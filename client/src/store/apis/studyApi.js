@@ -53,6 +53,14 @@ const studyApi = createApi({
                     };
                 },
             }),
+            fetchTask: builder.query({
+                query: (taskId) => {
+                    return {
+                        url: `/study/task/${taskId}`,
+                        method: 'GET'
+                    };
+                },
+            }),
         };
     }
 
@@ -62,6 +70,7 @@ export const {
     useFetchStudiesQuery,
     useCreateStudyResponseMutation, 
     useFetchStudyQuery,
-    useFetchStudyCommentsQuery
+    useFetchStudyCommentsQuery,
+    useFetchTaskQuery,
 } = studyApi;
 export { studyApi };

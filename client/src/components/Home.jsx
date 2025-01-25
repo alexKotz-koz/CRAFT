@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { GoBellFill, GoCheck } from "react-icons/go";
 import ButtonLink from './tools/ButtonLink';
-import { useFetchUserQuery, useFetchStudiesQuery } from "../store";
+import { useFetchUserQuery, useFetchStudiesQuery, useFetchTaskQuery } from "../store";
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import '../static/custom.css';
 
 const Home = () => {
@@ -10,7 +11,10 @@ const Home = () => {
     const { data: user, error: userError, isLoading: isLoadingUser } = useFetchUserQuery();
     const { data: userStudies, error: studiesError, isLoading: isLoadingStudies } = useFetchStudiesQuery();
     const [respondedStatus, setRespondedStatus] = useState({});
+    const [tasks, setTasks] = useState([]);
+    const [viewDiscussionModal, setViewDiscussionModal] = useState(false);
 
+    console.log("userStudies: ", userStudies)
     // Participant: Upon initial render, get all studies associated with the logged in user && get the status (responded/not responded) for each study
     useEffect(() => {
         if (user && userStudies) {
@@ -51,89 +55,100 @@ const Home = () => {
     }, []);
 
     // FACILITATOR ///////////////////////////////////////////////////////////////////////////////////////////
+
     const renderFacilitator = () => {
         return (
-            <div>
-                {studyChunks.map((chunk, chunkIndex) => (
-                    <div className="row" key={chunkIndex}>
-                        <div className="card-group">
-                            {chunk.map((study) => {
+            <div className="row">
+                {userStudies.map((study) => {
+                    const studyId = study._id;
+                    const studyDashboardLink = `/study/dashboard/${studyId}`;
 
-                                const studyId = study._id;
-                                const studyDashboardLink = `/study/dashboard/${studyId}`;
-
-                                return (
-                                    <div className="col-3" key={study._id}>
-                                        <div className="card p-3 h-100">
-                                            <h5 className="card-title">
-                                                {study.name}
-                                            </h5>
-                                            <p className="card-text description">{study.description}</p>
-                                            <div className="mb-3">
-                                                <p className="card-text">
-                                                    Completed Studies: {study.participants.filter(p => p.responded).length} / {study.participants.length}
-                                                </p>
-                                            </div>
-
-                                            <div className="btn-group mt-auto mb-3">
-                                                <ButtonLink to='#' additionalClasses="btn-success card-link me-auto" text='Edit' />
-                                                <ButtonLink to={studyDashboardLink} additionalClasses="btn-secondary card-link" text='View' />
-                                            </div>
-                                            <div className="card-footer">
-                                                <small className="text-body-secondary">Date Created:
-                                                    {new Date(study.dateCreated).toLocaleDateString()}
-                                                </small>
-                                            </div>
+                    return (
+                        <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4" key={study._id}>
+                            <div className="card h-100">
+                                <div className="card-body d-flex flex-column">
+                                    <h5 className="card-title">{study.name}</h5>
+                                    <p className="card-text description">{study.description}</p>
+                                    <p className="card-text">
+                                        Completed Studies: {study.participants.filter(p => p.responded).length} / {study.participants.length}
+                                    </p>
+                                    <div className="mt-auto">
+                                        <div className="btn-group w-100">
+                                            <ButtonLink to='#' additionalClasses="btn-success card-link" text='Edit' />
+                                            <ButtonLink to={studyDashboardLink} additionalClasses="btn-secondary card-link" text='View' />
                                         </div>
                                     </div>
-                                )
-                            })}
+                                </div>
+                                <div className="card-footer">
+                                    <small className="text-body-secondary">Date Created: {new Date(study._dateCreated).toLocaleDateString()}</small>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
-
         );
     };
 
     // PARTICIPANT ///////////////////////////////////////////////////////////////////////////////////////////
-    const handleResponseClick = (status, studyId) => {
-        switch (status) {
-            case true:
-                navigate(`/study/${studyId}`);
-                break;
-            default:
-                navigate(`/study/response/${studyId}`);
-                break;
+
+    const handleViewDiscussion = async (study) => {
+        console.log(study);
+        const taskIds = study.tasks;
+        try {
+            const fetchedTasks = await Promise.all(taskIds.map(taskId => 
+                fetch(`/api/study/task/${taskId}`)
+                    .then(response => response.json())
+            ));
+            setTasks(fetchedTasks);
+            console.log("fetchedTasks: ", fetchedTasks);
+            // Navigate to the discussion page with the first task ID
+            if (fetchedTasks.length > 0){
+                setViewDiscussionModal(!viewDiscussionModal);
+            }
+                //navigate(`/discussion/${fetchedTasks[0]._id}`);
+                
+        } catch (error) {
+            console.error("Error fetching tasks:", error);
         }
-
     };
+    const toggleModal = () => setViewDiscussionModal(!viewDiscussionModal);
 
-    const renderCompletedStudyCard = (status, studyId) => {
+    const renderCompletedStudyCard = (status, study) => {
+        const studyId = study._id;
         switch (status) {
             case true:
                 return (
-                    <div className="btn-group mt-auto" role="group">
-
-                        <button
-                            className="btn btn-success text-decoration-none text-white"
-                            onClick={() => handleResponseClick(status, studyId)}
-                        >
-                            View Response
-                        </button>
+                    <div className="btn-group w-100 mt-auto" role="group">
                         <button
                             className="btn btn-secondary text-decoration-none text-white"
-                            onClick={() => navigate(`/discussion/${studyId}`)}
+                            onClick={() => handleViewDiscussion(study)}
                         >
                             View Discussion
                         </button>
+                        {viewDiscussionModal && 
+                            <Modal isOpen={viewDiscussionModal} toggle={toggleModal} >
+                                <ModalHeader toggle={toggleModal}>
+                                    Choose Task Discussion
+                                </ModalHeader>
+                                <ModalFooter className='d-flex align-items-center justify-content-center'>
+                                    {tasks.map((task) => (
+                                        <Button color='primary' onClick={() => 
+                                            navigate(`/discussion/${task._id}`)
+                                        } key={task._id}>
+                                            {task.name}
+                                        </Button>
+                                    ))}
+                                </ModalFooter>
+                            </Modal>
+                        }
                     </div>
                 );
             default:
                 return (
                     <button
-                        className="btn btn-success text-decoration-none text-white mt-auto"
-                        onClick={() => handleResponseClick(status, studyId)}
+                        className="btn btn-success text-decoration-none text-white w-100 mt-auto"
+                        onClick={() => navigate(`/study/response/${studyId}`)}
                     >
                         Start
                     </button>
@@ -141,27 +156,24 @@ const Home = () => {
         }
     };
 
+
     const renderParticipant = () => {
         return (
-            <div>
+            <div className="row">
                 {userStudies.map((study, studyIndex) => (
-                    <div className="row" key={studyIndex}>
-                        <div className="card-group">
-                            <div className="col-3" key={study._id}>
-                                <div className="card p-3 h-100">
-                                    <div className="d-flex justify-content-between align-items-center mb-3">
-                                        <h5 className="card-title">
-                                            {study.name}
-                                        </h5>
-                                        {respondedStatus[study._id] ? (
-                                            <GoCheck style={{ fontSize: '24px', color: 'green' }} />
-                                        ) : (
-                                            <GoBellFill style={{ fontSize: '24px', color: 'red' }} />
-                                        )}
-                                    </div>
-                                    <p className="card-text description">{study.description}</p>
-                                    {renderCompletedStudyCard(respondedStatus[study._id], study._id)}
+                    <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4" key={studyIndex}>
+                        <div className="card h-100">
+                            <div className="card-body d-flex flex-column">
+                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 className="card-title">{study.name}</h5>
+                                    {respondedStatus[study._id] ? (
+                                        <GoCheck style={{ fontSize: '24px', color: 'green' }} />
+                                    ) : (
+                                        <GoBellFill style={{ fontSize: '24px', color: 'red' }} />
+                                    )}
                                 </div>
+                                <p className="card-text description">{study.description}</p>
+                                {renderCompletedStudyCard(respondedStatus[study._id], study)}
                             </div>
                         </div>
                     </div>
@@ -169,7 +181,6 @@ const Home = () => {
             </div>
         );
     };
-
     const renderContent = () => {
         switch (user.role) {
             case 'facilitator':

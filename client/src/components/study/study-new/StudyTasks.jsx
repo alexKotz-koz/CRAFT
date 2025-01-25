@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Form, Field } from "react-final-form";
 import { GoPlus, GoTrash } from "react-icons/go";
 import { Collapse, Card, CardBody, CardHeader, Button } from 'reactstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 const StudyTasks = ({ onSubmit, onCancel, initialValues }) => {
     const [taskList, setTaskList] = useState(initialValues || []);

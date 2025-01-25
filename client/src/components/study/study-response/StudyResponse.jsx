@@ -1,21 +1,24 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useCreateStudyResponseMutation, useFetchStudyQuery } from "../../store";
+import { useCreateStudyResponseMutation, useFetchTaskQuery, useFetchStudyQuery } from "../../../store";
 import { Form, Field } from "react-final-form";
 
 
 const StudyResponse = ({ user }) => {
     const navigate = useNavigate();
-    const { studyId } = useParams();
-    const { data: study, error: studyError, isLoading: studyIsLoading } = useFetchStudyQuery(studyId);
+    const { taskId } = useParams();
+    console.log("Task ID: ", taskId)
+    const { data: task, error: errorTask, isLoading: isLoadingTask } = useFetchTaskQuery(taskId);
     const [createResponse, { error: responseError, isLoading: responseIsLoading }] = useCreateStudyResponseMutation();
+    const { refetch: refetchStudy } = useFetchStudyQuery(task?.study);
 
-    console.log(study)
 
-    if (studyIsLoading || responseIsLoading) {
+    console.log("task", task)
+
+    if (isLoadingTask || responseIsLoading) {
         return <div>Loading...</div>;
     }
-    if (responseError || studyError) {
-        return <div>Error: {responseError?.data.error || studyError?.data.error}</div>;
+    if (errorTask || responseError) {
+        return <div>Error: {responseError?.data.error || errorTask?.data.error}</div>;
     }
 
     const handleFormSubmit = async (values) => {
@@ -23,39 +26,42 @@ const StudyResponse = ({ user }) => {
             prompt: key,
             response: values[key],
         }));
-    
+
         const response = {
-            studyId,
+            studyId: task.study,
+            taskId: taskId,
             responses,
             participant: user._id,
             dateCreated: Date.now(),
         };
-        try{
+        try {
             await createResponse(response).unwrap();
+            await refetchStudy();
             navigate('/home');
-        } catch(err){
+        } catch (err) {
             console.error("Failed to create response: ", err);
         }
 
     };
 
+
     return (
         <div>
-            <h3>{study.name}</h3>
+            <h3>{task.name}</h3>
             <Form
                 onSubmit={handleFormSubmit}
                 render={({ handleSubmit }) => (
                     <form onSubmit={handleSubmit} className="needs-validation" noValidate>
                         <div className="row mb-3">
                             <label className="col-form-label">Instructions: </label>
-                            <div className="">{study.instructions}</div>
+                            <div className="">{task.instructions}</div>
                         </div>
 
                         {
-                            study.prompts.map((prompt, index) => (
+                            task.prompts.map((prompt, index) => (
                                 <div key={index}>
                                     <label className="form-label">{prompt.prompt}</label>
-                                    <div>
+                                    <div className="mb-3">
                                         <Field
                                             name={prompt._id}
                                             component="textarea"

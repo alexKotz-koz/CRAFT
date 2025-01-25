@@ -12,7 +12,7 @@ const requireFacilitatorPermissions = require('../middlewares/requireFacilitator
 
 module.exports = (app) => {
     // Create a new study
-
+    // API: useCreateStudyMutation
     app.post('/api/study/new', requireLogin, requireFacilitatorPermissions, async (req, res) => {
         console.log("POST New Study: ", req.body);
         const { name, description, participants, tasks } = req.body;
@@ -49,6 +49,7 @@ module.exports = (app) => {
                     name: task.name,
                     instructions: task.description,
                     prompts: studyPrompts,
+                    participants,
                     study: study._id,
                     _createdBy: req.user.id,
                     _dateCreated: Date.now()
@@ -80,15 +81,17 @@ module.exports = (app) => {
     });
 
     // Create a new Initial Response to the study
+    // API: useCreateStudyResponseMutation
     app.post('/api/study/response', requireLogin, async (req, res) => {
 
-        const { studyId, responses, participant, dateCreated } = req.body;
+        const { studyId, taskId, responses, participant, dateCreated } = req.body;
 
         const studyResponse = new StudyResponse({
             study: studyId,
+            task: taskId,
             responses,
-            participant,
-            dateCreated
+            _participant: participant,
+            _dateCreated: dateCreated
         });
 
         try {
@@ -97,30 +100,48 @@ module.exports = (app) => {
             // Update the Study document to add the response
             await Study.findByIdAndUpdate(studyId, { $push: { responses: studyResponse._id } });
 
-            // Update the StudyParticipant.responded value to true
-            await Study.findOneAndUpdate(
-                { _id: studyId, 'participants.email': req.user.email },
+            await StudyTask.findOneAndUpdate(
+                { _id: taskId, 'participants.email': req.user.email },
                 { $set: { 'participants.$.responded': true } }
             );
 
+            // Check if all tasks have been completed by the participant
+            const tasks = await StudyTask.find({ study: studyId });
+            const allTasksCompleted = tasks.every(task =>
+                task.participants.some(participant =>
+                    participant.email === req.user.email && participant.responded === true
+                )
+            );
+
+            if (allTasksCompleted) {
+                // Update the StudyParticipant.responded value to true
+                await Study.findOneAndUpdate(
+                    { _id: studyId, 'participants.email': req.user.email },
+                    { $set: { 'participants.$.responded': true } }
+                );
+            }
+
             // Update the Discussion.initialResponses array with the new response
             await Discussion.findOneAndUpdate(
-                { study: studyId },
+                { task: taskId },
                 { $push: { initialResponses: studyResponse._id } }
             );
             res.send(studyResponse);
         } catch (err) {
+            console.error("Error creating initial study response:", err);
             res.status(422).send(err);
         }
     });
 
     // Get all studies that are associated with the current user
+    // API: useFetchStudiesQuery
     app.get('/api/study/my_studies', requireLogin, async (req, res) => {
         let studies;
         switch (req.user.role) {
             case 'facilitator':
             case 'admin':
-                studies = await Study.find({ _user: req.user.id });
+                studies = await Study.find({ _createdBy: req.user.id });
+                console.log(studies)
                 break;
             case 'participant':
                 studies = await Study.find({ 'participants.email': req.user.email });
@@ -133,64 +154,65 @@ module.exports = (app) => {
 
     });
 
-    //Get a study by a studyId
+    // Get a study by a studyId
+    // API: useFetchStudyQuery
     app.get('/api/study/:studyId', requireLogin, async (req, res) => {
         const { studyId } = req.params;
         const userId = req.user._id;
         let study = {};
 
-        switch(req.user.role) {
-            case 'participant':
-                study = await Study.findById(studyId)
-                .populate('prompts', 'prompt')
-                .populate({
-                    path: 'responses',
-                    match: { participant: userId }, // Filter responses by logged-in user
-                    populate: [
-                        {
-                            path: 'responses',
-                            select: 'response'
-                        },
-                        {
-                            path: 'responses.comments', // Populate comments in responses
-                            populate: [
-                                { path: 'user', select: 'username' }, // Populate user in comments
-                            ]
-                        }
-                    ]
-                });
-                break;
-            default:
-                study = await Study.findById(studyId)
-                .populate('prompts', 'prompt')
-                .populate({
-                    path: 'responses',
-                    populate: [
-                        {
-                            path: 'responses',
-                            select: 'response'
-                        },
-                        {
-                            path: 'responses.comments', // Populate comments in responses
-                            populate: [
-                                { path: 'user', select: 'username' }, // Populate user in comments
-                            ]
-                        }
-                    ]
-                });
-                break;
-        }
         try {
+            switch (req.user.role) {
+
+                case 'participant':
+                    console.log("User is a participant")
+                    study = await Study.findById(studyId)
+                        .populate({
+                            path: 'tasks',
+                            populate: {
+                                path: 'prompts',
+                                model: 'StudyPrompt'
+                            }
+                        });
+                    break;
+                default:
+                    study = await Study.findById(studyId)
+                        .populate({
+                            path: 'tasks',
+                            populate: [
+                                {
+                                    path: 'prompts',
+                                    model: 'StudyPrompt'
+                                },
+                                {
+                                    path: 'responses',
+                                    model: 'StudyResponse',
+                                    populate: {
+                                        path: 'comments',
+                                        model: 'Comment',
+                                        populate: {
+                                            path: 'user',
+                                            select: 'username'
+                                        }
+                                    }
+                                }
+                            ]
+                        });
+                    break;
+            }
+
             if (!study) {
                 return res.status(404).send("Study not found");
             }
+
             res.send(study);
         } catch (err) {
-            res.status(422).send(err);
+            console.error("Error fetching study:", err);
+            res.status(422).send({ error: "Failed to fetch study", details: err.message });
         }
     });
-
     //Get all comments for a specific study
+    // API: useFetchStudyCommentsQuery
     app.get('/api/study/:studyId/comments', requireLogin, async (req, res) => {
         const { studyId } = req.params;
         try {
@@ -202,5 +224,29 @@ module.exports = (app) => {
 
             res.status(500).send(err)
         }
+    });
+
+    app.get('/api/study/task/:taskId', requireLogin, async (req, res) => {
+        const { taskId } = req.params;
+
+        try {
+            const task = await StudyTask.findById(taskId)
+                .populate([
+                    { path: 'participants', model: 'StudyParticipants' },
+                    { path: 'prompts', model: 'StudyPrompt' },
+                ]);
+
+            if (!task) {
+                res.status(400).send("No Task Found")
+            }
+
+            res.send(task);
+
+        } catch (err) {
+            console.error("Error fetching task:", JSON.stringify(err));
+
+            res.status(500).send(err)
+        }
+
     });
 };

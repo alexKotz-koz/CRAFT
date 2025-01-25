@@ -6,16 +6,16 @@ const requireLogin = require('../middlewares/requireLogin');
 
 module.exports = (app) => {
     // GET Discussion
-    app.get('/api/discussion/:studyId', requireLogin, async (req, res) => {
-        const { studyId } = req.params;
+    app.get('/api/discussion/:taskId', requireLogin, async (req, res) => {
+        const { taskId } = req.params;
         try {
-            const discussion = await Discussion.findOne({ study: studyId })
-                .populate('prompts', 'prompt') // Populate prompts with their "prompt" field
+            const discussion = await Discussion.findOne({ task: taskId })
+                .populate('prompts', 'prompt')
                 .populate({
                     path: 'initialResponses',
                     populate: [
                         {
-                            path: 'participant', // Populate participant in initialResponses
+                            path: '_participant', // Populate participant in initialResponses
                             select: 'username'
                         },
                         {

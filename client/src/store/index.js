@@ -36,7 +36,8 @@ export {
   useFetchStudiesQuery,
   useCreateStudyResponseMutation,
   useFetchStudyQuery,
-  useFetchStudyCommentsQuery
+  useFetchStudyCommentsQuery,
+  useFetchTaskQuery,
 } from './apis/studyApi';
 
 export {

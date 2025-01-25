@@ -3,7 +3,7 @@ import { GoArrowUp, GoArrowDown, GoCommentDiscussion, GoPlus } from "react-icons
 import { useCreateVoteMutation, useCreateCommentMutation } from "../../store";
 import Comment from "./Comment";
 
-const InitialResponse = ({ username, dateCreated, response, studyId, promptId, responseId, currentUser, upvotes, downvotes, voters, comments }) => {
+const InitialResponse = ({ username, dateCreated,response, studyId, promptId, responseId, currentUser, upvotes, downvotes, voters, comments }) => {
     const [createVote, { error: errorVote, isLoading: isLoadingVote }] = useCreateVoteMutation();
     const [createComment, { error: errorComment, isLoading: isLoadingComment }] = useCreateCommentMutation();
     const [commentContent, setCommentContent] = useState("");
@@ -63,13 +63,13 @@ const InitialResponse = ({ username, dateCreated, response, studyId, promptId, r
         <div className="card mb-3">
             <div className="card-body">
                 <div className="d-flex justify-content-between align-items-center">
-                    <h5 className="card-title mb-0">{username.username}</h5>
+                    <h5 className="card-title mb-0">{username}</h5>
                     <small className="text-muted">{new Date(dateCreated).toLocaleDateString()}</small>
                 </div>
                 <div className="d-flex justify-content-between align-items-center mt-2">
                     <p className="card-text mb-0">{response}</p>
                     <div className="d-flex align-items-center">
-                        {currentUser.username !== username.username && (
+                        {currentUser.username !== username && (
                             <>
                                 <div className="d-flex align-items-center mx-2">
                                     <span>{upvotes}</span>

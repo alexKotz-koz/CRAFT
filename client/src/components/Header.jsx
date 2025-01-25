@@ -1,5 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useFetchUserQuery } from "../store";
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 const Header = () => {
   //console.log("Header Auth", auth);

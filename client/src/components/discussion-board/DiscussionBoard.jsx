@@ -3,8 +3,10 @@ import { useParams } from "react-router-dom";
 import Prompt from "./Prompt";
 
 const DiscussionBoard = () => {
-    const { studyId } = useParams();
-    const { data: discussion, error: errorDiscussion, isLoading: isLoadingDiscussion } = useFetchDiscussionQuery(studyId);
+    const { taskId } = useParams();
+    console.log("Task ID: ", taskId);
+    const { data: discussion, error: errorDiscussion, isLoading: isLoadingDiscussion } = useFetchDiscussionQuery(taskId);
+    console.log("Discussion: ", discussion);
     const { data: user, error: errorUser, isLoading: isLoadingUser } = useFetchUserQuery();
 
     if (isLoadingDiscussion || isLoadingUser) {
@@ -15,10 +17,12 @@ const DiscussionBoard = () => {
         return <div>Error: {errorDiscussion?.data.error || errorUser?.data.error}</div>;
     }
 
-    const prompts = discussion.prompts.length > 0 ? discussion.prompts.map(prompt => prompt.prompt) : [];
-    const responses = discussion.initialResponses.length > 0 ? discussion.initialResponses : [];
+    const studyId = discussion.study;
 
-    console.log("responses", discussion)
+    const prompts = discussion.prompts.length > 0 ? discussion.prompts : [];
+    const responses = discussion.initialResponses.length > 0 ? discussion.initialResponses : [];
+    console.log(responses)
+
     return (
         <div className="container">
             <h3 className="mt-4 mb-5 text-center">Discussion Board</h3>

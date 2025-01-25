@@ -11,7 +11,7 @@ const StudyDashboard = () => {
 
     const studyDiscussionLink = `/discussion/${studyId}`
 
-    console.log(comments)
+    console.log("study", study)
 
     if (isLoadingStudy) {
         return <div>Loading...</div>;
@@ -22,13 +22,7 @@ const StudyDashboard = () => {
         return <div>Error: {errorStudy.data}</div>;
     }
 
-    /**
-     * Participants: {email, username, responded: bool}
-     * Prompts: {_id, prompt}
-     * Responses: {dateCreated, participant: id, responses: obj, study: id, _id}
-     * **** responses: {comments: obj, downvotes, upvotes, prompt: id, response, voters: array id's}
-     * **** ***** comments: {content, createdAt, dateCreated, downvotes, kind, response: id, updatedAt, upvotes, user: {_id, username}, voters: array ids, _id}
-     */
+
     const { dateCreated, dateModified, description, instructions, name, participants, prompts, responses } = study;
 
 

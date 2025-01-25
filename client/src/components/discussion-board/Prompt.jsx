@@ -3,7 +3,7 @@ import { GoChevronDown, GoChevronLeft } from 'react-icons/go';
 import InitialResponse from "./InitialResponse";
 
 function Prompt({ prompt, responses, promptIndex, studyId, currentUser }) {
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(true);
 
     const handleClick = () => {
         setIsExpanded(!isExpanded);
@@ -28,11 +28,12 @@ function Prompt({ prompt, responses, promptIndex, studyId, currentUser }) {
             {isExpanded && (
                 <div className="card-body">
                     {responses.map((response, idx) => {
+                        console.log("Prompt Response Obj: ", response)
                         return (
                             <InitialResponse
                                 key={idx}
-                                username={response.participant}
-                                dateCreated={response.dateCreated}
+                                username={response._participant.username}
+                                dateCreated={response._dateCreated}
                                 response={response.responses[promptIndex].response}
                                 studyId={studyId}
                                 promptId={response.responses[promptIndex].prompt}

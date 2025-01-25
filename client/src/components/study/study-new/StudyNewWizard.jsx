@@ -4,7 +4,7 @@ import StudyParticipants from "./StudyParticipants";
 import StudyTasks from "./StudyTasks";
 import StudyReview from "./StudyReview";
 import { useNavigate } from "react-router-dom";
-import { useCreateStudyMutation, useCreateUserMutation } from "../../store";
+import { useCreateStudyMutation, useCreateUserMutation } from "../../../store";
 
 const StudyNewWizard = () => {
     const navigate = useNavigate();

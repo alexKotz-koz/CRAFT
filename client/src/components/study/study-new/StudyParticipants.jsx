@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { Form } from "react-final-form";
 import PropTypes from 'prop-types';
 import { GoPersonAdd, GoTrash } from "react-icons/go";
-import { validateEmail } from "../../utils/validation";
-import { useLazyFetchUsernameQuery } from "../../store";
+import { validateEmail } from "../../../utils/validation";
+import { useLazyFetchUsernameQuery } from "../../../store";
 
 
 const StudyParticipants = ({ onSubmit, onCancel, initialValues }) => {
