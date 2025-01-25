@@ -12,6 +12,7 @@ const StudyDashboard = () => {
     const studyDiscussionLink = `/discussion/${studyId}`
 
     console.log("study", study)
+    console.log("comments", comments)
 
     if (isLoadingStudy) {
         return <div>Loading...</div>;

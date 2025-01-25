@@ -75,7 +75,7 @@ const Home = () => {
                                     <div className="mt-auto">
                                         <div className="btn-group w-100">
                                             <ButtonLink to='#' additionalClasses="btn-success card-link" text='Edit' />
-                                            <ButtonLink to={studyDashboardLink} additionalClasses="btn-secondary card-link" text='View' />
+                                            <button className="btn btn-secondary card-link" onClick={() => navigate(studyDashboardLink)}>View</button>
                                         </div>
                                     </div>
                                 </div>
@@ -100,14 +100,12 @@ const Home = () => {
                 fetch(`/api/study/task/${taskId}`)
                     .then(response => response.json())
             ));
+
             setTasks(fetchedTasks);
-            console.log("fetchedTasks: ", fetchedTasks);
-            // Navigate to the discussion page with the first task ID
+            
             if (fetchedTasks.length > 0){
                 setViewDiscussionModal(!viewDiscussionModal);
-            }
-                //navigate(`/discussion/${fetchedTasks[0]._id}`);
-                
+            }                
         } catch (error) {
             console.error("Error fetching tasks:", error);
         }
