@@ -60,6 +60,15 @@ const authApi = createApi({
                     };
                 },
             }),
+            checkUsernameAvailability: builder.query({
+                query: (checkUser) => {
+                    return{
+                        url: '/check_user',
+                        method: 'POST',
+                        body: checkUser,
+                    };
+                },
+            }),
         };
     }
 
@@ -73,5 +82,6 @@ export const {
     useFetchUsernameQuery,
     useLazyFetchUsernameQuery,
     usePasswordResetMutation, 
+    useLazyCheckUsernameAvailabilityQuery,
 } = authApi;
 export { authApi };

@@ -29,6 +29,7 @@ export {
   useFetchUsernameQuery,
   useLazyFetchUsernameQuery,
   usePasswordResetMutation, 
+  useLazyCheckUsernameAvailabilityQuery
 } from './apis/authApi';
 
 export {

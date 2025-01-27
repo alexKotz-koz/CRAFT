@@ -14,3 +14,45 @@
 .card .mt-auto {
     margin-top: auto;
 }
+
+
+/* Floating label container */
+.floating-label {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+/* Input field */
+.floating-label input,
+.floating-label textarea {
+    width: 100%;
+    padding: 1rem 0.5rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 15px;
+    outline: none;
+}
+
+/* Label */
+.floating-label label {
+    position: absolute;
+    top: 1rem;
+    left: 0.5rem;
+    font-size: 1rem;
+    color: #999;
+    pointer-events: none;
+    transition: all 0.2s ease;
+}
+
+/* Input field with focus or text */
+.floating-label input:focus + label,
+.floating-label input:not(:placeholder-shown) + label,
+.floating-label textarea:focus + label,
+.floating-label textarea:not(:placeholder-shown) + label {
+    top: -0.5rem;
+    left: 0.5rem;
+    font-size: 0.75rem;
+    color: #333;
+    background: white;
+    padding: 0 0.25rem;
+}

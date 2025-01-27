@@ -1,6 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useFetchUserQuery } from "../store";
-import 'bootstrap/dist/css/bootstrap.min.css';
 
 
 const Header = () => {
@@ -29,7 +28,7 @@ const Header = () => {
           {data?.username || ''}
         </a>
         <ul className="dropdown-menu">
-          <li><a className="dropdown-item" href="#">Action</a></li>
+          <li><a className="dropdown-item" href="/test">Test</a></li>
           <li><a className="dropdown-item" href="#">Another action</a></li>
           <li><hr className="dropdown-divider" /></li>
           <li><a className="dropdown-item" href="/auth/logout" onClick={handleLogout}>Logout</a></li>

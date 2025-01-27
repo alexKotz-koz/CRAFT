@@ -3,7 +3,7 @@ import { GoArrowUp, GoArrowDown, GoCommentDiscussion, GoPlus } from "react-icons
 import { useCreateVoteMutation, useCreateCommentMutation } from "../../store";
 import Comment from "./Comment";
 
-const InitialResponse = ({ username, dateCreated,response, studyId, promptId, responseId, currentUser, upvotes, downvotes, voters, comments }) => {
+const InitialResponse = ({ username, dateCreated,response, studyId, promptId, responseId, currentUser, upvotes, downvotes, voters, comments, taskId }) => {
     const [createVote, { error: errorVote, isLoading: isLoadingVote }] = useCreateVoteMutation();
     const [createComment, { error: errorComment, isLoading: isLoadingComment }] = useCreateCommentMutation();
     const [commentContent, setCommentContent] = useState("");
@@ -60,7 +60,7 @@ const InitialResponse = ({ username, dateCreated,response, studyId, promptId, re
     };
 
     return (
-        <div className="card mb-3">
+        <div className="card mb-3 bg-body-secondary border border-tertiary p-2 rounded">
             <div className="card-body">
                 <div className="d-flex justify-content-between align-items-center">
                     <h5 className="card-title mb-0">{username}</h5>
@@ -72,11 +72,11 @@ const InitialResponse = ({ username, dateCreated,response, studyId, promptId, re
                         {currentUser.username !== username && (
                             <>
                                 <div className="d-flex align-items-center mx-2">
-                                    <span>{upvotes}</span>
+                                    {!isParticipant && <span>{upvotes}</span>}
                                     <GoArrowUp onClick={upVote} style={hasVoted || !isParticipant ? disabledStyle : {cursor: 'pointer'}} />
                                 </div>
                                 <div className="d-flex align-items-center mx-2">
-                                    <span>{downvotes}</span>
+                                    {!isParticipant && <span>{downvotes}</span>}
                                     <GoArrowDown onClick={downVote} style={hasVoted || !isParticipant ? disabledStyle : {cursor: 'pointer'}} />
                                 </div>
                             </>
@@ -88,7 +88,7 @@ const InitialResponse = ({ username, dateCreated,response, studyId, promptId, re
                 {showComments && (
                     <div className="mt-3">
                         {comments.map((comment, idx) => (
-                            <Comment key={idx} comment={comment} currentUser={currentUser} studyId={studyId} />
+                            <Comment key={idx} comment={comment} currentUser={currentUser} studyId={studyId} taskId={taskId} />
                         ))}
                         {showNewComment && (
                             <form onSubmit={handleCommentSubmit} className="mt-3">

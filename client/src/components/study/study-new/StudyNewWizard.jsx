@@ -52,7 +52,7 @@ const StudyNewWizard = () => {
             name: formValues.name,
             description: formValues.description,
             participants: formValues.emailList,
-            tasks: formValues.taskList // Directly use the taskList array
+            tasks: formValues.taskList
         }
         try {
             const fullParticipants = [];
@@ -73,8 +73,6 @@ const StudyNewWizard = () => {
             const csvContent = generateCSVContent(fullParticipants);
             downloadCSV(csvContent);
 
-            console.log("final study: ", study)
-
             await createStudy(study).unwrap();
 
             navigate('/home');
@@ -84,8 +82,10 @@ const StudyNewWizard = () => {
         }
     }
 
-    const handleBack = () => {
+    const handleBack = (values) => {
+        setFormValues({...formValues, ...values});
         setCurrentStage(currentStage - 1);
+
     };
 
     const renderContent = () => {
@@ -121,7 +121,7 @@ const StudyNewWizard = () => {
                 onSubmit={submitForm}
                 formValues={formValues}
                 isLoading={isLoadingStudy || isLoadingUsers}
-                error={errorStudy || errorUsers}
+                error={errorStudy || errorUsers || submissionError}
             />
             );
         default:

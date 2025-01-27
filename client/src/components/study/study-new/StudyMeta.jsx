@@ -16,7 +16,7 @@ const StudyMeta = ({ onSubmit, onCancel, initialValues }) => {
   };
 
   return (
-    <div>
+    <div className="bg-body-tertiary border border-tertiary p-2 rounded">
       <h3 className="text-center">Create New Study</h3>
       <Form
         onSubmit={onSubmit}
@@ -50,11 +50,8 @@ const StudyMeta = ({ onSubmit, onCancel, initialValues }) => {
                 {({ meta }) => meta.error && meta.touched && <span className="text-danger">{meta.error}</span>}
               </Field>
             </div>
-            <div className="d-flex justify-content-between mt-3">
-              <button type="button" className="btn btn-secondary" onClick={onCancel}>
-                Cancel
-              </button>
-              <button type="submit" className="btn btn-primary">
+            <div className="d-flex justify-content-end mt-3">
+              <button type="submit" className="btn btn-success ms-2 me-2">
                 Next
               </button>
             </div>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { GoChevronDown, GoChevronLeft } from 'react-icons/go';
 import InitialResponse from "./InitialResponse";
 
-function Prompt({ prompt, responses, promptIndex, studyId, currentUser }) {
+function Prompt({ prompt, responses, promptIndex, studyId, currentUser, taskId }) {
     const [isExpanded, setIsExpanded] = useState(true);
 
     const handleClick = () => {
@@ -10,10 +10,10 @@ function Prompt({ prompt, responses, promptIndex, studyId, currentUser }) {
     };
 
     return (
-        <div className="card mb-3">
+        <div className="card mb-3 bg-body-tertiary border border-tertiary p-2 rounded">
             <div className="card-body" onClick={handleClick}>
                 <div className="d-flex align-items-center">
-                    <h5 className="card-title mb-0">
+                    <h5 className="card-title mb-0 fw-bolder">
                         {prompt}
                     </h5>
                     <div className="ms-auto">
@@ -43,6 +43,7 @@ function Prompt({ prompt, responses, promptIndex, studyId, currentUser }) {
                                 downvotes={response.responses[promptIndex].downvotes} // Pass downvotes
                                 voters={response.responses[promptIndex].voters} // Pass voters
                                 comments={response.responses[promptIndex].comments}
+                                taskId={taskId}
                             />
                         );
                     })}

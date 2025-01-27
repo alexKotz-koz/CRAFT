@@ -14,7 +14,6 @@ const Home = () => {
     const [tasks, setTasks] = useState([]);
     const [viewDiscussionModal, setViewDiscussionModal] = useState(false);
 
-    console.log("userStudies: ", userStudies)
     // Participant: Upon initial render, get all studies associated with the logged in user && get the status (responded/not responded) for each study
     useEffect(() => {
         if (user && userStudies) {
@@ -41,7 +40,6 @@ const Home = () => {
         return <div>No user data available</div>;
     }
 
-    // Group studies into chunks of 4 for view
     const studyChunks = userStudies.reduce((resultArray, item, index) => {
         const chunkIndex = Math.floor(index / 4);
 
@@ -93,19 +91,18 @@ const Home = () => {
     // PARTICIPANT ///////////////////////////////////////////////////////////////////////////////////////////
 
     const handleViewDiscussion = async (study) => {
-        console.log(study);
         const taskIds = study.tasks;
         try {
-            const fetchedTasks = await Promise.all(taskIds.map(taskId => 
+            const fetchedTasks = await Promise.all(taskIds.map(taskId =>
                 fetch(`/api/study/task/${taskId}`)
                     .then(response => response.json())
             ));
 
             setTasks(fetchedTasks);
-            
-            if (fetchedTasks.length > 0){
+
+            if (fetchedTasks.length > 0) {
                 setViewDiscussionModal(!viewDiscussionModal);
-            }                
+            }
         } catch (error) {
             console.error("Error fetching tasks:", error);
         }
@@ -124,14 +121,14 @@ const Home = () => {
                         >
                             View Discussion
                         </button>
-                        {viewDiscussionModal && 
+                        {viewDiscussionModal &&
                             <Modal isOpen={viewDiscussionModal} toggle={toggleModal} >
                                 <ModalHeader toggle={toggleModal}>
                                     Choose Task Discussion
                                 </ModalHeader>
                                 <ModalFooter className='d-flex align-items-center justify-content-center'>
                                     {tasks.map((task) => (
-                                        <Button color='primary' onClick={() => 
+                                        <Button color='primary' onClick={() =>
                                             navigate(`/discussion/${task._id}`)
                                         } key={task._id}>
                                             {task.name}
@@ -162,14 +159,7 @@ const Home = () => {
                     <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4" key={studyIndex}>
                         <div className="card h-100">
                             <div className="card-body d-flex flex-column">
-                                <div className="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 className="card-title">{study.name}</h5>
-                                    {respondedStatus[study._id] ? (
-                                        <GoCheck style={{ fontSize: '24px', color: 'green' }} />
-                                    ) : (
-                                        <GoBellFill style={{ fontSize: '24px', color: 'red' }} />
-                                    )}
-                                </div>
+                                <h5 className="card-title">{study.name}</h5>
                                 <p className="card-text description">{study.description}</p>
                                 {renderCompletedStudyCard(respondedStatus[study._id], study)}
                             </div>

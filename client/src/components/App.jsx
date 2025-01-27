@@ -13,10 +13,13 @@ import StudyResponse from "./study/study-response/StudyResponse";
 import DiscussionBoard from "./discussion-board/DiscussionBoard";
 import StudyDashboard from "./study/study-dashboard/StudyDashboard";
 
+import Test from '../components/Test';
+
 import { useFetchUserQuery } from '../store';
 
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import '../static/custom.css';
 
 
 
@@ -42,6 +45,7 @@ const App = () => {
         <Route path='/study/response/task/:taskId' element={<StudyResponse user={user} />} />
         <Route path='/password_reset' element={<PasswordReset />} />
         <Route path='/discussion/:taskId' element={<DiscussionBoard />} />
+        <Route path='/test' element={<Test />} />
       </Routes>
       </BrowserRouter>
     </div>

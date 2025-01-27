@@ -207,4 +207,20 @@ module.exports = (app) => {
             return next(err);
         }
     });
+    app.post('/auth/check_user', async (req, res) => {
+        const { checkUser } = req.body;
+        console.log(checkUser)
+        try {
+            const userExists = await User.findOne({ email: checkUser.email });
+
+            if (userExists) {
+                return res.status(200).send({ exists: true });
+            } else {
+                return res.status(200).send({ exists: false });
+            }
+        } catch (err) {
+            console.error("Error checking user existence:", err);
+            return res.status(500).send({ error: "Internal server error" });
+        }
+    });
 };

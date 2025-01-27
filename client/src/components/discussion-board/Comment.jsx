@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { GoArrowUp, GoArrowDown, GoReply } from "react-icons/go";
 import { useCreateCommentVoteMutation, useCreateSubCommentMutation, useFetchSubCommentsQuery } from "../../store";
 
-const Comment = ({ comment, currentUser, studyId }) => {
+const Comment = ({ comment, currentUser, studyId, taskId }) => {
     const [createVote, { error: errorVote, isLoading: isLoadingVote }] = useCreateCommentVoteMutation();
     const [createSubcomment, { error: errorSubcomment, isLoading: isLoadingSubcomment }] = useCreateSubCommentMutation();
     const [subCommentContent, setSubCommentContent] = useState("");
@@ -52,7 +52,7 @@ const Comment = ({ comment, currentUser, studyId }) => {
     };
 
     return (
-        <div className="card mb-2">
+        <div className="card mb-2 bg-dark-subtle border border-tertiary p-2 rounded">
             <div className="card-body">
                 <div className="d-flex justify-content-between align-items-center">
                     <h6 className="card-title mb-0">{comment.user.username}</h6>
@@ -61,11 +61,11 @@ const Comment = ({ comment, currentUser, studyId }) => {
                 <p className="card-text mt-2">{comment.content}</p>
                 <div className="d-flex align-items-center">
                     <div className="d-flex align-items-center mx-2">
-                        <span>{comment.upvotes}</span>
+                        {!isParticipant && <span>{comment.upvotes}</span>}
                         <GoArrowUp onClick={() => upVote(comment._id)} style={hasVotedComment || !isParticipant ? disabledStyle : { cursor: 'pointer' }} />
                     </div>
                     <div className="d-flex align-items-center mx-2">
-                        <span>{comment.downvotes}</span>
+                        {!isParticipant && <span>{comment.downvotes}</span>}
                         <GoArrowDown onClick={() => downVote(comment._id)} style={hasVotedComment || !isParticipant ? disabledStyle : { cursor: 'pointer' }} />
                     </div>
                     {isParticipant ? <GoReply className="mx-2" onClick={toggleReply} style={{ cursor: 'pointer' }} /> : ''}

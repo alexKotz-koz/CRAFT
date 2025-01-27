@@ -22,7 +22,7 @@ const StudyReview = ({ onCancel, onSubmit, formValues, isLoading, error }) => {
                     {taskList && taskList.map((task, index) => (
                         <li key={index} className="list-group-item">
                             <p><strong>Name:</strong> {task.name}</p>
-                            <p><strong>Description:</strong> {task.description}</p>
+                            <p><strong>Instructions:</strong> {task.instructions}</p>
                             <p><strong>Prompts:</strong></p>
                             <ul>
                                 {task.prompts.map((prompt, idx) => (

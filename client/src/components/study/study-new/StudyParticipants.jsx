@@ -3,7 +3,7 @@ import { Form } from "react-final-form";
 import PropTypes from 'prop-types';
 import { GoPersonAdd, GoTrash } from "react-icons/go";
 import { validateEmail } from "../../../utils/validation";
-import { useLazyFetchUsernameQuery } from "../../../store";
+import { useLazyFetchUsernameQuery, useLazyCheckUsernameAvailabilityQuery } from "../../../store";
 
 
 const StudyParticipants = ({ onSubmit, onCancel, initialValues }) => {
@@ -11,6 +11,8 @@ const StudyParticipants = ({ onSubmit, onCancel, initialValues }) => {
   const [emailList, setEmailList] = useState([]);
   const [invalidEmail, setInvalidEmail] = useState(false);
   const [fetchUsername, { isLoading, data, error }] = useLazyFetchUsernameQuery();
+  const [checkUsernameAvailability, { isLoading: isLoadingAvailability, data: availabilityData, error: availabilityError }] = useLazyCheckUsernameAvailabilityQuery();
+  const [submissionError, setSubmissionError] = useState("");
 
 
   useEffect(() => {
@@ -37,9 +39,23 @@ const StudyParticipants = ({ onSubmit, onCancel, initialValues }) => {
       }
 
       const username = result.username;
-      console.log(username);
+
+      const checkUser = {
+        username: username,
+        email: email
+      }
+
+      // Check username availability
+      const availabilityResult = await checkUsernameAvailability({ checkUser }).unwrap();
+      if (availabilityResult.exists) {
+        console.error("Email is already taken:", email);
+        setSubmissionError(`Email is already taken: ${email}`);
+        return;
+      }
+
       setEmailList([...emailList, { email, username }]);
       setEmail("");
+      setSubmissionError("");
     }
   };
 
@@ -63,7 +79,7 @@ const StudyParticipants = ({ onSubmit, onCancel, initialValues }) => {
   };
 
   return (
-    <div>
+    <div className="bg-body-tertiary border border-tertiary p-2 rounded">
       <h3 className="text-center">Add Participants</h3>
       <Form
         onSubmit={handleFormSubmit}
@@ -108,11 +124,12 @@ const StudyParticipants = ({ onSubmit, onCancel, initialValues }) => {
                 ))}
               </ul>
             </div>
-            <div className="d-flex justify-content-between mt-3">
+            {submissionError && <div className="text-danger mt-3">{submissionError}</div>}
+            <div className="d-flex justify-content-end mt-3">
               <button type="button" className="btn btn-secondary" onClick={onCancel}>
                 Back
               </button>
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-success ms-2 me-2">
                 Next
               </button>
             </div>

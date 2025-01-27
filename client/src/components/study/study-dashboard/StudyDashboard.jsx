@@ -2,6 +2,8 @@ import { useParams } from "react-router-dom";
 import { useFetchStudyCommentsQuery, useFetchStudyQuery, useFetchSubCommentsQuery } from "../../../store";
 import SimplePieChart from "./SimplePieChart";
 import TimeLinePlot from "./TimeLinePlot";
+import ButtonLink from "../../tools/ButtonLink";
+import { Card, CardBody, CardFooter, CardHeader } from "reactstrap";
 
 const StudyDashboard = () => {
 
@@ -26,38 +28,32 @@ const StudyDashboard = () => {
 
     const { dateCreated, dateModified, description, instructions, name, participants, prompts, responses } = study;
 
-
-    // Responded
-    const respondedCount = participants.filter(p => p.responded).length;
-    const notRespondedCount = participants.length - respondedCount;
+    const participantsCompletedStudy = participants.filter(p => p.responded).length;
+    const participantsUncompletedStudy = participants.length - participantsCompletedStudy;
 
     const respondedData = [
-        { name: 'Responded', value: respondedCount },
-        { name: 'Not Responded', value: notRespondedCount }
+        { name: 'Completed Study', value: participantsCompletedStudy },
+        { name: 'Incompleted Study', value: participantsUncompletedStudy }
     ];
 
     // Comments over Time
     const commentData = [];
-    responses.forEach(response => {
-        response.responses.forEach(subResponse => {
-            if (subResponse.comments.length > 0) {
-                subResponse.comments.forEach(comment => {
-                    console.log("comment ", comment)
-                    const commentDate = new Date(comment.dateCreated);
-                    const year = commentDate.getFullYear();
-                    const month = commentDate.getMonth() + 1; // Months are zero-indexed
-                    const day = commentDate.getDate();
-                    const hour = commentDate.getHours();
+    comments.forEach(comment => {
 
-                    // Create a new date object in the desired format
-                    const formattedDate = `${year}-${month}-${day} ${hour}:00`;
+        console.log("comment ", comment)
+        const commentDate = new Date(comment.dateCreated);
+        const year = commentDate.getFullYear();
+        const month = commentDate.getMonth() + 1; // Months are zero-indexed
+        const day = commentDate.getDate();
+        const hour = commentDate.getHours();
 
-                    // Add to commentData array
-                    commentData.push({ date: formattedDate, count: 1 });
-                });
-            }
-        });
+        // Create a new date object in the desired format
+        const formattedDate = `${year}-${month}-${day} ${hour}:00`;
+
+        // Add to commentData array
+        commentData.push({ date: formattedDate, count: 1 });
     });
+
 
     // Aggregate comment counts by date
     const aggregatedCommentData = commentData.reduce((acc, curr) => {
@@ -76,12 +72,43 @@ const StudyDashboard = () => {
 
     return (
         <div className="container-fluid">
-            <h3 className="text-center mb-4">Study Statistics</h3>
-            
-            <div className="row">
+            <h3 className="text-center mb-4">Study Dashboard</h3>
+
+            <div className="row mt-3 mb-3">
                 <SimplePieChart data={respondedData} title="Responded" />
                 <TimeLinePlot data={aggregatedCommentData} title="Comments" lineDataKey="count" />
+            </div>
+            <div className="row">
+                <h5 className="text-center mb-4">Task Discussions</h5>
+                {study.tasks.map((task, idx) => {
+                    const taskId = task._id;
+                    const discussionLink = `/discussion/${taskId}`;
+                    console.log("task", task)
+                    return (
+                        <div key={idx} className="w-25">
+                            <Card>
+                                <CardHeader>
+                                    {task.name}
+                                </CardHeader>
+                                <CardBody>
+                                    <ul>
+                                        <li>
+                                            <p>Responded: {task.participants.filter(p => p.responded).length}/{task.participants.length}</p>
+                                        </li>
+                                        <li>
+                                            <p>Prompts with Discussion: {}</p>
+                                        </li>
+                                    </ul>
+                                </CardBody>
+                                <CardFooter className="d-flex justify-content-center">
+                                    <ButtonLink key={idx} to={discussionLink} text={task.name} additionalClasses="btn-primary btn-sm w-25" />
 
+                                </CardFooter>
+                            </Card>
+                        </div>
+
+                    );
+                })}
             </div>
         </div>
     );

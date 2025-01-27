@@ -47,7 +47,7 @@ module.exports = (app) => {
 
                 const studyTask = new StudyTask({
                     name: task.name,
-                    instructions: task.description,
+                    instructions: task.instructions,
                     prompts: studyPrompts,
                     participants,
                     study: study._id,
