@@ -23,9 +23,11 @@ const DiscussionBoard = () => {
 
     const prompts = discussion.prompts.length > 0 ? discussion.prompts : [];
     const responses = discussion.initialResponses.length > 0 ? discussion.initialResponses : [];
-    console.log(responses)
-
-    return (
+    
+    if (responses <= 0 ){
+        return <div>Error occured when fetching discusison responses. Please contact administrative services for further assistance. </div>
+    } else {
+            return (
         <div className="container">
             <h3 className="mt-4 mb-5 text-center">Discussion Board - {task.name}</h3>
             {prompts.map((prompt, index) => (
@@ -33,6 +35,9 @@ const DiscussionBoard = () => {
             ))}
         </div>
     );
+    }
+
+
 };
 
 export default DiscussionBoard;

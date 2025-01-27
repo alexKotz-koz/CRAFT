@@ -73,7 +73,7 @@ const InitialResponse = ({ username, dateCreated,response, studyId, promptId, re
                             <>
                                 <div className="d-flex align-items-center mx-2">
                                     {!isParticipant && <span>{upvotes}</span>}
-                                    <GoArrowUp onClick={upVote} style={hasVoted || !isParticipant ? disabledStyle : {cursor: 'pointer'}} />
+                                    <GoArrowUp onClick={upVote} style={hasVoted || !isParticipant ? disabledStyle : {cursor: 'pointer', color: 'blue'}} />
                                 </div>
                                 <div className="d-flex align-items-center mx-2">
                                     {!isParticipant && <span>{downvotes}</span>}

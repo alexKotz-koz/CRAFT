@@ -5,6 +5,10 @@ import InitialResponse from "./InitialResponse";
 function Prompt({ prompt, responses, promptIndex, studyId, currentUser, taskId }) {
     const [isExpanded, setIsExpanded] = useState(true);
 
+    if (responses.length <= 0){
+        return <div>Error fetching responses for this discussion. Please contact administrative services for further assistance.</div>
+    }
+
     const handleClick = () => {
         setIsExpanded(!isExpanded);
     };
