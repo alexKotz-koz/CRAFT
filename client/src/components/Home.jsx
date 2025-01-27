@@ -65,7 +65,7 @@ const Home = () => {
                         <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4" key={study._id}>
                             <div className="card h-100">
                                 <div className="card-body d-flex flex-column">
-                                    <h5 className="card-title">{study.name}</h5>
+                                    <h5 className="card-header mb-3">{study.name}</h5>
                                     <p className="card-text description">{study.description}</p>
                                     <p className="card-text">
                                         Completed Studies: {study.participants.filter(p => p.responded).length} / {study.participants.length}
@@ -159,7 +159,7 @@ const Home = () => {
                     <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4" key={studyIndex}>
                         <div className="card h-100">
                             <div className="card-body d-flex flex-column">
-                                <h5 className="card-title">{study.name}</h5>
+                                <h5 className="card-header mb-2">{study.name}</h5>
                                 <p className="card-text description">{study.description}</p>
                                 {renderCompletedStudyCard(respondedStatus[study._id], study)}
                             </div>
@@ -181,8 +181,8 @@ const Home = () => {
     };
 
     return (
-        <div className="container py-2 px-5 text-center">
-            <h3>My Studies</h3>
+        <div className="container py-2 px-5 text-start">
+            <h3 className='text-center'>My Studies</h3>
             {renderContent()}
         </div>
     );

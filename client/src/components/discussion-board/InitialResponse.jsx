@@ -11,6 +11,13 @@ const InitialResponse = ({ username, dateCreated,response, studyId, promptId, re
     const [showNewComment, setShowNewComment] = useState(false);
     const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
 
+
+    console.log("response: ", response)
+    console.log("voters: ", voters)
+    console.log("upvotes: ", upvotes)
+    console.log("downvotes: ", downvotes)
+    console.log("comments: ", comments)
+
     const hasVoted = voters.includes(currentUser._id);
 
     if (isLoadingVote || isLoadingComment) {
@@ -73,7 +80,7 @@ const InitialResponse = ({ username, dateCreated,response, studyId, promptId, re
                             <>
                                 <div className="d-flex align-items-center mx-2">
                                     {!isParticipant && <span>{upvotes}</span>}
-                                    <GoArrowUp onClick={upVote} style={hasVoted || !isParticipant ? disabledStyle : {cursor: 'pointer', color: 'blue'}} />
+                                    <GoArrowUp onClick={upVote} style={hasVoted || !isParticipant ? disabledStyle : {cursor: 'pointer', backgroundcolor: 'blue'}} />
                                 </div>
                                 <div className="d-flex align-items-center mx-2">
                                     {!isParticipant && <span>{downvotes}</span>}

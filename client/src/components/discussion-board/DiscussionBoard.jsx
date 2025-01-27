@@ -4,11 +4,8 @@ import Prompt from "./Prompt";
 
 const DiscussionBoard = () => {
     const { taskId } = useParams();
-    console.log("Task ID: ", taskId);
     const { data: discussion, error: errorDiscussion, isLoading: isLoadingDiscussion } = useFetchDiscussionQuery(taskId);
     const { data: task, error: errorTask, isLoading: isLoadingTask } = useFetchTaskQuery(taskId);
-    console.log("Task: ", task)
-    console.log("Discussion: ", discussion);
     const { data: user, error: errorUser, isLoading: isLoadingUser } = useFetchUserQuery();
 
     if (isLoadingDiscussion || isLoadingTask || isLoadingUser) {

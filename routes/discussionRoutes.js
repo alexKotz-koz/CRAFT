@@ -40,6 +40,7 @@ module.exports = (app) => {
     });
 
     // Vote Initial Response
+    // API: createVote
     app.post('/api/discussion/:promptId/:responseId/vote', requireLogin, async (req, res) => {
         const { promptId, responseId } = req.params;
         const { voteType } = req.body; // Expecting { voteType: 'upvote' } or { voteType: 'downvote' }
@@ -121,6 +122,7 @@ module.exports = (app) => {
     });
 
     // Vote on Subcomment
+    // API: createCommentVote
     app.post('/api/discussion/:commentId/vote', requireLogin, async (req, res) => {
         const { commentId } = req.params;
         const { voteType } = req.body;
