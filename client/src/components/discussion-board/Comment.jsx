@@ -10,7 +10,19 @@ const Comment = ({ comment, currentUser, studyId, taskId }) => {
     const { data: subcomments, error: errorFetchSubcomments, isLoading: isLoadingFetchSubcomments } = useFetchSubCommentsQuery({ commentId: comment._id });
 
     const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
-    const hasVotedComment = comment.voters ? comment.voters.includes(currentUser._id) : false;
+    
+    let hasVotedComment = false;
+    let currentUsersVote = 0;
+
+    let votes = comment.votes;
+    if (votes.length > 0) {
+        votes.forEach((vote) => {
+            if (vote.voter._id === currentUser._id) {
+                hasVotedComment = true;
+                currentUsersVote = vote.vote;
+            }
+        });
+    }
 
     if (isLoadingVote || isLoadingSubcomment || isLoadingFetchSubcomments) {
         return <div>Loading...</div>;
@@ -22,13 +34,13 @@ const Comment = ({ comment, currentUser, studyId, taskId }) => {
 
 
     const upVote = (commentId) => {
-        if (!hasVotedComment && isParticipant) {
+        if (isParticipant) {
             createVote({ commentId, voteType: 'upvote' });
         }
     };
 
     const downVote = (commentId) => {
-        if (!hasVotedComment && isParticipant) {
+        if (isParticipant) {
             createVote({ commentId, voteType: 'downvote' });
         }
     };
@@ -46,9 +58,20 @@ const Comment = ({ comment, currentUser, studyId, taskId }) => {
         setShowReply(!showReply);
     };
 
-    const disabledStyle = {
-        pointerEvents: 'none',
-        opacity: 0.5,
+    //ToDo: This is duplicated in InitialResponse
+    const renderVoteIconStyle = (voteType) => {
+        if (!isParticipant) {
+            return { cursor: 'not-allowed', color: 'gray'};
+        }
+        if (hasVotedComment) {
+            if (voteType === 'upvote' && currentUsersVote === 1) {
+                return { cursor: 'pointer', color: 'green', backgroundColor: 'lightgreen' };
+            }
+            if (voteType === 'downvote' && currentUsersVote === -1) {
+                return { cursor: 'pointer', color: 'red', backgroundColor: 'lightcoral' };
+            }
+        }
+        return { cursor: 'pointer', color: 'black' };
     };
 
     return (
@@ -62,11 +85,11 @@ const Comment = ({ comment, currentUser, studyId, taskId }) => {
                 <div className="d-flex align-items-center">
                     <div className="d-flex align-items-center mx-2">
                         {!isParticipant && <span>{comment.upvotes}</span>}
-                        <GoArrowUp onClick={() => upVote(comment._id)} style={hasVotedComment || !isParticipant ? disabledStyle : { cursor: 'pointer' }} />
+                        <GoArrowUp onClick={() => upVote(comment._id)} style={renderVoteIconStyle('upvote')} />
                     </div>
                     <div className="d-flex align-items-center mx-2">
                         {!isParticipant && <span>{comment.downvotes}</span>}
-                        <GoArrowDown onClick={() => downVote(comment._id)} style={hasVotedComment || !isParticipant ? disabledStyle : { cursor: 'pointer' }} />
+                        <GoArrowDown onClick={() => downVote(comment._id)} style={renderVoteIconStyle('downvote')} />
                     </div>
                     {isParticipant ? <GoReply className="mx-2" onClick={toggleReply} style={{ cursor: 'pointer' }} /> : ''}
 

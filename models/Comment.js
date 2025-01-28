@@ -1,14 +1,13 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
+const { VoteSchema } = require('./StudyResponse');
 
 // Base Comment Schema
 const BaseCommentSchema = new Schema({
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     content: { type: String, required: true },
-    upvotes: { type: Number, default: 0 },
-    downvotes: { type: Number, default: 0 },
+    votes: [VoteSchema],
     dateCreated: { type: Date, default: Date.now },
-    voters: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     studyId: { type: Schema.Types.ObjectId, ref: 'Study', required: true } 
 }, { discriminatorKey: 'kind', timestamps: true });
 

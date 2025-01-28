@@ -38,7 +38,7 @@ const SignUp = () => {
     };
 
     return (
-        <div>
+        <div className="form-signin w-50 m-auto">
             <Form
                 onSubmit={handleFormSubmit}
                 validate={validate}
@@ -65,8 +65,11 @@ const SignUp = () => {
                             </Field>
                         ))}
                         {error && <div style={{ color: 'red' }}>{error.data.error.error}</div>}
-                        <button type="submit" className="btn btn-primary px-4 gap-3" disabled={isLoading}>Submit</button>
-                        <Link to="/login" className="btn btn-secondary px-4">Cancel</Link>
+                        <div className="d-flex justify-content-end mt-3">
+                            <button type="submit" className="btn btn-primary px-4 gap-3" disabled={isLoading}>Submit</button>
+                            <Link to="/login" className="btn btn-secondary px-4 ms-2">Cancel</Link>
+                        </div>
+
 
                     </form>
                 )}

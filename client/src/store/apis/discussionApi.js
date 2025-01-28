@@ -59,7 +59,6 @@ const discussionApi = createApi({
             fetchSubComments: builder.query({
                 providesTags: ['subcomment'],
                 query: ({ commentId }) => {
-                    console.log("API comment", commentId)
                     return {
                         url: `/discussion/${commentId}/subcomment`,
                         method: 'GET'

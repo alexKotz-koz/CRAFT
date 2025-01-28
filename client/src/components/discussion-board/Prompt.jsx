@@ -32,7 +32,6 @@ function Prompt({ prompt, responses, promptIndex, studyId, currentUser, taskId }
             {isExpanded && (
                 <div className="card-body">
                     {responses.map((response, idx) => {
-                        console.log("Prompt Response Obj: ", response)
                         return (
                             <InitialResponse
                                 key={idx}
@@ -43,9 +42,7 @@ function Prompt({ prompt, responses, promptIndex, studyId, currentUser, taskId }
                                 promptId={response.responses[promptIndex].prompt}
                                 responseId={response._id}
                                 currentUser={currentUser}
-                                upvotes={response.responses[promptIndex].upvotes} // Pass upvotes
-                                downvotes={response.responses[promptIndex].downvotes} // Pass downvotes
-                                voters={response.responses[promptIndex].voters} // Pass voters
+                                votes={response.responses[promptIndex].votes}
                                 comments={response.responses[promptIndex].comments}
                                 taskId={taskId}
                             />

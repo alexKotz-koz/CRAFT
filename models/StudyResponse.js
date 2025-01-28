@@ -1,13 +1,16 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+const VoteSchema = new Schema({
+    voter: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    vote: { type: Number, default: 0, min: -1, max: 1},
+})
+
 const ResponseSchema = new Schema({
     prompt: { type: String, required: true },
     response: { type: String, required: true },
     comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }], // Reference to comments
-    upvotes: { type: Number, default: 0 },
-    downvotes: { type: Number, default: 0 },
-    voters: [{ type: Schema.Types.ObjectId, ref: 'User' }] // Track voters
+    votes: [VoteSchema]
 });
 
 const StudyResponseSchema = new Schema({
@@ -19,3 +22,5 @@ const StudyResponseSchema = new Schema({
 });
 
 mongoose.model('StudyResponse', StudyResponseSchema);
+
+module.exports = { VoteSchema };

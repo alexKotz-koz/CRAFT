@@ -3,7 +3,7 @@ import { GoArrowUp, GoArrowDown, GoCommentDiscussion, GoPlus } from "react-icons
 import { useCreateVoteMutation, useCreateCommentMutation } from "../../store";
 import Comment from "./Comment";
 
-const InitialResponse = ({ username, dateCreated,response, studyId, promptId, responseId, currentUser, upvotes, downvotes, voters, comments, taskId }) => {
+const InitialResponse = ({ username, dateCreated,response, studyId, promptId, responseId, currentUser, votes, comments, taskId }) => {
     const [createVote, { error: errorVote, isLoading: isLoadingVote }] = useCreateVoteMutation();
     const [createComment, { error: errorComment, isLoading: isLoadingComment }] = useCreateCommentMutation();
     const [commentContent, setCommentContent] = useState("");
@@ -11,14 +11,17 @@ const InitialResponse = ({ username, dateCreated,response, studyId, promptId, re
     const [showNewComment, setShowNewComment] = useState(false);
     const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
 
+    let hasVoted = false;
+    let currentUsersVote = 0;
 
-    console.log("response: ", response)
-    console.log("voters: ", voters)
-    console.log("upvotes: ", upvotes)
-    console.log("downvotes: ", downvotes)
-    console.log("comments: ", comments)
-
-    const hasVoted = voters.includes(currentUser._id);
+    if (votes.length > 0) {
+        votes.forEach((vote) => {
+            if (vote.voter._id === currentUser._id) {
+                hasVoted = true;
+                currentUsersVote = vote.vote;
+            }
+        });
+    }
 
     if (isLoadingVote || isLoadingComment) {
         return <div>Loading...</div>;
@@ -28,17 +31,15 @@ const InitialResponse = ({ username, dateCreated,response, studyId, promptId, re
         return <div>Error: {errorVote?.data || errorComment?.data}</div>;
     }
 
-
-
     const upVote = () => {
-        if (!hasVoted && isParticipant) {
-            createVote({ studyId, promptId, responseId, voteType: 'upvote' });
+        if (isParticipant) {
+            createVote({ promptId, responseId, voteType: 'upvote' });
         }
     };
 
     const downVote = () => {
-        if (!hasVoted && isParticipant) {
-            createVote({ studyId, promptId, responseId, voteType: 'downvote' });
+        if (isParticipant) {
+            createVote({ promptId, responseId, voteType: 'downvote' });
         }
     };
 
@@ -61,9 +62,20 @@ const InitialResponse = ({ username, dateCreated,response, studyId, promptId, re
         }
     };
 
-    const disabledStyle = {
-        pointerEvents: 'none',
-        opacity: 0.5,
+    //ToDo: A duplicate of this exact fx is in Comment.jsx
+    const renderVoteIconStyle = (voteType) => {
+        if (!isParticipant) {
+            return { cursor: 'not-allowed', color: 'gray'};
+        }
+        if (hasVoted) {
+            if (voteType === 'upvote' && currentUsersVote === 1) {
+                return { cursor: 'pointer', color: 'green', backgroundColor: 'lightgreen' };
+            }
+            if (voteType === 'downvote' && currentUsersVote === -1) {
+                return { cursor: 'pointer', color: 'red', backgroundColor: 'lightcoral' };
+            }
+        }
+        return { cursor: 'pointer', color: 'black' };
     };
 
     return (
@@ -79,12 +91,12 @@ const InitialResponse = ({ username, dateCreated,response, studyId, promptId, re
                         {currentUser.username !== username && (
                             <>
                                 <div className="d-flex align-items-center mx-2">
-                                    {!isParticipant && <span>{upvotes}</span>}
-                                    <GoArrowUp onClick={upVote} style={hasVoted || !isParticipant ? disabledStyle : {cursor: 'pointer', backgroundcolor: 'blue'}} />
+                                    {!isParticipant && <span>{votes.filter(vote => vote.vote === 1).length}</span>}
+                                    <GoArrowUp onClick={upVote} style={renderVoteIconStyle('upvote')} />
                                 </div>
                                 <div className="d-flex align-items-center mx-2">
-                                    {!isParticipant && <span>{downvotes}</span>}
-                                    <GoArrowDown onClick={downVote} style={hasVoted || !isParticipant ? disabledStyle : {cursor: 'pointer'}} />
+                                    {!isParticipant && <span>{votes.filter(vote => vote.vote === -1).length}</span>}
+                                    <GoArrowDown onClick={downVote} style={renderVoteIconStyle('downvote')} />
                                 </div>
                             </>
                         )}

@@ -15,16 +15,22 @@ module.exports = (app) => {
                     path: 'initialResponses',
                     populate: [
                         {
-                            path: '_participant', // Populate participant in initialResponses
+                            path: '_participant',
                             select: 'username'
                         },
                         {
-                            path: 'responses.comments', // Populate comments in responses
+                            path: 'responses.comments', 
                             populate: [
-                                { path: 'user', select: 'username' }, // Populate user in comments
-                                { path: 'comments', populate: { path: 'user', select: 'username' }} // Populate nested comments
+                                { path: 'user', select: 'username' }, 
+                                { path: 'comments', populate: { path: 'user', select: 'username' }},
+                                { path: 'votes', populate: { path: 'voter', select: 'username'}} 
                             ]
+                        },
+                        {
+                            path: 'responses.votes', 
+                            populate: { path: 'voter', select: 'username' } 
                         }
+
                     ]
                 });
 
@@ -43,8 +49,8 @@ module.exports = (app) => {
     // API: createVote
     app.post('/api/discussion/:promptId/:responseId/vote', requireLogin, async (req, res) => {
         const { promptId, responseId } = req.params;
-        const { voteType } = req.body; // Expecting { voteType: 'upvote' } or { voteType: 'downvote' }
-        const userId = req.user._id; // Assuming req.user contains the authenticated user's info
+        const { voteType } = req.body; 
+        const userId = req.user._id; 
 
         try {
             const studyResponse = await StudyResponse.findById(responseId);
@@ -52,29 +58,64 @@ module.exports = (app) => {
                 return res.status(404).send("Response not found");
             }
 
-            // Find the specific response within the responses array
             const response = studyResponse.responses.find(r => r.prompt.toString() === promptId);
             if (!response) {
                 return res.status(404).send("Response not found");
             }
 
-            // Check if the user has already voted for this specific response
-            if (response.voters.includes(userId)) {
-                return res.status(400).send("You have already voted for this response");
+            const userVote = response.votes.find(vote => vote.voter.toString() === userId.toString());
+            //console.log("USer vote: ", userVote
+
+            // ToDo: Refactor to switch statement
+            if (userVote){
+                if (voteType === 'upvote'){
+                    if (userVote.vote === 1){
+                        //console.log("User is attempting to revert an upvote");
+                        userVote.vote = 0;
+                    } else if (userVote.vote === -1){
+                        //console.log("User is attempting to switch an upvote for a downvote");
+                        userVote.vote = 1;
+                    } else if (userVote.vote === 0 ){
+                        //console.log("User is attempting to switch a nuetral vote (from previous action) to an upvote");
+                        userVote.vote = 1;
+                    } else {
+                        return res.status(400).send("Invalid vote operation");
+                    }
+                } else if (voteType === 'downvote') {
+                    if (userVote.vote === -1){
+                        //console.log("User is attempting to revert a downvote");
+                        userVote.vote = 0;
+                    } else if (userVote.vote === 1) {
+                        //console.log("user is attempting to switch an upvote for a downvote");
+                        userVote.vote = -1;
+                    } else if (userVote.vote === 0){
+                        //console.log("User is attempting to switch a nuetral vote (from previous action) to a downvote");
+                        userVote.vote = -1;
+                    }
+                    else {
+                        return res.status(400).send("Invalid vote operation");
+                    }
+                } else {
+                    return res.status(400).send("Invalid vote type");
+                } 
+            } else {
+                //console.log("no user vote exists")
+                if (voteType === 'upvote'){
+                    //console.log("User is trying to submit an initial upvote")
+                    response.votes.push({ voter: userId, vote: 1});
+                } else if (voteType === 'downvote'){
+                    //console.log("user is trying to submit an initial downvote")
+                    response.votes.push({ voter: userId, vote: -1});
+                } else {
+                    return res.status(400).send("Invalid vote type");
+                }
             }
 
-            const update = voteType === 'upvote'
-                ? { $inc: { 'responses.$.upvotes': 1 }, $push: { 'responses.$.voters': userId } }
-                : { $inc: { 'responses.$.downvotes': 1 }, $push: { 'responses.$.voters': userId } };
+            await studyResponse.save();
+            res.send(studyResponse);
 
-            const updatedResponse = await StudyResponse.findOneAndUpdate(
-                { _id: responseId, 'responses.prompt': promptId },
-                update,
-                { new: true }
-            );
-
-            res.send(updatedResponse);
         } catch (err) {
+            console.error("Error submitting vote: ", err)
             res.status(422).send(err);
         }
     });
@@ -133,27 +174,52 @@ module.exports = (app) => {
             if (!comment) {
                 return res.status(404).send("Comment not found");
             }
-            if (comment.voters.includes(userId)) {
-                return res.status(400).send("You have already voted for this comment");
+
+            const userVote = comment.votes.find(vote => vote.voter.toString() === userId.toString());
+
+            if (userVote){
+                if (voteType === 'upvote'){
+                    if (userVote.vote === 1){
+                        userVote.vote = 0;
+                    } else if (userVote.vote === -1){
+                        userVote.vote = 1;
+                    } else if (userVote.vote === 0 ){
+                        userVote.vote = 1;
+                    } else {
+                        return res.status(400).send("Invalid vote operation");
+                    }
+                } else if (voteType === 'downvote') {
+                    if (userVote.vote === -1){
+                        userVote.vote = 0;
+                    } else if (userVote.vote === 1) {
+                        userVote.vote = -1;
+                    } else if (userVote.vote === 0){
+                        userVote.vote = -1;
+                    }
+                    else {
+                        return res.status(400).send("Invalid vote operation");
+                    }
+                } else {
+                    return res.status(400).send("Invalid vote type");
+                } 
+            } else {
+                if (voteType === 'upvote'){
+                    comment.votes.push({ voter: userId, vote: 1});
+                } else if (voteType === 'downvote'){
+                    comment.votes.push({ voter: userId, vote: -1});
+                } else {
+                    return res.status(400).send("Invalid vote type");
+                }
             }
-            const update = voteType === 'upvote'
-                ? { $inc: { upvotes: 1 }, $push: { voters: userId } }
-                : { $inc: { downvotes: 1 }, $push: { voters: userId } };
 
+            await comment.save();
+            res.send(comment);
 
-            const updatedComment = await Comment.findOneAndUpdate(
-                { _id: commentId },
-                update,
-                { new: true }
-            );
-
-            res.send(updatedComment);
         } catch (err) {
-            console.error("Error updating comment:", err);
+            console.error("Error submitting vote: ", err)
             res.status(422).send(err);
         }
     });
-
     // Comment on Comment
     app.post('/api/discussion/:commentId/subcomment', requireLogin, async (req, res) => {
         const { commentId } = req.params;
