@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { GoArrowUp, GoArrowDown, GoReply } from "react-icons/go";
 import { useCreateCommentVoteMutation, useCreateSubCommentMutation, useFetchSubCommentsQuery } from "../../store";
-import '../../static/discussion-board.css';
 
 const Comment = ({ comment, currentUser, studyId, taskId }) => {
     const [createVote, { error: errorVote, isLoading: isLoadingVote }] = useCreateCommentVoteMutation();
@@ -33,6 +32,7 @@ const Comment = ({ comment, currentUser, studyId, taskId }) => {
         return <div>Error: {errorVote?.data || errorSubcomment?.data || errorFetchSubcomments?.data}</div>;
     }
 
+
     const upVote = (commentId) => {
         if (isParticipant) {
             createVote({ commentId, voteType: 'upvote' });
@@ -58,9 +58,10 @@ const Comment = ({ comment, currentUser, studyId, taskId }) => {
         setShowReply(!showReply);
     };
 
+    //ToDo: This is duplicated in InitialResponse
     const renderVoteIconStyle = (voteType) => {
         if (!isParticipant) {
-            return { cursor: 'not-allowed', color: 'gray' };
+            return { cursor: 'not-allowed', color: 'gray'};
         }
         if (hasVotedComment) {
             if (voteType === 'upvote' && currentUsersVote === 1) {
@@ -74,23 +75,21 @@ const Comment = ({ comment, currentUser, studyId, taskId }) => {
     };
 
     return (
-        <div className="card mb-2 border-left-only">
+        <div className="card mb-2 bg-dark-subtle border border-tertiary p-2 rounded">
             <div className="card-body">
                 <div className="d-flex justify-content-between align-items-center">
-                    <h6 className="card-title">{comment.user.username}</h6>
+                    <h6 className="card-title mb-0">{comment.user.username}</h6>
                     <small className="text-muted">{new Date(comment.dateCreated).toLocaleDateString()}</small>
                 </div>
-                <div className="d-flex justify-content-start align-items-start mb-1">
-                    <p className="card-text">{comment.content}</p>
-                </div>                
-                <div className="d-flex align-items-center justify-content-start">
-                    <div className="d-flex align-items-center">
+                <p className="card-text mt-2">{comment.content}</p>
+                <div className="d-flex align-items-center">
+                    <div className="d-flex align-items-center mx-1 small">
                         {!isParticipant && <span>{comment.upvotes}</span>}
-                        <GoArrowUp onClick={() => upVote(comment._id)} style={renderVoteIconStyle('upvote')} className="thick-icon" />
+                        <GoArrowUp onClick={() => upVote(comment._id)} style={renderVoteIconStyle('upvote')} className='thick-icon' />
                     </div>
-                    <div className="d-flex align-items-center ms-1`">
+                    <div className="d-flex align-items-center mx-1 me-2 small">
                         {!isParticipant && <span>{comment.downvotes}</span>}
-                        <GoArrowDown onClick={() => downVote(comment._id)} style={renderVoteIconStyle('downvote')} className="thick-icon" />
+                        <GoArrowDown onClick={() => downVote(comment._id)} style={renderVoteIconStyle('downvote')} className='thick-icon' />
                     </div>
                     {isParticipant && (
                         <div onClick={toggleReply} style={{ cursor: 'pointer' }} className="d-flex align-items-center small">
@@ -115,6 +114,7 @@ const Comment = ({ comment, currentUser, studyId, taskId }) => {
                             <button type="submit" className="btn btn-primary" disabled={!isParticipant}>Submit</button>
                             <button type="button" className="btn btn-secondary" onClick={toggleReply}>Cancel</button>
                         </div>
+
                     </form>
                 )}
                 {subcomments && subcomments.map((subcomment) => (

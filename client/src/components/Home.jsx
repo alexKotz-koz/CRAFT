@@ -119,7 +119,7 @@ const Home = () => {
                             className="btn btn-secondary text-decoration-none text-white"
                             onClick={() => handleViewDiscussion(study)}
                         >
-                            View Discussion
+                            Open Discussion
                         </button>
                         {viewDiscussionModal &&
                             <Modal isOpen={viewDiscussionModal} toggle={toggleModal} >
@@ -145,7 +145,7 @@ const Home = () => {
                         className="btn btn-success text-decoration-none text-white w-100 mt-auto"
                         onClick={() => navigate(`/study/response/${studyId}`)}
                     >
-                        Start
+                        Open Study
                     </button>
                 );
         }

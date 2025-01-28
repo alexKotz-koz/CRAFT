@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GoArrowUp, GoArrowDown, GoCommentDiscussion, GoPlus } from "react-icons/go";
 import { useCreateVoteMutation, useCreateCommentMutation } from "../../store";
 import Comment from "./Comment";
-import '../../static/discussion-board.css';
 
-const InitialResponse = ({ username, dateCreated, response, studyId, promptId, responseId, currentUser, votes, comments, taskId }) => {
+const InitialResponse = ({ username, dateCreated,response, studyId, promptId, responseId, currentUser, votes, comments, taskId }) => {
     const [createVote, { error: errorVote, isLoading: isLoadingVote }] = useCreateVoteMutation();
     const [createComment, { error: errorComment, isLoading: isLoadingComment }] = useCreateCommentMutation();
     const [commentContent, setCommentContent] = useState("");
@@ -66,7 +65,7 @@ const InitialResponse = ({ username, dateCreated, response, studyId, promptId, r
     //ToDo: A duplicate of this exact fx is in Comment.jsx
     const renderVoteIconStyle = (voteType) => {
         if (!isParticipant) {
-            return { cursor: 'not-allowed', color: 'gray' };
+            return { cursor: 'not-allowed', color: 'gray'};
         }
         if (hasVoted) {
             if (voteType === 'upvote' && currentUsersVote === 1) {
@@ -80,34 +79,30 @@ const InitialResponse = ({ username, dateCreated, response, studyId, promptId, r
     };
 
     return (
-        <div className="card mb-2 border-left-only">
+        <div className="card mb-3 bg-body-secondary border border-tertiary p-2 rounded">
             <div className="card-body">
-                <div className=" d-flex justify-content-between align-items-center">
-                    <h5 className="card-title ">{username}</h5>
+                <div className="d-flex justify-content-between align-items-center">
+                    <h5 className="card-title mb-0">{username}</h5>
                     <small className="text-muted">{new Date(dateCreated).toLocaleDateString()}</small>
                 </div>
-                <div className="d-flex justify-content-start align-items-start mb-1">
-                    <p className="card-text">{response}</p>
-                </div>
-                <div className="d-flex align-items-center justify-content-start">
-                    {currentUser.username !== username && (
-                        <>
-                            <div className="d-flex align-items-center">
-                                {!isParticipant && <span>{votes.filter(vote => vote.vote === 1).length}</span>}
-                                <GoArrowUp onClick={upVote} style={renderVoteIconStyle('upvote')} className="thick-icon" />
-                            </div>
-                            <div className="d-flex align-items-center ms-1">
-                                {!isParticipant && <span>{votes.filter(vote => vote.vote === -1).length}</span>}
-                                <GoArrowDown onClick={downVote} style={renderVoteIconStyle('downvote')} className="thick-icon" />
-                            </div>
-                        </>
-                    )}
-                    <div className={currentUser.username === username ? '' : 'ms-3'}>
+                <div className="d-flex justify-content-between align-items-center mt-2">
+                    <p className="card-text mb-0">{response}</p>
+                    <div className="d-flex align-items-center">
+                        {currentUser.username !== username && (
+                            <>
+                                <div className="d-flex align-items-center mx-2">
+                                    {!isParticipant && <span>{votes.filter(vote => vote.vote === 1).length}</span>}
+                                    <GoArrowUp onClick={upVote} style={renderVoteIconStyle('upvote')} className="thick-icon" />
+                                </div>
+                                <div className="d-flex align-items-center mx-2">
+                                    {!isParticipant && <span>{votes.filter(vote => vote.vote === -1).length}</span>}
+                                    <GoArrowDown onClick={downVote} style={renderVoteIconStyle('downvote')} className="thick-icon" />
+                                </div>
+                            </>
+                        )}
                         <span>{comments.length}</span>
-                        <GoCommentDiscussion className="mx-1" onClick={toggleComments} style={{ cursor: 'pointer' }} />
+                        <GoCommentDiscussion className="mx-2" onClick={toggleComments} style={{ cursor: 'pointer' }} />
                     </div>
-
-
                 </div>
                 {showComments && (
                     <div className="mt-3">

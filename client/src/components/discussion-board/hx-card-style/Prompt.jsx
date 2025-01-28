@@ -14,10 +14,10 @@ function Prompt({ prompt, responses, promptIndex, studyId, currentUser, taskId }
     };
 
     return (
-        <div className="card mb-3" style={{ borderTop: 'none', borderRight: 'none', borderBottom: 'none', borderLeft: 'none' }}>
+        <div className="card mb-3 bg-body-tertiary border border-tertiary p-2 rounded">
             <div className="card-body" onClick={handleClick}>
                 <div className="d-flex align-items-center">
-                    <h5 className="card-header fw-bolder" style={{ background: 'none'}}>
+                    <h5 className="card-header mb-0 fw-bolder">
                         {prompt}
                     </h5>
                     <div className="ms-auto">

@@ -56,3 +56,7 @@
     background: white;
     padding: 0 0.25rem;
 }
+
+.thick-icon {
+    stroke-width: 2px; /* Adjust the thickness as needed */
+}

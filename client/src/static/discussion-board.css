@@ -1,0 +1,9 @@
+.new-card {
+    border: none !important
+}
+
+.border-left-only {
+    border: none !important;
+    border-left: 2px solid black !important;
+    border-radius: 0 !important;
+}
