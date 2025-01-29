@@ -5,7 +5,7 @@ const Landing = () => {
     return (
         <div className="px-4 py-5  text-center">
             <h2 className='mb-5'>
-                Welcome to the Feedback System
+                Welcome to the <strong><u>C</u>ollaborative <u>R</u>emote <u>A</u>synchrounous <u>F</u>eedback <u>T</u>ool</strong>
             </h2>
             <h5 className='mb-3'>
                 Please login to join a study

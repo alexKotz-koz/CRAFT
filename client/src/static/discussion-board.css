@@ -3,6 +3,7 @@
 }
 
 .border-left-only {
+    margin-top: 0px;
     border: none !important;
     border-left: 2px solid black !important;
     border-radius: 0 !important;

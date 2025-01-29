@@ -91,7 +91,7 @@ const Home = () => {
                             className="btn btn-secondary text-decoration-none text-white"
                             onClick={() => handleViewDiscussion(studyId)}
                         >
-                            Open Discussion
+                            View Discussions
                         </button>
                     </div>
                 );

@@ -14,7 +14,7 @@ function Prompt({ prompt, responses, promptIndex, studyId, currentUser, taskId }
     };
 
     return (
-        <div className="card mb-3" style={{ borderTop: 'none', borderRight: 'none', borderBottom: 'none', borderLeft: 'none' }}>
+        <div className="card" style={{ borderTop: 'none', borderRight: 'none', borderBottom: 'none', borderLeft: 'none' }}>
             <div className="card-body" onClick={handleClick}>
                 <div className="d-flex align-items-center">
                     <h5 className="card-header fw-bolder" style={{ background: 'none'}}>

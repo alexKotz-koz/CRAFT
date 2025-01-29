@@ -70,14 +70,28 @@ const InitialResponse = ({ username, dateCreated, response, studyId, promptId, r
         }
         if (hasVoted) {
             if (voteType === 'upvote' && currentUsersVote === 1) {
-                return { cursor: 'pointer', color: 'green' };
+                return { cursor: 'pointer', color: 'white' };
             }
             if (voteType === 'downvote' && currentUsersVote === -1) {
-                return { cursor: 'pointer', color: 'red' };
+                return { cursor: 'pointer', color: 'white' };
             }
         }
         return { cursor: 'pointer', color: 'black' };
     };
+    const renderVoteSpanStyle = (voteType) => {
+        if (!isParticipant) {
+            return 'badge rounded-pill'
+        }
+        if (hasVoted) {
+            if (voteType === 'upvote' && currentUsersVote === 1) {
+                return 'badge rounded-pill text-bg-success';
+            }
+            if (voteType === 'downvote' && currentUsersVote === -1) {
+                return 'badge rounded-pill text-bg-danger'
+            }
+        }
+        return 'badge rounded-pill';
+    }
 
     return (
         <div className="card mb-2 border-left-only">
@@ -94,11 +108,17 @@ const InitialResponse = ({ username, dateCreated, response, studyId, promptId, r
                         <>
                             <div className="d-flex align-items-center">
                                 {!isParticipant && <span>{votes.filter(vote => vote.vote === 1).length}</span>}
-                                <GoArrowUp onClick={upVote} style={renderVoteIconStyle('upvote')} className="thick-icon" />
+                                <span className={renderVoteSpanStyle('upvote')}>
+                                    <GoArrowUp onClick={upVote} style={renderVoteIconStyle('upvote')} className="thick-icon" />
+                                </span>
+
                             </div>
                             <div className="d-flex align-items-center ms-1">
                                 {!isParticipant && <span>{votes.filter(vote => vote.vote === -1).length}</span>}
-                                <GoArrowDown onClick={downVote} style={renderVoteIconStyle('downvote')} className="thick-icon" />
+                                <span className={renderVoteSpanStyle('downvote')}>
+                                    <GoArrowDown onClick={downVote} style={renderVoteIconStyle('downvote')} className="thick-icon" />
+
+                                </span>
                             </div>
                         </>
                     )}

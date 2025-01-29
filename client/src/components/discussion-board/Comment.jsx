@@ -11,7 +11,7 @@ const Comment = ({ comment, currentUser, studyId, taskId }) => {
     const { data: subcomments, error: errorFetchSubcomments, isLoading: isLoadingFetchSubcomments } = useFetchSubCommentsQuery({ commentId: comment._id });
 
     const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
-    
+
     let hasVotedComment = false;
     let currentUsersVote = 0;
 
@@ -64,14 +64,29 @@ const Comment = ({ comment, currentUser, studyId, taskId }) => {
         }
         if (hasVotedComment) {
             if (voteType === 'upvote' && currentUsersVote === 1) {
-                return { cursor: 'pointer', color: 'green' };
+                return { cursor: 'pointer', color: 'white' };
             }
             if (voteType === 'downvote' && currentUsersVote === -1) {
-                return { cursor: 'pointer', color: 'red' };
+                return { cursor: 'pointer', color: 'white' };
             }
         }
         return { cursor: 'pointer', color: 'black' };
     };
+
+    const renderVoteSpanStyle = (voteType) => {
+        if (!isParticipant) {
+            return 'badge rounded-pill'
+        }
+        if (hasVotedComment) {
+            if (voteType === 'upvote' && currentUsersVote === 1) {
+                return 'badge rounded-pill text-bg-success';
+            }
+            if (voteType === 'downvote' && currentUsersVote === -1) {
+                return 'badge rounded-pill text-bg-danger'
+            }
+        }
+        return 'badge rounded-pill';
+    }
 
     return (
         <div className="card mb-2 border-left-only">
@@ -82,15 +97,20 @@ const Comment = ({ comment, currentUser, studyId, taskId }) => {
                 </div>
                 <div className="d-flex justify-content-start align-items-start mb-1">
                     <p className="card-text">{comment.content}</p>
-                </div>                
+                </div>
                 <div className="d-flex align-items-center justify-content-start">
                     <div className="d-flex align-items-center">
                         {!isParticipant && <span>{comment.upvotes}</span>}
-                        <GoArrowUp onClick={() => upVote(comment._id)} style={renderVoteIconStyle('upvote')} className="thick-icon" />
+                        <span className={renderVoteSpanStyle('upvote')}>
+                            <GoArrowUp onClick={() => upVote(comment._id)} style={renderVoteIconStyle('upvote')} className="thick-icon" />
+                        </span>
                     </div>
                     <div className="d-flex align-items-center ms-1`">
                         {!isParticipant && <span>{comment.downvotes}</span>}
-                        <GoArrowDown onClick={() => downVote(comment._id)} style={renderVoteIconStyle('downvote')} className="thick-icon" />
+                        <span className={renderVoteSpanStyle('downvote')}>
+                            <GoArrowDown onClick={() => downVote(comment._id)} style={renderVoteIconStyle('downvote')} className="thick-icon" />
+                        </span>
+                        
                     </div>
                     {isParticipant && (
                         <div onClick={toggleReply} style={{ cursor: 'pointer' }} className="d-flex align-items-center small">

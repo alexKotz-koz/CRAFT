@@ -36,7 +36,7 @@ const DiscussionBoardLanding = ({ user }) => {
                                         {task.instructions}
                                     </p>
                                     <div className="card-footer">
-                                        <ButtonLink to={discussionLink} additionalClasses="btn-secondary w-100" text='View Discussion' />
+                                        <ButtonLink to={discussionLink} additionalClasses="btn-secondary w-100" text='Open Discussion' />
                                     </div>
                                 </div>
                             </div>
