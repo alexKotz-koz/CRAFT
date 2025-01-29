@@ -15,6 +15,13 @@
     margin-top: auto;
 }
 
+.card .card-header {
+    background: none;
+}
+
+.card .card-footer {
+    background: none;
+}
 
 /* Floating label container */
 .floating-label {

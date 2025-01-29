@@ -249,4 +249,26 @@ module.exports = (app) => {
         }
 
     });
+
+    app.get('/api/study/tasks/:studyId', requireLogin, async (req, res) => {
+        const { studyId } = req.params;
+        console.log("route studyID: ", studyId);
+        try {
+            const tasks = await StudyTask.find({ study: studyId})
+                .populate([
+                    { path: 'participants', model: 'StudyParticipants'},
+                    { path: 'prompts', model: 'StudyPrompt'}
+                ]);
+            console.log("tasks found: ", tasks)
+            if (!tasks){
+                res.status(400).send("No Study Tasks Found");
+            }
+            res.send(tasks);
+
+
+        } catch (err) {
+            console.error("Error fetching tasks: ", JSON.stringify(err));
+            res.status(500).send(err);
+        }
+    })
 };
