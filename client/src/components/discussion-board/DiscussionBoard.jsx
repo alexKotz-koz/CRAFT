@@ -1,4 +1,4 @@
-import { useFetchDiscussionQuery, useFetchTaskQuery, useFetchUserQuery } from "../../store";
+import { useFetchDiscussionQuery, useFetchTaskQuery, useFetchTaskNotificationsQuery, useFetchUserQuery } from "../../store";
 import { useParams } from "react-router-dom";
 import Prompt from "./Prompt";
 
@@ -7,13 +7,14 @@ const DiscussionBoard = () => {
     const { data: discussion, error: errorDiscussion, isLoading: isLoadingDiscussion } = useFetchDiscussionQuery(taskId);
     const { data: task, error: errorTask, isLoading: isLoadingTask } = useFetchTaskQuery(taskId);
     const { data: user, error: errorUser, isLoading: isLoadingUser } = useFetchUserQuery();
+    const { data: notifications, error: errorNotifications, isLoading: isLoadingNotifications} = useFetchTaskNotificationsQuery({taskId});
 
-    if (isLoadingDiscussion || isLoadingTask || isLoadingUser) {
+    if (isLoadingDiscussion || isLoadingTask || isLoadingUser || isLoadingNotifications) {
         return <div>Loading...</div>;
     }
 
-    if (errorDiscussion || errorTask || errorUser) {
-        return <div>Error: {errorDiscussion?.data.error || errorTask?.data.error || errorUser?.data.error}</div>;
+    if (errorDiscussion || errorTask || errorUser || errorNotifications) {
+        return <div>Error: {errorDiscussion?.data.error || errorTask?.data.error || errorUser?.data.error || errorNotifications?.data.error}</div>;
     }
 
     const studyId = discussion.study;
@@ -28,7 +29,7 @@ const DiscussionBoard = () => {
         <div className="container">
             <h3 className="mt-4 mb-5 text-center">Discussion Board - {task.name}</h3>
             {prompts.map((prompt, index) => (
-                <Prompt key={index} prompt={prompt} responses={responses} promptIndex={index} studyId={studyId} currentUser={user} task={taskId} />                
+                <Prompt key={index} prompt={prompt} responses={responses} notifications={notifications} promptIndex={index} studyId={studyId} currentUser={user} taskId={taskId}  />                
             ))}
         </div>
     );

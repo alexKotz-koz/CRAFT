@@ -14,7 +14,6 @@ module.exports = (app) => {
     // Create a new study
     // API: useCreateStudyMutation
     app.post('/api/study/new', requireLogin, requireFacilitatorPermissions, async (req, res) => {
-        console.log("POST New Study: ", req.body);
         const { name, description, participants, tasks } = req.body;
 
         const existingStudy = await Study.findOne({ name });
@@ -141,7 +140,6 @@ module.exports = (app) => {
             case 'facilitator':
             case 'admin':
                 studies = await Study.find({ _createdBy: req.user.id });
-                console.log(studies)
                 break;
             case 'participant':
                 studies = await Study.find({ 'participants.email': req.user.email });
@@ -165,7 +163,6 @@ module.exports = (app) => {
             switch (req.user.role) {
 
                 case 'participant':
-                    console.log("User is a participant")
                     study = await Study.findById(studyId)
                         .populate({
                             path: 'tasks',
@@ -184,7 +181,7 @@ module.exports = (app) => {
                                     path: 'prompts',
                                     model: 'StudyPrompt'
                                 },
-                                {
+                                /*{
                                     path: 'responses',
                                     model: 'StudyResponse',
                                     populate: {
@@ -195,7 +192,7 @@ module.exports = (app) => {
                                             select: 'username'
                                         }
                                     }
-                                }
+                                }*/
                             ]
                         });
                     break;
@@ -217,7 +214,6 @@ module.exports = (app) => {
         const { studyId } = req.params;
         try {
             const comments = await Comment.find({ studyId: studyId });
-            console.log(comments);
             res.send(comments);
         } catch (err) {
             console.error("Error fetching comments for study:", JSON.stringify(err));
@@ -252,15 +248,14 @@ module.exports = (app) => {
 
     app.get('/api/study/tasks/:studyId', requireLogin, async (req, res) => {
         const { studyId } = req.params;
-        console.log("route studyID: ", studyId);
         try {
-            const tasks = await StudyTask.find({ study: studyId})
+            const tasks = await StudyTask.find({ study: studyId })
                 .populate([
-                    { path: 'participants', model: 'StudyParticipants'},
-                    { path: 'prompts', model: 'StudyPrompt'}
+                    { path: 'participants', model: 'StudyParticipants' },
+                    { path: 'prompts', model: 'StudyPrompt' }
                 ]);
-            console.log("tasks found: ", tasks)
-            if (!tasks){
+
+            if (!tasks) {
                 res.status(400).send("No Study Tasks Found");
             }
             res.send(tasks);

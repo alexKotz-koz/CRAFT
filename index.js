@@ -11,6 +11,7 @@ require('./models/StudyResponse');
 require('./models/StudyPrompt');
 require('./models/Discussion');
 require('./models/Comment');
+require('./models/Notification');
 require('./services/passport');
 
 mongoose.Promise = global.Promise;

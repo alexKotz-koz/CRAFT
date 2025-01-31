@@ -59,7 +59,6 @@ const Home = () => {
                                     </p>
                                     <div className="mt-auto">
                                         <div className="btn-group w-100">
-                                            <ButtonLink to='#' additionalClasses="btn-success card-link" text='Edit' />
                                             <button className="btn btn-secondary card-link" onClick={() => navigate(studyDashboardLink)}>View</button>
                                         </div>
                                     </div>

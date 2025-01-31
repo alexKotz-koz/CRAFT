@@ -3,6 +3,8 @@ const Schema = mongoose.Schema;
 const bcrypt = require('bcrypt');
 const SALT_WORK_FACTOR = 10;
 
+const NotificationSchema = require('./Notification');
+
 const UserSchema = new Schema({
   googleId: String,
   username: { type: String, required: true, index: { unique: true } },
@@ -15,6 +17,8 @@ const UserSchema = new Schema({
     enum: ['facilitator', 'participant', 'admin'],
     required: true
   },
+  notifications: { type: [NotificationSchema], required: true, default: [] },
+  avatar: { type: String },
 });
 
 

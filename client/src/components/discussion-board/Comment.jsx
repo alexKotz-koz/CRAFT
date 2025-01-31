@@ -3,12 +3,14 @@ import { GoArrowUp, GoArrowDown, GoReply } from "react-icons/go";
 import { useCreateCommentVoteMutation, useCreateSubCommentMutation, useFetchSubCommentsQuery } from "../../store";
 import '../../static/discussion-board.css';
 
-const Comment = ({ comment, currentUser, studyId, taskId }) => {
+const Comment = ({ comment, currentUser, studyId }) => {
     const [createVote, { error: errorVote, isLoading: isLoadingVote }] = useCreateCommentVoteMutation();
     const [createSubcomment, { error: errorSubcomment, isLoading: isLoadingSubcomment }] = useCreateSubCommentMutation();
     const [subCommentContent, setSubCommentContent] = useState("");
     const [showReply, setShowReply] = useState(false);
     const { data: subcomments, error: errorFetchSubcomments, isLoading: isLoadingFetchSubcomments } = useFetchSubCommentsQuery({ commentId: comment._id });
+
+    console.log("comment", comment)
 
     const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
 
@@ -86,34 +88,43 @@ const Comment = ({ comment, currentUser, studyId, taskId }) => {
             }
         }
         return 'badge rounded-pill';
-    }
+    };
+
+    const isCommentCreator = currentUser._id === comment.user._id;
+
 
     return (
-        <div className="card mb-2 border-left-only">
+        <div className="card border-left-only">
             <div className="card-body">
                 <div className="d-flex justify-content-between align-items-center">
-                    <h6 className="card-title">{comment.user.username}</h6>
+                    <h6 className="card-title">
+                        <img src={comment.user.avatar} alt={`${comment.user.username}'s avatar`} className="avatar-img-header mr-2" />
+                        {comment.user.username}
+                    </h6>
                     <small className="text-muted">{new Date(comment.dateCreated).toLocaleDateString()}</small>
                 </div>
-                <div className="d-flex justify-content-start align-items-start mb-1">
+                <div className="d-flex justify-content-start align-items-start mb-2">
                     <p className="card-text">{comment.content}</p>
                 </div>
                 <div className="d-flex align-items-center justify-content-start">
-                    <div className="d-flex align-items-center">
-                        {!isParticipant && <span>{comment.upvotes}</span>}
-                        <span className={renderVoteSpanStyle('upvote')}>
-                            <GoArrowUp onClick={() => upVote(comment._id)} style={renderVoteIconStyle('upvote')} className="thick-icon" />
-                        </span>
-                    </div>
-                    <div className="d-flex align-items-center ms-1`">
-                        {!isParticipant && <span>{comment.downvotes}</span>}
-                        <span className={renderVoteSpanStyle('downvote')}>
-                            <GoArrowDown onClick={() => downVote(comment._id)} style={renderVoteIconStyle('downvote')} className="thick-icon" />
-                        </span>
-                        
-                    </div>
+                    {!isCommentCreator && (
+                        <>
+                            <div className="d-flex align-items-center">
+                                {!isParticipant && <span>{comment.upvotes}</span>}
+                                <span className={renderVoteSpanStyle('upvote')}>
+                                    <GoArrowUp onClick={() => upVote(comment._id)} style={renderVoteIconStyle('upvote')} className="thick-icon" />
+                                </span>
+                            </div>
+                            <div className="d-flex align-items-center ms-1">
+                                {!isParticipant && <span>{comment.downvotes}</span>}
+                                <span className={renderVoteSpanStyle('downvote')}>
+                                    <GoArrowDown onClick={() => downVote(comment._id)} style={renderVoteIconStyle('downvote')} className="thick-icon" />
+                                </span>
+                            </div>
+                        </>
+                    )}
                     {isParticipant && (
-                        <div onClick={toggleReply} style={{ cursor: 'pointer' }} className="d-flex align-items-center small">
+                        <div onClick={toggleReply} style={{ cursor: 'pointer' }} className="d-flex align-items-center small baged rounded-pill text-bg-dark pe-2 ms-2">
                             <GoReply className="mx-1 thick-icon" />
                             <span>Reply</span>
                         </div>

@@ -1,38 +1,69 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useFetchUserQuery } from "../store";
+import { GoBell } from "react-icons/go";
+import HeaderNotificationCard from "./HeaderNotificationCard";
 
 const Header = () => {
   const navigate = useNavigate();
   const { data, error, isLoading } = useFetchUserQuery();
-
   const handleLogout = () => {
     navigate('/');
-    // Optionally, you can also navigate to the login page or home page
   };
 
   const renderLoggedIn = () => {
+    if (!data) {
+      return null; // or a loading spinner, or any placeholder content
+    }
     return (
-      <>
-        <li className="nav-item">
-          <Link to='/home' className="nav-link active">Home</Link>
-        </li>
-        {(data?.role === "facilitator" || data?.role === "admin") && (
-          <li className="nav-item">
-            <Link to="/study/new" className="nav-link active">New Study</Link>
+      <div className="d-flex align-items-center justify-content-center">
+          {(data?.role === "facilitator" || data?.role === "admin") && (
+              <li className="nav-item">
+                  <Link to="/study/new" className="nav-link active">New Study</Link>
+              </li>
+          )}
+          <li className="nav-item dropdown">
+              <div className="position-relative notification-icon" data-bs-toggle="dropdown" aria-expanded="false">
+                  <GoBell className="text-dark" />
+                  {data.notifications.length > 0 && (
+                      <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                          {data.notifications.length}
+                          <span className="visually-hidden">unread notifications</span>
+                      </span>
+                  )}
+              </div>
+              <ul className="dropdown-menu dropdown-menu-end p-0 notification-dropdown">
+                  <li className="card notification-card">
+                      <div className="card-body">
+                          <h5 className="card-title">Notifications</h5>
+                          <ul className="list-group list-group-flush">
+                              {data.notifications.map((notification, index) => {
+                                  return (
+                                      <li key={index} className="list-group-item" onClick={() => navigate(`/discussion/${notification.task._id}`)}>
+                                          <HeaderNotificationCard notification={notification} />
+                                      </li>
+                                  );
+                              })}
+                          </ul>
+                          <div className="card-footer d-flex justify-content-center align-items-center w-100">
+                              <button className="btn btn-secondary" onClick={() => navigate('/notifications')}>See All</button>
+                          </div>
+                      </div>
+                  </li>
+              </ul>
           </li>
-        )}
-        <li className="nav-item dropdown">
-          <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            {data?.username || ''}
-          </a>
-          <ul className="dropdown-menu">
-            <li><a className="dropdown-item" href="/test">Test</a></li>
-            <li><a className="dropdown-item" href="#">Another action</a></li>
-            <li><hr className="dropdown-divider" /></li>
-            <li><a className="dropdown-item" href="/auth/logout" onClick={handleLogout}>Logout</a></li>
-          </ul>
-        </li>
-      </>
+      
+          <li className="nav-item dropdown d-flex align-items-center">
+              <a className="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  {data.avatar ? <img src={data.avatar} alt={`${data.username}'s avatar`} className="avatar-img-header mr-2" /> : data.username}
+              </a>
+              <ul className="dropdown-menu dropdown-menu-end">
+                  <li><a className="dropdown-item" href="/test">Test</a></li>
+                  <li><a className="dropdown-item" href="#">Another action</a></li>
+                  <li><hr className="dropdown-divider" /></li>
+                  <li><a className="dropdown-item" href="/auth/logout" onClick={handleLogout}>Logout</a></li>
+              </ul>
+          </li>
+      </div>
     );
   };
 

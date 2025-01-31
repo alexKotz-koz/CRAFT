@@ -67,3 +67,48 @@
 .thick-icon {
     stroke-width: 2px; /* Adjust the thickness as needed */
 }
+
+.notification-icon {
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin-right: 10px;
+    cursor: 'pointer';
+}
+
+.notification-icon .text-dark {
+    font-size: 1.25em;
+    cursor: 'pointer';
+}
+
+.notification-dropdown {
+    width: 400px; /* Adjust the width as needed */
+}
+
+.notification-card {
+    width: 100%;
+    border: none;
+}
+
+.notification-card .card-body {
+    padding: 10px;
+}
+
+.notification-card .list-group-item {
+    background-color: #cccccce7;
+    padding: 5px;
+    font-size: 14px;
+
+}
+.avatar-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.avatar-img-header {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 8px;
+}

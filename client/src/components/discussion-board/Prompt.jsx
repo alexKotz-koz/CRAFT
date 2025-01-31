@@ -2,7 +2,7 @@ import { useState } from "react";
 import { GoChevronDown, GoChevronLeft } from 'react-icons/go';
 import InitialResponse from "./InitialResponse";
 
-function Prompt({ prompt, responses, promptIndex, studyId, currentUser, taskId }) {
+function Prompt({ prompt, responses, notifications, promptIndex, studyId, currentUser, taskId }) {
     const [isExpanded, setIsExpanded] = useState(true);
 
     if (responses.length <= 0){
@@ -36,11 +36,13 @@ function Prompt({ prompt, responses, promptIndex, studyId, currentUser, taskId }
                             <InitialResponse
                                 key={idx}
                                 username={response._participant.username}
+                                avatar={response._participant.avatar}
                                 dateCreated={response._dateCreated}
                                 response={response.responses[promptIndex].response}
+                                notifications={notifications}
                                 studyId={studyId}
                                 promptId={response.responses[promptIndex].prompt}
-                                responseId={response._id}
+                                responseId={response.responses[promptIndex]._id}
                                 currentUser={currentUser}
                                 votes={response.responses[promptIndex].votes}
                                 comments={response.responses[promptIndex].comments}

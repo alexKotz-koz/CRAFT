@@ -5,11 +5,14 @@ const bcrypt = require('bcryptjs');
 const requireLogin = require('../middlewares/requireLogin');
 const requireFacilitatorPermissions = require('../middlewares/requireFacilitatorPermissions');
 const getRandomWords = require('./usernameGeneration/generateUsername');
+const generateAvatar = require('./usernameGeneration/generateAvatar');
 
 function generateUsername() {
     const { adjective, noun } = getRandomWords();
     return `${adjective}-${noun}`;
 }
+
+
 
 module.exports = (app) => {
     app.get('/auth/google',
@@ -120,16 +123,20 @@ module.exports = (app) => {
             const salt = await bcrypt.genSalt(10); //default
             const hashed = await bcrypt.hash(password, salt);
 
+            const avatar = generateAvatar(username);
+
 
             const newUser = new User({
                 email,
                 username,
                 role,
                 password: hashed,
+                avatar,
             });
             await newUser.save();
             res.json({ user: newUser });
         } catch (error) {
+            console.error("Error creating user: ", error)
             res.status(500).send('Internal Server Error', error);
         }
     });
@@ -195,8 +202,30 @@ module.exports = (app) => {
         });
     });
 
-    app.get("/auth/current_user", (req, res) => {
-        res.send(req.user);
+    app.get("/auth/current_user", async (req, res) => {
+        const currentUser = req.user;
+    
+        if (!currentUser) {
+            return res.send(null);
+        }
+    
+        const currentUserId = currentUser._id;
+    
+        try {
+            const user = await User.findById(currentUserId)
+            .populate('notifications.fromUser')
+            .populate('notifications.toUser')
+            .populate('notifications.initialResponse.responses')
+            .populate('notifications.comment')
+            .populate('notifications.task');
+            if (!user) {
+                return res.status(400).send("Error fetching user");
+            }
+            res.send(user);
+        } catch (err) {
+            console.error("Error fetching user: ", err);
+            res.status(400).send(err);
+        }
     });
 
     app.get("/auth/all_users", async (req, res) => {
@@ -209,7 +238,6 @@ module.exports = (app) => {
     });
     app.post('/auth/check_user', async (req, res) => {
         const { checkUser } = req.body;
-        console.log(checkUser)
         try {
             const userExists = await User.findOne({ email: checkUser.email });
 

@@ -9,9 +9,9 @@ const discussionApi = createApi({
         return {
             fetchDiscussion: builder.query({
                 providesTags: ['vote', 'comment', 'subcomment'],
-                query: (studyId) => {
+                query: (taskId) => {
                     return {
-                        url: `/discussion/${studyId}`,
+                        url: `/discussion/${taskId}`,
                         method: 'GET',
                     };
                 },
@@ -65,6 +65,38 @@ const discussionApi = createApi({
                     };
                 },
             }),
+            createNotification: builder.mutation({
+                invalidatesTags: ['notification'],
+                query: ({ postId, postType, notificationType, fromUser, toUser, task }) => {
+                    //console.log("Api: ", postId, postType, fromUser, toUser, task)
+                    return {
+                        url: `/discussion/${postId}/notify`,
+                        method: 'POST',
+                        body: {postType, notificationType, fromUser, toUser, task}
+                    };
+                },
+            }),
+            fetchTaskNotifications: builder.query({
+                providesTags: ['notification'],
+                    query: ({ taskId }) => {
+                        //console.log("API taskId", taskId)
+                        return {
+                            url: `/discussion/notifications/${taskId}`,
+                            method: 'GET'
+                        };
+                    },
+            }),
+            updateComment: builder.mutation({
+                query: ({commentId, update}) => {
+                    const {commentContent, notificationId} = update;
+                    console.log("API: ", commentContent, notificationId)
+                    return {
+                        url: `/discussion/update-comment/${commentId}`,
+                        method: 'POST',
+                        body: {commentContent, notificationId}
+                    }
+                }
+            })
         };
 
     }
@@ -72,10 +104,14 @@ const discussionApi = createApi({
 
 export const {
     useFetchDiscussionQuery,
+    useLazyFetchDiscussionQuery,
     useCreateVoteMutation,
     useCreateCommentMutation,
     useCreateCommentVoteMutation,
     useCreateSubCommentMutation,
-    useFetchSubCommentsQuery
+    useFetchSubCommentsQuery,
+    useCreateNotificationMutation,
+    useFetchTaskNotificationsQuery,
+    useUpdateCommentMutation
 } = discussionApi;
 export { discussionApi };

@@ -70,6 +70,7 @@ const StudyTasks = ({ onSubmit, onCancel, initialValues }) => {
         <div>
             <div className="bg-body-tertiary border border-tertiary p-2 rounded mt-3 mb-3">
                 <h3 className="text-center">Add Tasks</h3>
+                <p className="text-muted p-3">Tasks are specific objectives you would like the participants to complete. A study can have one or multiple tasks. Each task will have one or more prompts. Each prompt can be a specific question or statement, triggering a response by a participant. Each task will have an automatically generated discussion board where participants responses to each prompt will be posted upon completing the task. Participants can comment, up, and down vote each others responses.</p>
                 <Form
                     onSubmit={handleAddTask}
                     render={({ handleSubmit, form }) => (
@@ -215,7 +216,7 @@ const StudyTasks = ({ onSubmit, onCancel, initialValues }) => {
                             ))}
                         </div>
                     </div>
-                    <div className="d-flex justify-content-between mt-3 ">
+                    <div className="d-flex justify-content-between mt-3 mb-3">
                         <button type="button" className="btn btn-secondary" onClick={() => onCancel({ taskList })}>
                             Back
                         </button>

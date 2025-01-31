@@ -33,7 +33,7 @@ const StudyReview = ({ onCancel, onSubmit, formValues, isLoading, error }) => {
                     ))}
                 </ul>
             </div>
-            <div className="d-flex justify-content-between mt-3">
+            <div className="d-flex justify-content-between mt-3 mb-3">
                 <button type="button" className="btn btn-secondary" onClick={onCancel}>
                     Back
                 </button>

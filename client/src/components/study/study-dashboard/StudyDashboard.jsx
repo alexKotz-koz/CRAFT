@@ -1,30 +1,36 @@
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useFetchStudyCommentsQuery, useFetchStudyQuery, useFetchSubCommentsQuery } from "../../../store";
+import { useLazyFetchDiscussionQuery, useFetchStudyCommentsQuery, useFetchStudyQuery } from "../../../store";
 import SimplePieChart from "./SimplePieChart";
 import TimeLinePlot from "./TimeLinePlot";
 import ButtonLink from "../../tools/ButtonLink";
 import { Card, CardBody, CardFooter, CardHeader } from "reactstrap";
 
 const StudyDashboard = () => {
-
     const { studyId } = useParams();
     const { data: study, error: errorStudy, isLoading: isLoadingStudy } = useFetchStudyQuery(studyId);
     const { data: comments, error: errorComments, isLoading: isLoadingComments } = useFetchStudyCommentsQuery(studyId);
+    const [fetchTaskDiscussion, { data: taskDiscussion, error: errorTaskDiscussion, isLoading: isLoadingTaskDiscussion }] = useLazyFetchDiscussionQuery();
+    const [taskDiscussions, setTaskDiscussions] = useState({});
 
-    const studyDiscussionLink = `/discussion/${studyId}`
+    useEffect(() => {
+        if (study && study.tasks) {
+            study.tasks.forEach(async (task) => {
+                const taskId = task._id;
+                const taskResults = await fetchTaskDiscussion(taskId).unwrap();
+                setTaskDiscussions(prev => ({ ...prev, [taskId]: taskResults }));
+            });
+        }
+    }, [study, fetchTaskDiscussion]);
 
-    console.log("study", study)
-    console.log("comments", comments)
-
-    if (isLoadingStudy) {
+    if (isLoadingStudy || isLoadingComments) {
         return <div>Loading...</div>;
     }
 
-    if (errorStudy) {
-        console.log("Error: ", errorStudy)
-        return <div>Error: {errorStudy.data}</div>;
+    if (errorStudy || errorComments) {
+        console.log("Error: ", errorStudy);
+        return <div>Error: {errorStudy.data || errorComments.data}</div>;
     }
-
 
     const { dateCreated, dateModified, description, instructions, name, participants, prompts, responses } = study;
 
@@ -39,8 +45,6 @@ const StudyDashboard = () => {
     // Comments over Time
     const commentData = [];
     comments.forEach(comment => {
-
-        console.log("comment ", comment)
         const commentDate = new Date(comment.dateCreated);
         const year = commentDate.getFullYear();
         const month = commentDate.getMonth() + 1; // Months are zero-indexed
@@ -53,7 +57,6 @@ const StudyDashboard = () => {
         // Add to commentData array
         commentData.push({ date: formattedDate, count: 1 });
     });
-
 
     // Aggregate comment counts by date
     const aggregatedCommentData = commentData.reduce((acc, curr) => {
@@ -69,7 +72,6 @@ const StudyDashboard = () => {
     // Sort the aggregated data by date in ascending order
     aggregatedCommentData.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-
     return (
         <div className="container-fluid">
             <h3 className="text-center mb-4">Study Dashboard</h3>
@@ -80,10 +82,24 @@ const StudyDashboard = () => {
             </div>
             <div className="row">
                 <h5 className="text-center mb-4">Task Discussions</h5>
-                {study.tasks.map((task, idx) => {
+                                {study.tasks.map((task, idx) => {
                     const taskId = task._id;
                     const discussionLink = `/discussion/${taskId}`;
-                    console.log("task", task)
+                    const taskResults = taskDiscussions[taskId];
+                    let numComments = 0;
+                    let promptsWithDiscussion = 0;
+                
+                    if (taskResults) {
+                        taskResults.initialResponses.forEach((response) => {
+                            response.responses.forEach((res) => {
+                                numComments += res.comments.length;
+                                if (res.comments.length > 0) {
+                                    promptsWithDiscussion++;
+                                }
+                            });
+                        });
+                    }
+                
                     return (
                         <div key={idx} className="w-25">
                             <Card>
@@ -96,17 +112,15 @@ const StudyDashboard = () => {
                                             <p>Responded: {task.participants.filter(p => p.responded).length}/{task.participants.length}</p>
                                         </li>
                                         <li>
-                                            <p>Prompts with Discussion: {}</p>
+                                            <p className={promptsWithDiscussion > 0 ? 'text-success' : 'text-danger'}>Discussions: {promptsWithDiscussion}</p>
                                         </li>
                                     </ul>
                                 </CardBody>
                                 <CardFooter className="d-flex justify-content-center">
-                                    <ButtonLink key={idx} to={discussionLink} text={task.name} additionalClasses="btn-primary btn-sm w-25" />
-
+                                    <ButtonLink key={idx} to={discussionLink} text={task.name} additionalClasses="btn-primary btn-sm w-100" />
                                 </CardFooter>
                             </Card>
                         </div>
-
                     );
                 })}
             </div>

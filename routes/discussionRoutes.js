@@ -1,11 +1,13 @@
 const mongoose = require('mongoose');
 const Discussion = mongoose.model('Discussion');
 const StudyResponse = mongoose.model('StudyResponse');
+const User = mongoose.model('User');
+const Notification = mongoose.model('Notification');
 const { Comment, InitialResponseComment, SubComment } = require('../models/Comment');
 const requireLogin = require('../middlewares/requireLogin');
 
 module.exports = (app) => {
-    // GET Discussion
+    // GET Task Discussion
     app.get('/api/discussion/:taskId', requireLogin, async (req, res) => {
         const { taskId } = req.params;
         try {
@@ -16,19 +18,19 @@ module.exports = (app) => {
                     populate: [
                         {
                             path: '_participant',
-                            select: 'username'
+                            select: 'username avatar'
                         },
                         {
                             path: 'responses.comments', 
                             populate: [
-                                { path: 'user', select: 'username' }, 
-                                { path: 'comments', populate: { path: 'user', select: 'username' }},
-                                { path: 'votes', populate: { path: 'voter', select: 'username'}} 
+                                { path: 'user', select: 'username avatar' }, 
+                                { path: 'comments', populate: { path: 'user', select: 'username avatar' }},
+                                { path: 'votes', populate: { path: 'voter', select: 'username avatar'}} 
                             ]
                         },
                         {
                             path: 'responses.votes', 
-                            populate: { path: 'voter', select: 'username' } 
+                            populate: { path: 'voter', select: 'username avatar' } 
                         }
 
                     ]
@@ -51,9 +53,9 @@ module.exports = (app) => {
         const { promptId, responseId } = req.params;
         const { voteType } = req.body; 
         const userId = req.user._id; 
-
+        console.log("Prompt, Response", promptId, responseId)
         try {
-            const studyResponse = await StudyResponse.findById(responseId);
+            const studyResponse = await StudyResponse.findOne({'responses._id':responseId});
             if (!studyResponse) {
                 return res.status(404).send("Response not found");
             }
@@ -127,7 +129,7 @@ module.exports = (app) => {
         const userId = req.user._id;
 
         try {
-            const studyResponse = await StudyResponse.findById(responseId);
+            const studyResponse = await StudyResponse.findOne({'responses._id':responseId});
             if (!studyResponse) {
                 return res.status(404).send("Response not found");
             }
@@ -220,6 +222,7 @@ module.exports = (app) => {
             res.status(422).send(err);
         }
     });
+
     // Comment on Comment
     app.post('/api/discussion/:commentId/subcomment', requireLogin, async (req, res) => {
         const { commentId } = req.params;
@@ -259,11 +262,123 @@ module.exports = (app) => {
     app.get('/api/discussion/:commentId/subcomment', requireLogin, async (req, res) => {
         const { commentId } = req.params;
         try {
-            const subcomments = await SubComment.find({ parentComment: commentId }).populate('user', 'username');
+            const subcomments = await SubComment.find({ parentComment: commentId }).populate('user', 'username avatar');
             res.send(subcomments);
         } catch (err) {
             console.error("Error fetching subcomments:", err);
             res.status(422).send(err);
         }
     });
+
+    // Create and Send Notification
+    app.post('/api/discussion/:postId/notify', requireLogin, async (req, res) => {
+        const { postId } = req.params;
+        const { postType, notificationType, fromUser, toUser, task } = req.body;
+        try {
+            switch(postType){
+                case 'comment':
+                    break;
+                case 'initialResponse':
+                    switch (notificationType) {
+                        case 'clairfy':
+
+                            try{
+                                const toUserId = await User.findOne({ username: toUser }).select('_id');
+
+                                if(!toUserId) {
+                                    res.status(400).send("No participant found");
+                                }
+
+                                const notification = new Notification({
+                                    type: notificationType,
+                                    initialResponse: postId,
+                                    fromUser,
+                                    toUser: toUserId,
+                                    status: 'clairfy-pending-approval',
+                                    task: task
+                                });
+
+                                notification.save();
+
+                                await User.findByIdAndUpdate(
+                                    toUserId._id,
+                                    { $push: { notifications: notification } },
+                                    { new: true, useFindAndModify: false }
+                                );
+                
+                                res.send(notification);
+                            } catch (err) {
+                                console.error("Error creating notification: ", err);
+                                res.status(400).send(err);
+                            }
+
+                            break;
+                        case 'upvote':
+                            console.log("IR notification Type: ", notificationType)
+                            break;
+                        case 'downvote':
+                            console.log("IR notification Type: ", notificationType)
+                            break;
+                        case 'comment':
+                            console.log("IR notification Type: ", notificationType)
+                            break;
+                        default:
+                            res.status(400).send("Invalid notification type");
+                    }
+                    break;
+                default:
+                    return res.status(400).send("Invalid post type");
+            }
+        } catch(err) {
+            console.error("Error creating notification: ", err);
+            res.status(422).send(err);
+        }
+    
+    });
+
+    app.get('/api/discussion/notifications/:taskId', requireLogin, async (req, res) => {
+        const { taskId } = req.params;
+        try {
+            const notifications = await Notification.find({ task: taskId })
+                .populate('fromUser', 'username')
+                .populate('toUser', 'username')
+                .populate('initialResponse.responses')
+                .populate('comment');
+
+            if (!notifications) {
+                return res.status(404).send("No notifications found for this task");
+            }
+
+            res.send(notifications);
+        } catch (err) {
+            console.error("Error fetching notifications:", err);
+            res.status(422).send(err);
+        }
+    });
+
+    app.post('/api/discussion/update-comment/:commentId', requireLogin, async(req, res) => {
+        const { commentId } = req.params;
+        const { commentContent, notificationId } = req.body;
+        console.log("updat: ", commentContent, notificationId)
+        try {
+
+            const studyResponse = await StudyResponse.findOneAndUpdate(
+                { 'responses._id': commentId },
+                { $set: { 'responses.$.response': commentContent } },
+                { new: true }
+            );
+    
+            if (!studyResponse) {
+                return res.status(404).send({ error: 'Response not found' });
+            }
+
+            
+    
+            res.send(studyResponse);
+        } catch(err) {
+            console.error("Error updating comment: ", err);
+            res.status(422).send(err);
+        }
+    })
+
 };
