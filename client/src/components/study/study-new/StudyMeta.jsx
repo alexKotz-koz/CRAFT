@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { Tooltip } from 'react-tooltip';
 import { GoQuestion } from 'react-icons/go';
 
-const StudyMeta = ({ onSubmit, onCancel, initialValues, setStudyType }) => {
+const StudyMeta = ({ onSubmit, initialValues, setStudyType }) => {
 
   const validate = (values) => {
     const errors = {};
@@ -86,9 +86,6 @@ const StudyMeta = ({ onSubmit, onCancel, initialValues, setStudyType }) => {
               </Field>
             </div>
             <div className="d-flex justify-content-end mt-3">
-              <button type="button" className="btn btn-secondary" onClick={onCancel}>
-                Back
-              </button>
               <button type="submit" className="btn btn-success ms-2 me-2">
                 Next
               </button>
@@ -102,7 +99,6 @@ const StudyMeta = ({ onSubmit, onCancel, initialValues, setStudyType }) => {
 
 StudyMeta.propTypes = {
   onSubmit: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
   initialValues: PropTypes.object
 };
 

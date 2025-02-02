@@ -1,7 +1,39 @@
 import React from 'react';
 
 const StudyReview = ({ onCancel, onSubmit, formValues, isLoading, error }) => {
-    const { name, description, emailList, taskList } = formValues;
+    const { values: {name, description, studyType} , emailList, contentList } = formValues;
+
+    const renderContent = () => {
+        if (studyType === 'survey') {
+            return (
+                <>
+                    <li className="list-group-item">
+                        <p><strong>Instructions:</strong> {contentList.instructions}</p>
+                    </li>
+                    {Object.keys(contentList).filter(key => key !== 'instructions').map((key, index) => {
+                        const item = contentList[key];
+                        return (
+                            <li key={index} className="list-group-item">
+                                <p><strong>{item.children.length > 0 ? 'Parent Question:' : 'Question:'}</strong> {item.parentQuestion}</p>
+                                {item.children.length > 0 && (
+                                    <>
+                                        <p><strong>Child Questions:</strong></p>
+                                        <ul>
+                                            {item.children.map((child, idx) => (
+                                                <li key={idx}>{child.question}</li>
+                                            ))}
+                                        </ul>
+                                    </>
+                                )}
+                                <p><strong>Media:</strong> {item.media.length > 0 ? 'Yes' : 'No'}</p>
+                                <p><strong>Tables:</strong> {item.tables.length > 0 ? 'Yes' : 'No'}</p>
+                            </li>
+                        );
+                    })}
+                </>
+            );
+        }
+    };
 
     return (
         <div>
@@ -17,31 +49,20 @@ const StudyReview = ({ onCancel, onSubmit, formValues, isLoading, error }) => {
                         </li>
                     ))}
                 </ul>
-                <p className='mt-3'><strong>Tasks:</strong></p>
+                <p className='mt-3'><strong>Content:</strong></p>
                 <ul className="list-group">
-                    {taskList && taskList.map((task, index) => (
-                        <li key={index} className="list-group-item">
-                            <p><strong>Name:</strong> {task.name}</p>
-                            <p><strong>Instructions:</strong> {task.instructions}</p>
-                            <p><strong>Prompts:</strong></p>
-                            <ul>
-                                {task.prompts.map((prompt, idx) => (
-                                    <li key={idx}>{prompt}</li>
-                                ))}
-                            </ul>
-                        </li>
-                    ))}
+                    {renderContent()}
                 </ul>
             </div>
             <div className="d-flex justify-content-between mt-3 mb-3">
                 <button type="button" className="btn btn-secondary" onClick={onCancel}>
-                    Back
+                    Cancel
                 </button>
                 <button type="button" className="btn btn-primary" onClick={onSubmit} disabled={isLoading}>
-                    Submit
+                    {isLoading ? 'Submitting...' : 'Submit'}
                 </button>
             </div>
-            {error && <div className="text-danger mt-3">{error.message}</div>}
+            {error && <div className="text-danger mt-3">{error}</div>}
         </div>
     );
 };

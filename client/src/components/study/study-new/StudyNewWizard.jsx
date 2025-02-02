@@ -96,7 +96,6 @@ const StudyNewWizard = () => {
             return (
             <StudyMeta
                 onSubmit={handleNext}
-                onCancel={handleBack}
                 initialValues={formValues}
                 setStudyType={setStudyType}
             />
