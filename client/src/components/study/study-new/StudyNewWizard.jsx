@@ -1,7 +1,7 @@
 import { useState } from "react";
 import StudyMeta from "./StudyMeta";
 import StudyParticipants from "./StudyParticipants";
-import StudyTasks from "./StudyTasks";
+import StudyTask from "./StudyTask";
 import StudyReview from "./StudyReview";
 import { useNavigate } from "react-router-dom";
 import { useCreateStudyMutation, useCreateUserMutation } from "../../../store";
@@ -15,11 +15,18 @@ const StudyNewWizard = () => {
     const [formValues, setFormValues] = useState({});
     const [newParticipants, setNewParticipants] = useState([]);
     const [submissionError, setSubmissionError] = useState(null);
+    const [studyType, setStudyType] = useState("");
+    console.log("Study Type:", studyType);
+    console.log("FormValues: ", formValues);
 
-    
     const handleNext = (values) => {
-        setFormValues({...formValues, ...values});
-        setCurrentStage(currentStage + 1);
+        setFormValues(prevValues => ({ ...prevValues, ...values }));
+        setCurrentStage(prevStage => prevStage + 1);
+    };
+    
+    const handleBack = (values) => {
+        setFormValues(prevValues => ({ ...prevValues, ...values }));
+        setCurrentStage(prevStage => prevStage - 1);
     };
 
     //!!!!!!!!!!!!!!!!!!!!!! UNCOMMENT when ready to ship !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -51,6 +58,7 @@ const StudyNewWizard = () => {
         const study = {
             name: formValues.name,
             description: formValues.description,
+            type: formValues.studyType,
             participants: formValues.emailList,
             tasks: formValues.taskList
         }
@@ -82,12 +90,6 @@ const StudyNewWizard = () => {
         }
     }
 
-    const handleBack = (values) => {
-        setFormValues({...formValues, ...values});
-        setCurrentStage(currentStage - 1);
-
-    };
-
     const renderContent = () => {
         switch (currentStage) {
         case 0:
@@ -96,6 +98,7 @@ const StudyNewWizard = () => {
                 onSubmit={handleNext}
                 onCancel={handleBack}
                 initialValues={formValues}
+                setStudyType={setStudyType}
             />
             );
         case 1:
@@ -108,10 +111,11 @@ const StudyNewWizard = () => {
             );
         case 2:
             return (
-            <StudyTasks
+            <StudyTask
                 onCancel={handleBack}
                 onSubmit={handleNext}
-                initialValues={formValues.taskList || []}
+                studyType={studyType}
+                initialValues={formValues.contentList || []}
             />
             );
         case 3:

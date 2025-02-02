@@ -17,7 +17,7 @@ const StudyReview = ({ onCancel, onSubmit, formValues, isLoading, error }) => {
                         </li>
                     ))}
                 </ul>
-                <p><strong>Tasks:</strong></p>
+                <p className='mt-3'><strong>Tasks:</strong></p>
                 <ul className="list-group">
                     {taskList && taskList.map((task, index) => (
                         <li key={index} className="list-group-item">

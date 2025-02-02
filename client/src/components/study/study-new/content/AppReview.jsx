@@ -1,70 +1,67 @@
-import { useState, useEffect } from "react";
-import { Form, Field } from "react-final-form";
-import { GoPlus, GoTrash, GoChevronDown, GoChevronUp } from "react-icons/go";
-import { Collapse, Card, CardBody, CardHeader, Button, Modal, ModalHeader, ModalFooter, ModalBody } from 'reactstrap';
+const AppReview = ({  }) => {
 
 
-const StudyTasks = ({ onSubmit, onCancel, initialValues }) => {
-    const [taskList, setTaskList] = useState(initialValues || []);
-    const [currentTask, setCurrentTask] = useState({ name: '', instructions: '', prompts: [] });
-    const [prompt, setPrompt] = useState("");
-    const [showNewPrompt, setShowNewPrompt] = useState(false);
-    const [expandedTask, setExpandedTask] = useState(null);
-    const [error, setError] = useState("");
-    const [showBackConfirmModal, setShowBackConfirmModal] = useState(false);
-
-
-    const handleInputChange = (e) => {
-        setPrompt(e.target.value);
-    };
-
-    const handleAddPrompt = () => {
-        const trimmedPrompt = prompt.trim();
-        if (trimmedPrompt && !currentTask.prompts.includes(trimmedPrompt)) {
-            setCurrentTask({ ...currentTask, prompts: [...currentTask.prompts, trimmedPrompt] });
-            setPrompt("");
-            setShowNewPrompt(false);
-        }
-    };
-
-    const handleRemovePrompt = (promptToRemove) => {
-        setCurrentTask({ ...currentTask, prompts: currentTask.prompts.filter(prompt => prompt !== promptToRemove) });
-    };
-
-    const handleAddTask = (values) => {
-        if (values.name && values.instructions && currentTask.prompts.length > 0) {
-            const newTask = { ...values, prompts: currentTask.prompts };
-            setTaskList([...taskList, newTask]);
-            setCurrentTask({ name: '', instructions: '', prompts: [] });
-            setError("");
-        } else {
-            setError("You must provide Task Name, Instructions, and at least one Prompt");
-        }
-    };
-
-    const handleRemoveTask = (taskToRemove) => {
-        setTaskList(taskList.filter(task => task !== taskToRemove));
-    };
-
-    const handleFormSubmit = () => {
-        onSubmit({ taskList });
-    };
-
-    const toggleTask = (index) => {
-        setExpandedTask(expandedTask === index ? null : index);
-    };
-
-    const toggleModal = () => setShowBackConfirmModal(!showBackConfirmModal);
-
-
-    const handleBackNav = ({taskList}) => {
-        console.log(taskList)
-        if (taskList.length <= 0 ) {
-            console.log("here")
-            toggleModal();
-        }
-    };
-
+        //App Review
+        const [taskList, setTaskList] = useState(initialValues || []);
+        const [currentTask, setCurrentTask] = useState({ name: '', instructions: '', prompts: [] });
+        const [prompt, setPrompt] = useState("");
+        const [showNewPrompt, setShowNewPrompt] = useState(false);
+        const [expandedTask, setExpandedTask] = useState(null);
+        const [error, setError] = useState("");
+        const [showBackConfirmModal, setShowBackConfirmModal] = useState(false);
+    
+    
+    
+        const handleInputChange = (e) => {
+            setPrompt(e.target.value);
+        };
+    
+        const handleAddPrompt = () => {
+            const trimmedPrompt = prompt.trim();
+            if (trimmedPrompt && !currentTask.prompts.includes(trimmedPrompt)) {
+                setCurrentTask({ ...currentTask, prompts: [...currentTask.prompts, trimmedPrompt] });
+                setPrompt("");
+                setShowNewPrompt(false);
+            }
+        };
+    
+        const handleRemovePrompt = (promptToRemove) => {
+            setCurrentTask({ ...currentTask, prompts: currentTask.prompts.filter(prompt => prompt !== promptToRemove) });
+        };
+    
+        const handleAddTask = (values) => {
+            if (values.name && values.instructions && currentTask.prompts.length > 0) {
+                const newTask = { ...values, prompts: currentTask.prompts };
+                setTaskList([...taskList, newTask]);
+                setCurrentTask({ name: '', instructions: '', prompts: [] });
+                setError("");
+            } else {
+                setError("You must provide Task Name, Instructions, and at least one Prompt");
+            }
+        };
+    
+        const handleRemoveTask = (taskToRemove) => {
+            setTaskList(taskList.filter(task => task !== taskToRemove));
+        };
+    
+        const handleContentSubmit = () => {
+            onSubmit({ taskList });
+        };
+    
+        const toggleTask = (index) => {
+            setExpandedTask(expandedTask === index ? null : index);
+        };
+    
+        const toggleModal = () => setShowBackConfirmModal(!showBackConfirmModal);
+    
+    
+        const handleBackNav = ({taskList}) => {
+            console.log(taskList)
+            if (taskList.length <= 0 ) {
+                console.log("here")
+                toggleModal();
+            }
+        };
 
     return (
         <div>
@@ -94,7 +91,7 @@ const StudyTasks = ({ onSubmit, onCancel, initialValues }) => {
                                         placeholder=""
                                         required
                                     />
-                                    <label>Task Instructions</label>
+                                    <label>Overall Task Instructions</label>
                                 </div>
                             </div>
 
@@ -248,4 +245,4 @@ const StudyTasks = ({ onSubmit, onCancel, initialValues }) => {
     );
 };
 
-export default StudyTasks;
+export default AppReview;

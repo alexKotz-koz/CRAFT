@@ -1,7 +1,7 @@
 {
-  "name": "fbs_v1",
-  "version": "1.0.0",
-  "description": "First working version of the feedback system applicaiton. Using vite, node, express, and mongo",
+  "name": "craft_v1.3",
+  "version": "1.3.0",
+  "description": "Third iteration of CRAFT: Collaborative Remote Asynchronous Feedback Tool",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

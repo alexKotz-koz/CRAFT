@@ -7,7 +7,11 @@ const StudySchema = new Schema({
     name: { type: String, required: true },
     description: { type: String, required: true },
     participants: { type: [StudyParticipantSchema], required: true },
-    tasks: [{ type: Schema.Types.ObjectId, ref: 'StudyTask' }], // Reference to StudyPrompt
+    type: {
+        type: String,
+        enum: ['app-review', 'survey']
+    },
+    tasks: [{ type: Schema.Types.ObjectId, ref: 'StudyTask' }],
     _createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
     _facilitator: { type: Schema.Types.ObjectId, ref: 'User' },
     _dateCreated: { type: Date, default: Date.now }

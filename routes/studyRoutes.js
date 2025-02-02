@@ -14,7 +14,7 @@ module.exports = (app) => {
     // Create a new study
     // API: useCreateStudyMutation
     app.post('/api/study/new', requireLogin, requireFacilitatorPermissions, async (req, res) => {
-        const { name, description, participants, tasks } = req.body;
+        const { name, description, type, participants, tasks } = req.body;
 
         const existingStudy = await Study.findOne({ name });
         if (existingStudy) {
@@ -24,6 +24,7 @@ module.exports = (app) => {
         const study = new Study({
             name,
             description,
+            type,
             participants,
             _createdBy: req.user.id,
             _facilitator: req.user.id, // Future implementation -- allow sudo's to assign studies to facilitators
@@ -34,7 +35,7 @@ module.exports = (app) => {
             await study.save();
 
             // Create StudyTask and StudyPrompt documents
-            const studyTasks = await Promise.all(tasks.map(async task => {
+            const StudyTasks = await Promise.all(tasks.map(async task => {
                 const studyPrompts = await Promise.all(task.prompts.map(async prompt => {
                     const studyPrompt = new StudyPrompt({
                         study: study._id,
@@ -44,7 +45,7 @@ module.exports = (app) => {
                     return studyPrompt._id;
                 }));
 
-                const studyTask = new StudyTask({
+                const StudyTask = new StudyTask({
                     name: task.name,
                     instructions: task.instructions,
                     prompts: studyPrompts,
@@ -54,22 +55,22 @@ module.exports = (app) => {
                     _dateCreated: Date.now()
                 });
 
-                await studyTask.save();
+                await StudyTask.save();
 
 
                 const discussion = new Discussion({
                     study: study._id,
-                    task: studyTask._id,
+                    task: StudyTask._id,
                     prompts: task.prompts,
                     initialResponses: []
                 });
 
                 await discussion.save();
-                return studyTask._id;
+                return StudyTask._id;
             }));
 
             // Update the Study document with the saved StudyTask IDs
-            study.tasks = studyTasks;
+            study.tasks = StudyTasks;
             await study.save();
 
             res.send({ study });
