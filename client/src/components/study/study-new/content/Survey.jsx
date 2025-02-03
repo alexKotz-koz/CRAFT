@@ -26,16 +26,12 @@ const Survey = ({ initialValues, handleContentSubmit, onCancel }) => {
     const [expandedQuestion, setExpandedQuestion] = useState(null);
 
     useEffect(() => {
-        console.log("initialValues", initialValues);
         if (initialValues) {
             const { instructions, ...questions } = initialValues;
             setQuestionList(Object.values(questions));
             setInstructions(instructions || "");
         }
     }, [initialValues]);
-
-    console.log("questionList", questionList);
-    console.log("instructions", instructions);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -134,7 +130,6 @@ const Survey = ({ initialValues, handleContentSubmit, onCancel }) => {
             setShowMediaField(false);
             setShowTableField(false);
             setShowSubQuestionField(false);
-            console.log("handleAddQuestion questionList: ", newQuestionList);
         }
     };
 
@@ -294,7 +289,7 @@ const Survey = ({ initialValues, handleContentSubmit, onCancel }) => {
                         <h3 className="text-center">Question List</h3>
                         <div className="mt-3">
                             {questionList.map((question, index) => {
-                                console.log("q", question); return (
+                                return (
                                     <Card key={index} className="mb-3">
                                         <CardHeader onClick={() => toggleQuestion(index)} style={{ cursor: 'pointer' }}>
                                             <div className="d-flex justify-content-between align-items-center">

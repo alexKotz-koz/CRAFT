@@ -8,7 +8,7 @@ import { useCreateStudyMutation, useCreateUserMutation } from "../../../store";
 
 const StudyNewWizard = () => {
     const navigate = useNavigate();
-    
+
     const [createStudy, { isLoading: isLoadingStudy, error: errorStudy }] = useCreateStudyMutation();
     const [createUser, { isLoading: isLoadingUsers, error: errorUsers }] = useCreateUserMutation();
     const [currentStage, setCurrentStage] = useState(0);
@@ -23,7 +23,7 @@ const StudyNewWizard = () => {
         setFormValues(prevValues => ({ ...prevValues, ...values }));
         setCurrentStage(prevStage => prevStage + 1);
     };
-    
+
     const handleBack = (values) => {
         setFormValues(prevValues => ({ ...prevValues, ...values }));
         setCurrentStage(prevStage => prevStage - 1);
@@ -54,14 +54,32 @@ const StudyNewWizard = () => {
         document.body.removeChild(a);
     };
 
-    const submitForm = async() => {
-        const study = {
-            name: formValues.name,
-            description: formValues.description,
-            type: formValues.studyType,
-            participants: formValues.emailList,
-            tasks: formValues.taskList
+    const submitForm = async () => {
+        let study;
+        if (studyType === 'survey') {
+            let questionList = []
+            Object.keys(formValues.contentList).filter(key => key !== 'instructions').map((key) => {
+                questionList.push(formValues.contentList[key]);
+            })
+            console.log("submitForm quesitonList: ", questionList)
+
+            study = {
+                name: formValues.values.name,
+                description: formValues.values.description,
+                type: studyType,
+                participants: formValues.emailList,
+                tasks: questionList
+            };
+        } else {
+            study = {
+                name: formValues.name,
+                description: formValues.description,
+                type: formValues.studyType,
+                participants: formValues.emailList,
+                tasks: formValues.taskList
+            };
         }
+
         try {
             const fullParticipants = [];
             for (const participant of formValues.emailList) {
@@ -77,7 +95,6 @@ const StudyNewWizard = () => {
                 fullParticipants.push(newUser);
                 setNewParticipants(prevParticipants => [...(prevParticipants || []), newUser]);
             }
-
             const csvContent = generateCSVContent(fullParticipants);
             downloadCSV(csvContent);
 
@@ -88,47 +105,46 @@ const StudyNewWizard = () => {
             console.error("StudyNewWizard: Failed to create study. ", err);
             setSubmissionError(err);
         }
-    }
-
+    };
     const renderContent = () => {
         switch (currentStage) {
-        case 0:
-            return (
-            <StudyMeta
-                onSubmit={handleNext}
-                initialValues={formValues}
-                setStudyType={setStudyType}
-            />
-            );
-        case 1:
-            return (
-            <StudyParticipants
-                onCancel={handleBack}
-                onSubmit={handleNext}
-                initialValues={formValues.emailList || []}
-            />
-            );
-        case 2:
-            return (
-            <StudyTask
-                onCancel={handleBack}
-                onSubmit={handleNext}
-                studyType={studyType}
-                initialValues={formValues.contentList || []}
-            />
-            );
-        case 3:
-            return (
-            <StudyReview
-                onCancel={handleBack}
-                onSubmit={submitForm}
-                formValues={formValues}
-                isLoading={isLoadingStudy || isLoadingUsers}
-                error={errorStudy || errorUsers || submissionError}
-            />
-            );
-        default:
-            return null;
+            case 0:
+                return (
+                    <StudyMeta
+                        onSubmit={handleNext}
+                        initialValues={formValues}
+                        setStudyType={setStudyType}
+                    />
+                );
+            case 1:
+                return (
+                    <StudyParticipants
+                        onCancel={handleBack}
+                        onSubmit={handleNext}
+                        initialValues={formValues.emailList || []}
+                    />
+                );
+            case 2:
+                return (
+                    <StudyTask
+                        onCancel={handleBack}
+                        onSubmit={handleNext}
+                        studyType={studyType}
+                        initialValues={formValues.contentList || []}
+                    />
+                );
+            case 3:
+                return (
+                    <StudyReview
+                        onCancel={handleBack}
+                        onSubmit={submitForm}
+                        formValues={formValues}
+                        isLoading={isLoadingStudy || isLoadingUsers}
+                        error={errorStudy || errorUsers || submissionError}
+                    />
+                );
+            default:
+                return null;
         }
     };
 
@@ -141,6 +157,7 @@ const StudyNewWizard = () => {
                 </div>
             )}
         </div>
-    );};
+    );
+};
 
 export default StudyNewWizard;

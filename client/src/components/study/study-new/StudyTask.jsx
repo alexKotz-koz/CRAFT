@@ -14,7 +14,6 @@ const StudyContent = ({ onSubmit, onCancel, studyType, initialValues }) => {
 
 
     const handleContentSubmit = (values) => {
-        console.log("handleContentSubmit: ", values)
         setContentList(values || []);
         onSubmit({ contentList: values });
     };

@@ -18,7 +18,6 @@ const TableSchema = new Schema({
     numColumns: { type: Number, default: 0, min: 1, max: 100 },
     numRows: { type: Number, default: 0, min: 1, max: 500 },
     columnNames: [{ type: String }],
-    rowNames: [{ type: String }],
     values: [TableCellSchema]
 });
 

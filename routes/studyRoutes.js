@@ -8,12 +8,15 @@ const Comment = mongoose.model('Comment');
 
 const requireLogin = require('../middlewares/requireLogin');
 const requireFacilitatorPermissions = require('../middlewares/requireFacilitatorPermissions');
+const { createStudyDirectory, saveMediaFiles, createStudyPrompts, createStudyTask } = require('./studyNewUtils');
 
 
 module.exports = (app) => {
     // Create a new study
     // API: useCreateStudyMutation
     app.post('/api/study/new', requireLogin, requireFacilitatorPermissions, async (req, res) => {
+        console.log("Body: ", req.body);
+
         const { name, description, type, participants, tasks } = req.body;
 
         const existingStudy = await Study.findOne({ name });
@@ -27,49 +30,29 @@ module.exports = (app) => {
             type,
             participants,
             _createdBy: req.user.id,
-            _facilitator: req.user.id, // Future implementation -- allow sudo's to assign studies to facilitators
+            _facilitator: req.user.id, 
             _dateCreated: Date.now(),
         });
 
         try {
             await study.save();
-
-            // Create StudyTask and StudyPrompt documents
+            const studyPrompts = await createStudyPrompts(tasks, study._id, req.user.id);
+            console.log("studyPrompts: ", studyPrompts)
             const StudyTasks = await Promise.all(tasks.map(async task => {
-                const studyPrompts = await Promise.all(task.prompts.map(async prompt => {
-                    const studyPrompt = new StudyPrompt({
-                        study: study._id,
-                        prompt: prompt
-                    });
-                    await studyPrompt.save();
-                    return studyPrompt._id;
-                }));
-
-                const StudyTask = new StudyTask({
-                    name: task.name,
-                    instructions: task.instructions,
-                    prompts: studyPrompts,
-                    participants,
-                    study: study._id,
-                    _createdBy: req.user.id,
-                    _dateCreated: Date.now()
-                });
-
-                await StudyTask.save();
-
+                
+                const studyTaskId = await createStudyTask(study._id, req.user.id, studyPrompts, task.instructions, participants);
 
                 const discussion = new Discussion({
                     study: study._id,
-                    task: StudyTask._id,
+                    task: studyTaskId,
                     prompts: task.prompts,
                     initialResponses: []
                 });
 
                 await discussion.save();
-                return StudyTask._id;
+                return studyTaskId;
             }));
 
-            // Update the Study document with the saved StudyTask IDs
             study.tasks = StudyTasks;
             await study.save();
 
