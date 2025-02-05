@@ -47,9 +47,9 @@ const createStudyPrompts = async (questionList, studyId, userId) => {
 
         const studyPrompt = new StudyPrompt({
             study: studyId,
-            parentPrompt: question.parentQuestion,
+            prompt: question.parentQuestion,
             childPrompts: question.children.map((child) => ({
-                parentPrompt: child.question,
+                prompt: child.question,
             })),
             mediaLinks: question.media,
             linkLinks: question.links,
@@ -62,6 +62,30 @@ const createStudyPrompts = async (questionList, studyId, userId) => {
     return studyPrompts;
 };
 
+const fetchStudyPrompts = async (studyPromptIds) => {
+    return await StudyPrompt.find({ _id: { $in: studyPromptIds } });
+};
+
+const extractStudyPromptsRaw = (studyPrompts) => {
+    const studyPromptsRaw = [];
+
+    studyPrompts.forEach((question) => {
+        
+        studyPromptsRaw.push({ id: question._id, question: question.prompt });
+
+        // Extract child prompts
+        if (question.childPrompts && question.childPrompts.length > 0) {
+            question.childPrompts.forEach((child, index) => {
+                const childPromptId = `${question._id}-childPrompt-${index}`;
+                studyPromptsRaw.push({ id: childPromptId, question: child.prompt });
+            });
+        }
+    });
+
+    return studyPromptsRaw;
+};
+
+
 const createStudyTask = async (studyId, userId, studyPrompts, instructions, participants) => {
     const StudyTask = mongoose.model('StudyTask');
     const studyTask = new StudyTask({
@@ -71,6 +95,11 @@ const createStudyTask = async (studyId, userId, studyPrompts, instructions, part
         instructions,
         _createdBy: userId,
     });
+    try {
+        await studyTask.save()
+    } catch (err) {
+        console.error("Error creating StudyTask: ", err);
+    }
     await studyTask.save();
     return studyTask._id;
 };
@@ -79,5 +108,7 @@ module.exports = {
     createStudyDirectory,
     saveMediaFiles,
     createStudyPrompts,
+    fetchStudyPrompts,
+    extractStudyPromptsRaw,
     createStudyTask,
 };

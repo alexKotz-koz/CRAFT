@@ -12,7 +12,8 @@ module.exports = (app) => {
         const { taskId } = req.params;
         try {
             const discussion = await Discussion.findOne({ task: taskId })
-                .populate('prompts', 'prompt')
+                .populate({path: 'prompts', model: 'StudyPrompt'})
+                .populate({path: 'study', populate: [ {path: 'name', select: 'name'}]})
                 .populate({
                     path: 'initialResponses',
                     populate: [

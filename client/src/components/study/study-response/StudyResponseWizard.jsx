@@ -89,12 +89,14 @@ const StudyResponseWizard = ({ user }) => {
             {taskChunks.map((chunk, chunkIndex) => (
                 <div className="row" key={chunkIndex}>
                     <div className="card-group">
-                        {chunk.map((task, index) => (
+                        {chunk.map((task, index) => { 
+                            console.log("task: ", task)
+                            return (
                             <div className="col-3" key={index}>
                                 <div className="card p-3 h-100">
                                     <div className="d-flex justify-content-between align-items-center mb-3">
                                         <h5 className="card-title">
-                                            {task.name}
+                                            {task.name ? task.name : study.name}
                                         </h5>
 
                                     </div>
@@ -105,7 +107,7 @@ const StudyResponseWizard = ({ user }) => {
                                 </div>
 
                             </div>
-                        ))}
+                        )})}
                     </div>
                 </div>
             ))}

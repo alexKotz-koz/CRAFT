@@ -4,12 +4,11 @@ import { GoPlus, GoTrash, GoChevronDown, GoChevronUp } from 'react-icons/go';
 import { Collapse, Card, CardBody, CardHeader, Button, Modal, ModalHeader, ModalFooter, ModalBody } from 'reactstrap';
 import ContentButtonGroup from './survey/ContentButtonGroup';
 import Papa from 'papaparse';
-import QuillEditor from '../../../tools/quill-rte/QuillEditor';
 
 const Survey = ({ initialValues, handleContentSubmit, onCancel }) => {
     const [questionList, setQuestionList] = useState([]);
     const [instructions, setInstructions] = useState("");
-    const [question, setQuestion] = useState({ title: '', parentQuestion: '', children: [], media: [], links: [], tables: [] });
+    const [question, setQuestion] = useState({ parentQuestion: '', children: [], media: [], links: [], tables: [] });
     const [childQuestions, setChildQuestions] = useState([]);
     const [table, setTable] = useState({
         numColumns: 0,
@@ -19,14 +18,12 @@ const Survey = ({ initialValues, handleContentSubmit, onCancel }) => {
     });
     const [firstRowAsColumnNames, setFirstRowAsColumnNames] = useState("");
     const [showNewQuestion, setShowNewQuestion] = useState(false);
+    const [showMediaField, setShowMediaField] = useState(false);
     const [showTableField, setShowTableField] = useState(false);
     const [showSubQuestionField, setShowSubQuestionField] = useState(false);
     const [showBackConfirmModal, setShowBackConfirmModal] = useState(false);
     const [error, setError] = useState('');
     const [expandedQuestion, setExpandedQuestion] = useState(null);
-
-    const [parentEditorState, setParentEditorState] = useState('');
-    const [childEditorStates, setChildEditorStates] = useState([]);
 
     useEffect(() => {
         if (initialValues) {
@@ -36,24 +33,15 @@ const Survey = ({ initialValues, handleContentSubmit, onCancel }) => {
         }
     }, [initialValues]);
 
-    const handleParentInputChange = (html) => {
-        setParentEditorState(html);
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const questionTitle = doc.body.firstChild ? doc.body.firstChild.textContent : '';
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
         setQuestion((prevQuestion) => ({
             ...prevQuestion,
-            parentQuestion: html,
-            questionTitle,
-            instructions
+            [name]: value,
         }));
     };
 
     const handleChildInputChange = (index, value) => {
-        const newChildEditorStates = [...childEditorStates];
-        newChildEditorStates[index] = value;
-        setChildEditorStates(newChildEditorStates);
-
         const newChildQuestions = [...childQuestions];
         newChildQuestions[index] = value;
         setChildQuestions(newChildQuestions);
@@ -61,14 +49,14 @@ const Survey = ({ initialValues, handleContentSubmit, onCancel }) => {
 
     const handleAddChildQuestion = () => {
         setChildQuestions([...childQuestions, ""]);
-        setChildEditorStates([...childEditorStates, ""]);
     };
 
-    const handleRemoveChildQuestion = (index) => {
-        const newChildQuestions = childQuestions.filter((_, i) => i !== index);
-        const newChildEditorStates = childEditorStates.filter((_, i) => i !== index);
-        setChildQuestions(newChildQuestions);
-        setChildEditorStates(newChildEditorStates);
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        setQuestion((prevQuestion) => ({
+            ...prevQuestion,
+            media: [...prevQuestion.media, file],
+        }));
     };
 
     const checkFRACNState = () => {
@@ -127,19 +115,22 @@ const Survey = ({ initialValues, handleContentSubmit, onCancel }) => {
     };
 
     const handleAddQuestion = () => {
-        const children = childQuestions.map((childQuestion, index) => ({
-            index,
-            question: childQuestion
-        }));
-        const newQuestion = { ...question, children };
-        const newQuestionList = [...questionList, newQuestion];
-        setQuestionList(newQuestionList);
-        setQuestion({ parentQuestion: '', children: [], media: [], links: [], tables: [] });
-        setParentEditorState('');
-        setChildQuestions([]);
-        setChildEditorStates([]);
-        setShowNewQuestion(false);
-        setShowSubQuestionField(false);
+        const trimmedQuestion = question.parentQuestion.trim();
+        if (trimmedQuestion && !questionList.some(q => q.parentQuestion === trimmedQuestion)) {
+            const children = childQuestions.map((childQuestion, index) => ({
+                index,
+                question: childQuestion
+            }));
+            const newQuestion = { ...question, children };
+            const newQuestionList = [...questionList, newQuestion];
+            setQuestionList(newQuestionList);
+            setQuestion({ parentQuestion: '', children: [], media: [], links: [], tables: [] });
+            setChildQuestions([]);
+            setShowNewQuestion(false);
+            setShowMediaField(false);
+            setShowTableField(false);
+            setShowSubQuestionField(false);
+        }
     };
 
     const handleRemoveQuestion = (questionToRemove) => {
@@ -203,6 +194,8 @@ const Survey = ({ initialValues, handleContentSubmit, onCancel }) => {
                             <ContentButtonGroup
                                 showNewQuestion={showNewQuestion}
                                 setShowNewQuestion={setShowNewQuestion}
+                                showMediaField={showMediaField}
+                                setShowMediaField={setShowMediaField}
                                 showTableField={showTableField}
                                 setShowTableField={setShowTableField}
                                 showSubQuestionField={showSubQuestionField}
@@ -212,8 +205,23 @@ const Survey = ({ initialValues, handleContentSubmit, onCancel }) => {
                             {showNewQuestion && (
                                 <div>
                                     <div className="floating-label">
-                                        <QuillEditor editorState={parentEditorState} onChange={handleParentInputChange} />
+                                        <textarea
+                                            type="text"
+                                            name="parentQuestion"
+                                            value={question.parentQuestion}
+                                            onChange={handleInputChange}
+                                            className="form-control mb-3"
+                                            placeholder=""
+                                            required
+                                        />
+                                        <label>Question</label>
                                     </div>
+                                    {showMediaField && (
+                                        <div className="mb-3">
+                                            <label className="form-label">Upload Media</label>
+                                            <input type="file" className="form-control" accept='.jpeg, .jpg, .png' onChange={handleFileChange} />
+                                        </div>
+                                    )}
                                     {showTableField && (
                                         <div className="mb-3">
                                             <label className="form-label">Upload CSV</label>
@@ -246,23 +254,17 @@ const Survey = ({ initialValues, handleContentSubmit, onCancel }) => {
                                     {showSubQuestionField && (
                                         <div>
                                             {childQuestions.map((childQuestion, index) => (
-                                                <div key={index} className="mb-3">
-                                                    <label className='form-label'>Child Question {index + 1}</label>
-                                                    <div className='d-flex justify-content-between align-items-center w-100'>
-                                                        <div style={{ flexGrow: 1, marginRight: '10px' }}>
-                                                            <QuillEditor
-                                                                editorState={childEditorStates[index]}
-                                                                onChange={(value) => handleChildInputChange(index, value)}
-                                                            />
-                                                        </div>
-                                                        <button
-                                                            type="button"
-                                                            className="btn btn-danger btn-sm"
-                                                            onClick={() => handleRemoveChildQuestion(index)}
-                                                        >
-                                                            <GoTrash />
-                                                        </button>
-                                                    </div>
+                                                <div key={index} className="floating-label mb-3">
+                                                    <textarea
+                                                        type="text"
+                                                        name={`childQuestion${index}`}
+                                                        value={childQuestion}
+                                                        onChange={(e) => handleChildInputChange(index, e.target.value)}
+                                                        className="form-control"
+                                                        placeholder=""
+                                                        required
+                                                    />
+                                                    <label>Child Question {index + 1}</label>
                                                 </div>
                                             ))}
                                             <button type="button" onClick={handleAddChildQuestion} className="btn btn-secondary mb-3">
@@ -291,16 +293,14 @@ const Survey = ({ initialValues, handleContentSubmit, onCancel }) => {
                                     <Card key={index} className="mb-3">
                                         <CardHeader onClick={() => toggleQuestion(index)} style={{ cursor: 'pointer' }}>
                                             <div className="d-flex justify-content-between align-items-center">
-                                                {question.questionTitle}
+                                                {question.parentQuestion}
                                                 {expandedQuestion === index ? <GoChevronUp /> : <GoChevronDown />}
                                             </div>
                                         </CardHeader>
                                         <Collapse isOpen={expandedQuestion === index}>
                                             <CardBody>
                                                 <div className="d-flex justify-content-between align-items-center">
-                                                    <p><strong>{question.children.length > 0 ? 'Parent Question:' : 'Question:'}</strong>     {question.parentQuestion.length > 50
-                                                        ? `${question.parentQuestion.substring(0, 50)}...`
-                                                        : question.parentQuestion}</p>
+                                                    <p><strong>{question.children.length > 0 ? 'Parent Question:' : 'Question:'}</strong> {question.parentQuestion}</p>
                                                     <button
                                                         type="button"
                                                         className="btn btn-danger btn-sm"

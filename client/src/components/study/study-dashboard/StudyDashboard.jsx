@@ -12,7 +12,7 @@ const StudyDashboard = () => {
     const { data: comments, error: errorComments, isLoading: isLoadingComments } = useFetchStudyCommentsQuery(studyId);
     const [fetchTaskDiscussion, { data: taskDiscussion, error: errorTaskDiscussion, isLoading: isLoadingTaskDiscussion }] = useLazyFetchDiscussionQuery();
     const [taskDiscussions, setTaskDiscussions] = useState({});
-
+    console.log(study)
     useEffect(() => {
         if (study && study.tasks) {
             study.tasks.forEach(async (task) => {
@@ -76,19 +76,15 @@ const StudyDashboard = () => {
         <div className="container-fluid">
             <h3 className="text-center mb-4">Study Dashboard</h3>
 
-            <div className="row mt-3 mb-3">
-                <SimplePieChart data={respondedData} title="Responded" />
-                <TimeLinePlot data={aggregatedCommentData} title="Comments" lineDataKey="count" />
-            </div>
             <div className="row">
                 <h5 className="text-center mb-4">Task Discussions</h5>
-                                {study.tasks.map((task, idx) => {
+                {study.tasks.map((task, idx) => {
                     const taskId = task._id;
                     const discussionLink = `/discussion/${taskId}`;
                     const taskResults = taskDiscussions[taskId];
                     let numComments = 0;
                     let promptsWithDiscussion = 0;
-                
+                    console.log("task: ", task)
                     if (taskResults) {
                         taskResults.initialResponses.forEach((response) => {
                             response.responses.forEach((res) => {
@@ -99,7 +95,7 @@ const StudyDashboard = () => {
                             });
                         });
                     }
-                
+
                     return (
                         <div key={idx} className="w-25">
                             <Card>
@@ -117,12 +113,17 @@ const StudyDashboard = () => {
                                     </ul>
                                 </CardBody>
                                 <CardFooter className="d-flex justify-content-center">
-                                    <ButtonLink key={idx} to={discussionLink} text={task.name} additionalClasses="btn-primary btn-sm w-100" />
+                                    <ButtonLink key={idx} to={discussionLink} text="Go To Discussion" additionalClasses="btn-primary btn-sm w-100" />
                                 </CardFooter>
                             </Card>
                         </div>
                     );
                 })}
+            </div>
+
+            <div className="row mt-3 mb-3">
+                <SimplePieChart data={respondedData} title="Responded" />
+                <TimeLinePlot data={aggregatedCommentData} title="Comments" lineDataKey="count" />
             </div>
         </div>
     );

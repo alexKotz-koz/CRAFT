@@ -11,6 +11,7 @@ const SignUp = () => {
 
     const handleFormSubmit = async (values) => {
         try {
+            values = {...values, username: ''};
             await createUser(values).unwrap(); //handle the promise returned by the mutation
             navigate('/login');
         } catch (error) {

@@ -16,8 +16,7 @@ const StudyNewWizard = () => {
     const [newParticipants, setNewParticipants] = useState([]);
     const [submissionError, setSubmissionError] = useState(null);
     const [studyType, setStudyType] = useState("");
-    console.log("Study Type:", studyType);
-    console.log("FormValues: ", formValues);
+
 
     const handleNext = (values) => {
         setFormValues(prevValues => ({ ...prevValues, ...values }));
@@ -61,7 +60,6 @@ const StudyNewWizard = () => {
             Object.keys(formValues.contentList).filter(key => key !== 'instructions').map((key) => {
                 questionList.push(formValues.contentList[key]);
             })
-            console.log("submitForm quesitonList: ", questionList)
 
             study = {
                 name: formValues.values.name,

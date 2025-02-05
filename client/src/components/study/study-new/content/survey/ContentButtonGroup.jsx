@@ -3,8 +3,6 @@ import { GoPlus } from "react-icons/go";
 const ContentButtonGroup = ({
     showNewQuestion,
     setShowNewQuestion,
-    showMediaField,
-    setShowMediaField,
     showTableField,
     setShowTableField,
     showSubQuestionField,
@@ -18,8 +16,14 @@ const ContentButtonGroup = ({
         }
     };
 
+    const renderButtonContainerClass = () => {
+        return showNewQuestion
+            ? "d-flex justify-content-evenly align-items-center mb-3 w-50"
+            : "d-flex justify-content-start align-items-center mb-3 w-50";
+    };
+
     return (
-        <div className="d-flex justify-content-evenly align-items-center mb-3 w-50">
+        <div className={renderButtonContainerClass()}>
             {!showNewQuestion && <button
                 type="button"
                 className="btn btn-info"
@@ -28,14 +32,6 @@ const ContentButtonGroup = ({
             >
                 <GoPlus /> New Question
             </button>}
-            {showNewQuestion &&
-                <button
-                    type="button"
-                    className={renderSupplementalButtonClass(showMediaField)}
-                    onClick={() => setShowMediaField(!showMediaField)}
-                >
-                    Add Media?
-                </button>}
             {showNewQuestion &&
                 <button
                     type="button"

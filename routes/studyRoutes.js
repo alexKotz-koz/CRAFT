@@ -2,20 +2,25 @@ const mongoose = require('mongoose');
 const Study = mongoose.model('Study');
 const StudyResponse = mongoose.model('StudyResponse');
 const StudyPrompt = mongoose.model('StudyPrompt');
-const StudyTask = mongoose.model('StudyTask');
+const { StudyTask, StudyTaskAppReview, StudyTaskSurvey } = require('../models/StudyTask');
 const Discussion = mongoose.model('Discussion');
 const Comment = mongoose.model('Comment');
 
 const requireLogin = require('../middlewares/requireLogin');
 const requireFacilitatorPermissions = require('../middlewares/requireFacilitatorPermissions');
-const { createStudyDirectory, saveMediaFiles, createStudyPrompts, createStudyTask } = require('./studyNewUtils');
+const { createStudyDirectory, saveMediaFiles, createStudyPrompts, extractStudyPromptsRaw, createStudyTask, fetchStudyPrompts } = require('./studyNewUtils');
+
+/* TODO:
+
+Current implementation of StudyTask includes two discriminators. All routes currently hit StudyTaskSurvey. Will need to update these when another use case is added (e.g. StudyTaskAppReview)
+
+*/
 
 
 module.exports = (app) => {
     // Create a new study
     // API: useCreateStudyMutation
     app.post('/api/study/new', requireLogin, requireFacilitatorPermissions, async (req, res) => {
-        console.log("Body: ", req.body);
 
         const { name, description, type, participants, tasks } = req.body;
 
@@ -30,32 +35,42 @@ module.exports = (app) => {
             type,
             participants,
             _createdBy: req.user.id,
-            _facilitator: req.user.id, 
+            _facilitator: req.user.id,
             _dateCreated: Date.now(),
         });
 
         try {
             await study.save();
-            const studyPrompts = await createStudyPrompts(tasks, study._id, req.user.id);
-            console.log("studyPrompts: ", studyPrompts)
-            const StudyTasks = await Promise.all(tasks.map(async task => {
-                
-                const studyTaskId = await createStudyTask(study._id, req.user.id, studyPrompts, task.instructions, participants);
+            
+            if (type === 'survey') {
+                const studyPrompts= await createStudyPrompts(tasks, study._id, req.user.id);
+                const studyTask = new StudyTaskSurvey({
+                    study: study._id,
+                    participants,
+                    prompts: studyPrompts,
+                    instructions: tasks[0].instructions,
+                    _createdBy: req.user.id,
+                    _dateCreated: Date.now()
+                });
+            
+                await studyTask.save();
 
+                const studyPromptsForDiscussion = await fetchStudyPrompts(studyPrompts);
+                console.log("studyPromptsForDiscussion: ", studyPromptsForDiscussion);
+                const studyPromptsRaw = extractStudyPromptsRaw(studyPromptsForDiscussion);
+                console.log("studyPromptsRaw: ", studyPromptsRaw)
                 const discussion = new Discussion({
                     study: study._id,
-                    task: studyTaskId,
-                    prompts: task.prompts,
+                    task: studyTask._id,
+                    prompts: studyPromptsRaw,
                     initialResponses: []
                 });
 
                 await discussion.save();
-                return studyTaskId;
-            }));
-
-            study.tasks = StudyTasks;
-            await study.save();
-
+                study.tasks = studyTask._id;
+                await study.save();
+            }
+            
             res.send({ study });
         } catch (err) {
             console.error("Error creating study:", err);
@@ -83,13 +98,13 @@ module.exports = (app) => {
             // Update the Study document to add the response
             await Study.findByIdAndUpdate(studyId, { $push: { responses: studyResponse._id } });
 
-            await StudyTask.findOneAndUpdate(
+            await StudyTaskSurvey.findOneAndUpdate(
                 { _id: taskId, 'participants.email': req.user.email },
                 { $set: { 'participants.$.responded': true } }
             );
 
             // Check if all tasks have been completed by the participant
-            const tasks = await StudyTask.find({ study: studyId });
+            const tasks = await StudyTaskSurvey.find({ study: studyId });
             const allTasksCompleted = tasks.every(task =>
                 task.participants.some(participant =>
                     participant.email === req.user.email && participant.responded === true
@@ -208,18 +223,22 @@ module.exports = (app) => {
 
     app.get('/api/study/task/:taskId', requireLogin, async (req, res) => {
         const { taskId } = req.params;
-
+        console.log("taskID: ", taskId)
         try {
-            const task = await StudyTask.findById(taskId)
-                .populate([
-                    { path: 'participants', model: 'StudyParticipants' },
-                    { path: 'prompts', model: 'StudyPrompt' },
-                ]);
-
+            let task;
+            task = await StudyTask.findById(taskId)
+                .populate({path: 'prompts', model: 'StudyPrompt'});
             if (!task) {
-                res.status(400).send("No Task Found")
+                task = await StudyTaskSurvey.findById(taskId)
+                    .populate({path: 'prompts', model: 'StudyPrompt'});
+                if (!task) {
+                    task = await StudyTaskAppReview.findById(taskId)
+                        .populate({path: 'prompts', model: 'StudyPrompt'});
+                    if (!task){
+                        return res.status(404).send("No Task Found");
+                    }
+                }
             }
-
             res.send(task);
 
         } catch (err) {
@@ -233,7 +252,7 @@ module.exports = (app) => {
     app.get('/api/study/tasks/:studyId', requireLogin, async (req, res) => {
         const { studyId } = req.params;
         try {
-            const tasks = await StudyTask.find({ study: studyId })
+            const tasks = await StudyTaskSurvey.find({ study: studyId })
                 .populate([
                     { path: 'participants', model: 'StudyParticipants' },
                     { path: 'prompts', model: 'StudyPrompt' }

@@ -57,6 +57,7 @@ const Header = () => {
                   {data.avatar ? <img src={data.avatar} alt={`${data.username}'s avatar`} className="avatar-img-header mr-2" /> : data.username}
               </a>
               <ul className="dropdown-menu dropdown-menu-end">
+                  <li className="dropdown-item">{data.username}</li>
                   <li><a className="dropdown-item" href="/test">Test</a></li>
                   <li><a className="dropdown-item" href="#">Another action</a></li>
                   <li><hr className="dropdown-divider" /></li>

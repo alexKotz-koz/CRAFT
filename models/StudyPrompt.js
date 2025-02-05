@@ -23,7 +23,7 @@ const TableSchema = new Schema({
 
 const StudyPromptSchema = new Schema({
     study: { type: Schema.Types.ObjectId, ref: 'Study', required: true },
-    parentPrompt: { type: String, required: true },
+    prompt: { type: String, required: true },
     childPrompts: [this],
     mediaLinks: [MediaSchema],
     linkLinks: [{ type: String }],

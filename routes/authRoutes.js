@@ -35,47 +35,12 @@ module.exports = (app) => {
 
         do {
             username = generateUsername();
+            console.log("/auth/generate_username: ", username);
             existingUser = await User.findOne({ username });
         } while (existingUser);
 
         res.json({ username });
     });
-
-    /* Future implementation signup
-    app.post('/auth/signup', async (req, res) => {
-        try {
-            const { username, password, email, firstName, lastName, role} = req.body;
-            if (!username && !email && !password) {
-                return res
-                    .status(403)
-                    .json({ error: "All Fields are required" });
-            }
-
-            const existingUser = await User.findOne({ username });
-            if (existingUser) {
-                return res
-                    .status(409)
-                    .json({ error: "username already exists" });
-            }
-            const salt = await bcrypt.genSalt(10); //default
-            const hashed = await bcrypt.hash(password, salt);
-
-
-            const newUser = new User({
-                email,
-                username,
-                firstName,
-                lastName,
-                role,
-                password: hashed,
-            });
-            console.log("Auth Route newUSer: ", newUser);
-            await newUser.save();
-            res.json({ user: newUser });
-        } catch (error) {
-            res.status(500).send('Internal Server Error', error);
-        }
-    });*/
 
     app.post('/auth/password_reset', async (req, res) => {
         const { email, currentPassword, newPassword } = req.body;
@@ -105,6 +70,7 @@ module.exports = (app) => {
     app.post('/auth/create_user', async (req, res) => {
         try {
             const { password, email, role } = req.body;
+            let username = req.body.username;
             if (!email && !password) {
                 return res
                     .status(403)
@@ -112,13 +78,15 @@ module.exports = (app) => {
             }
 
 
-            let username;
             let existingUser;
+            
+            if (username === "") {
+                do {
+                    username = generateUsername();
+                    existingUser = await User.findOne({ username });
+                } while (existingUser);
+            }
 
-            do {
-                username = generateUsername();
-                existingUser = await User.findOne({ username });
-            } while (existingUser);
 
             const salt = await bcrypt.genSalt(10); //default
             const hashed = await bcrypt.hash(password, salt);
@@ -141,40 +109,7 @@ module.exports = (app) => {
         }
     });
 
-    app.post('/auth/batch_create_users', requireLogin, requireFacilitatorPermissions, async (req, res,) => {
-        const { users } = req.body;
 
-        const session = await mongoose.startSession();
-        session.startTransaction();
-
-        try {
-            const createdUsers = [];
-            for (const user of users) {
-                const sale = await bcrypt.genSalt(10);
-                const hashedPassword = await bcrypt.hash(user.password, salt);
-
-                const newUser = new User({
-                    email: user.email,
-                    username: user.username,
-                    password: hashedPassword,
-                    role: 'participant',
-                });
-
-                await newUser.save({ session });
-                createdUsers.push(newUser);
-            }
-
-            await session.commitTransaction();
-            session.endSession();
-
-            res.status(201).send(createdUsers);
-        } catch (err) {
-            await session.abortTransaction();
-            session.endSession();
-            res.status(500).send({ error: 'Failed to create users' });
-        }
-
-    });
 
     app.post('/auth/login', (req, res, next) => {
         passport.authenticate('local', (err, user, info) => {
@@ -204,20 +139,20 @@ module.exports = (app) => {
 
     app.get("/auth/current_user", async (req, res) => {
         const currentUser = req.user;
-    
+
         if (!currentUser) {
             return res.send(null);
         }
-    
+
         const currentUserId = currentUser._id;
-    
+
         try {
             const user = await User.findById(currentUserId)
-            .populate('notifications.fromUser')
-            .populate('notifications.toUser')
-            .populate('notifications.initialResponse.responses')
-            .populate('notifications.comment')
-            .populate('notifications.task');
+                .populate('notifications.fromUser')
+                .populate('notifications.toUser')
+                .populate('notifications.initialResponse.responses')
+                .populate('notifications.comment')
+                .populate('notifications.task');
             if (!user) {
                 return res.status(400).send("Error fetching user");
             }

@@ -17,6 +17,7 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
     const [editComment, setEditComment] = useState(false);
     const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
 
+    console.log("IR: ", response)
 
     let hasVoted = false;
     let currentUsersVote = 0;

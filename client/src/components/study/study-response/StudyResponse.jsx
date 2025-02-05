@@ -1,19 +1,17 @@
+import React from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import { useCreateStudyResponseMutation, useFetchTaskQuery, useFetchStudyQuery } from "../../../store";
 import { Form, Field } from "react-final-form";
-
+import parse, { domToReact } from 'html-react-parser';
 
 const StudyResponse = ({ user }) => {
     const navigate = useNavigate();
     const { taskId } = useParams();
-    console.log("Task ID: ", taskId)
     const { data: task, error: errorTask, isLoading: isLoadingTask } = useFetchTaskQuery(taskId);
     const [createResponse, { error: responseError, isLoading: responseIsLoading }] = useCreateStudyResponseMutation();
     const { refetch: refetchStudy } = useFetchStudyQuery(task?.study, {
         skip: !task?.study,
     });
-
-    console.log("task", task)
 
     if (isLoadingTask || responseIsLoading) {
         return <div>Loading...</div>;
@@ -23,7 +21,7 @@ const StudyResponse = ({ user }) => {
     }
 
     const handleFormSubmit = async (values) => {
-
+        console.log("handleFormSubmit: ", values);
         const responses = Object.keys(values).map((key) => ({
             prompt: key,
             response: values[key],
@@ -43,59 +41,195 @@ const StudyResponse = ({ user }) => {
         } catch (err) {
             console.error("Failed to create response: ", err);
         }
-
     };
 
     const validate = (values) => {
         const errors = {};
         task.prompts.forEach((prompt) => {
-            if (!values[prompt._id]) {
-                errors[prompt._id] = 'This field is required';
+            if (prompt.childPrompts && prompt.childPrompts.length > 0) {
+                prompt.childPrompts.forEach((childPrompt, index) => {
+                    const childPromptId = `${prompt._id}-childPrompt-${index}`;
+                    if (!values[childPromptId]) {
+                        errors[childPromptId] = 'This field is required';
+                    }
+                });
+            } else {
+                if (!values[prompt._id]) {
+                    errors[prompt._id] = 'This field is required';
+                }
             }
         });
         return errors;
     };
 
+    const renderPromptWithChildren = (prompt, childPrompts) => {
+        const parseOptions = {
+            replace: ({ name, children }) => {
+                switch (name) {
+                    case 'h1':
+                        return <h1>{domToReact(children)}</h1>;
+                    case 'h2':
+                        return <h2>{domToReact(children)}</h2>;
+                    case 'p':
+                        return <p>{domToReact(children)}</p>;
+                    case 'b':
+                        return <b>{domToReact(children)}</b>;
+                    case 'i':
+                        return <i>{domToReact(children)}</i>;
+                    case 'u':
+                        return <u>{domToReact(children)}</u>;
+                    case 'strike':
+                        return <strike>{domToReact(children)}</strike>;
+                    case 'blockquote':
+                        return <blockquote>{domToReact(children)}</blockquote>;
+                    case 'ol':
+                        return <ol>{domToReact(children)}</ol>;
+                    case 'ul':
+                        return <ul>{domToReact(children)}</ul>;
+                    case 'li':
+                        return <li>{domToReact(children)}</li>;
+                    case 'a':
+                        return <a href={children[0].attribs.href}>{domToReact(children)}</a>;
+                    case 'img':
+                        return <img src={children[0].attribs.src} alt="" />;
+                    case 'div':
+                        return <div>{domToReact(children)}</div>;
+                    default:
+                        return null;
+                }
+            }
+        };
+
+        const parsedMainPrompt = parse(prompt.prompt, parseOptions);
+        const parsedChildPrompts = childPrompts.map((childPrompt, index) => {
+            const childPromptId = `${prompt._id}-childPrompt-${index}`;
+            return (
+                <div key={childPromptId} className='mb-3 ms-5'>
+                    {parse(childPrompt.prompt, parseOptions)}
+                    <Field
+                        name={childPromptId}
+                        component="textarea"
+                        className="form-control"
+                        placeholder="Your response"
+                    />
+                    <Field
+                        name={childPromptId}
+                        subscription={{ touched: true, error: true }}
+                        render={({ meta: { touched, error } }) =>
+                            touched && error ? <span className="text-danger">{error}</span> : null
+                        }
+                    />
+                </div>
+            );
+        });
+
+        return (
+            <div>
+                <label className="form-label">{parsedMainPrompt}</label>
+                {parsedChildPrompts.length > 0 ? (
+                    <div className="mb-3">
+                        {parsedChildPrompts}
+                    </div>
+                ) : (
+                    <div className="mb-3">
+                        <Field
+                            name={prompt._id}
+                            component="textarea"
+                            className="form-control"
+                            placeholder="Your response"
+                        />
+                        <Field
+                            name={prompt._id}
+                            subscription={{ touched: true, error: true }}
+                            render={({ meta: { touched, error } }) =>
+                                touched && error ? <span className="text-danger">{error}</span> : null
+                            }
+                        />
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    const renderPrompt = (prompt) => {
+        if (typeof prompt.prompt !== 'string') {
+            return null;
+        }
+        const parseOptions = {
+            replace: ({ name, children }) => {
+                switch (name) {
+                    case 'h1':
+                        return <h1>{domToReact(children)}</h1>;
+                    case 'h2':
+                        return <h2>{domToReact(children)}</h2>;
+                    case 'p':
+                        return <p>{domToReact(children)}</p>;
+                    case 'b':
+                        return <b>{domToReact(children)}</b>;
+                    case 'i':
+                        return <i>{domToReact(children)}</i>;
+                    case 'u':
+                        return <u>{domToReact(children)}</u>;
+                    case 'strike':
+                        return <strike>{domToReact(children)}</strike>;
+                    case 'blockquote':
+                        return <blockquote>{domToReact(children)}</blockquote>;
+                    case 'ol':
+                        return <ol>{domToReact(children)}</ol>;
+                    case 'ul':
+                        return <ul>{domToReact(children)}</ul>;
+                    case 'li':
+                        return <li>{domToReact(children)}</li>;
+                    case 'a':
+                        return <a href={children[0].attribs.href}>{domToReact(children)}</a>;
+                    case 'img':
+                        return <img src={children[0].attribs.src} alt="" />;
+                    case 'div':
+                        return <div>{domToReact(children)}</div>;
+                    default:
+                        return null;
+                }
+            }
+        };
+
+        const parsedContent = parse(prompt.prompt, parseOptions);
+        return (
+            <div>
+                <label className="form-label">{parsedContent}</label>
+                <div className="mb-3">
+                    <Field
+                        name={prompt._id}
+                        component="textarea"
+                        className="form-control"
+                        placeholder="Your response"
+                    />
+                    <Field
+                        name={prompt._id}
+                        subscription={{ touched: true, error: true }}
+                        render={({ meta: { touched, error } }) =>
+                            touched && error ? <span className="text-danger">{error}</span> : null
+                        }
+                    />
+                </div>
+            </div>
+        );
+    };
+
     return (
-        <div className="container w-75">
-            <h3 className="text-center">{task.name}</h3>
+        <div className='container mb-3'>
             <Form
                 onSubmit={handleFormSubmit}
                 validate={validate}
                 render={({ handleSubmit }) => (
-                    <form onSubmit={handleSubmit} className="needs-validation" >
-                        <div className="row mb-3">
-                            <label className="form-label"><strong>Instructions</strong></label>
-                            <div className="">{task.instructions}</div>
-                        </div>
-
-                        {
-                            task.prompts.map((prompt, index) => (
-                                <div key={index}>
-                                    <label className="form-label">{prompt.prompt}</label>
-                                    <div className="mb-3">
-                                        <Field
-                                            name={prompt._id}
-                                            component="textarea"
-                                            className="form-control"
-                                            placeholder="Your response"
-                                        />
-                                        <Field
-                                            name={prompt._id}
-                                            subscription={{ touched: true, error: true }}
-                                            render={({ meta: { touched, error } }) =>
-                                                touched && error ? <span className="text-danger">{error}</span> : null
-                                            }
-                                        />
-                                    </div>
-                                </div>
-                            ))
-                        }
-                        <div>
-                            <button type="submit" className="btn btn-primary">
-                                Submit
-                            </button>
-                        </div>
+                    <form onSubmit={handleSubmit}>
+                        {task.prompts.map((prompt) => (
+                            <div key={prompt._id}>
+                                {prompt.childPrompts && prompt.childPrompts.length > 0
+                                    ? renderPromptWithChildren(prompt, prompt.childPrompts)
+                                    : renderPrompt(prompt)}
+                            </div>
+                        ))}
+                        <button type="submit" className="btn btn-primary">Submit</button>
                     </form>
                 )}
             />
