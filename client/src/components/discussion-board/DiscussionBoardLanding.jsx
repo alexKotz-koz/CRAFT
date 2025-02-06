@@ -30,7 +30,7 @@ const DiscussionBoardLanding = ({ user }) => {
                             <div className="card h-100">
                                 <div className="card-body d-flex flex-column">
                                     <h5 className="card-header mb-3">
-                                        {task.name}
+                                        {task.name ? task.name : task.study.name }
                                     </h5>
                                     <p className="card-text description">
                                         {task.instructions}

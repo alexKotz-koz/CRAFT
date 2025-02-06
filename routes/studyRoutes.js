@@ -254,6 +254,7 @@ module.exports = (app) => {
         try {
             const tasks = await StudyTaskSurvey.find({ study: studyId })
                 .populate([
+                    { path: 'study', model: "Study" },
                     { path: 'participants', model: 'StudyParticipants' },
                     { path: 'prompts', model: 'StudyPrompt' }
                 ]);
