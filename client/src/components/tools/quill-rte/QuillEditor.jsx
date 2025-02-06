@@ -12,7 +12,7 @@ const QuillEditor = ({ editorState, onChange }) => {
                 ['bold', 'italic', 'underline', 'strike', 'blockquote'],
                 //[{ 'list': 'ordered' }, { 'list': 'bullet' },
                 //{ 'indent': '-1' }, { 'indent': '+1' }],
-                //['link', 'image'],
+                ['link'],
                 [{ 'align': [] }],
             ]
         }
@@ -29,7 +29,7 @@ const QuillEditor = ({ editorState, onChange }) => {
         //'list', 
         //'bullet', 
         //'indent',
-        //'link', 
+        'link', 
         //'image', 
         'align'
     ];

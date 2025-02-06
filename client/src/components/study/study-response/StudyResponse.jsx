@@ -21,7 +21,6 @@ const StudyResponse = ({ user }) => {
     }
 
     const handleFormSubmit = async (values) => {
-        console.log("handleFormSubmit: ", values);
         const responses = Object.keys(values).map((key) => ({
             prompt: key,
             response: values[key],

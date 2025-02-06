@@ -10,7 +10,6 @@ const Comment = ({ comment, currentUser, studyId }) => {
     const [showReply, setShowReply] = useState(false);
     const { data: subcomments, error: errorFetchSubcomments, isLoading: isLoadingFetchSubcomments } = useFetchSubCommentsQuery({ commentId: comment._id });
 
-    console.log("comment", comment)
 
     const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
 

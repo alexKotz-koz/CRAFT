@@ -17,7 +17,6 @@ const DiscussionBoardLanding = ({ user }) => {
         return <div>Error: {errorStudyTasks?.data.error}</div>;
     }
 
-    console.log("tasks:", tasks)
 
     return (
         <div className="container text-start">
