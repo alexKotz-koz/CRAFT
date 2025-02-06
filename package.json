@@ -1,6 +1,6 @@
 {
-  "name": "craft_v1.3",
-  "version": "1.3.0",
+  "name": "craft",
+  "version": "0.1.3",
   "description": "Third iteration of CRAFT: Collaborative Remote Asynchronous Feedback Tool",
   "main": "index.js",
   "scripts": {
