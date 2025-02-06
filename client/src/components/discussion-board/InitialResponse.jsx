@@ -117,14 +117,12 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
 
     const onSubmitUpdateComment = (commentContent) => {
         const notification = usersNotifications.find((notification) => notification.initialResponse === responseId);
-        if (notification) {
-            const update = {
-                commentContent: commentContent['update-comment'],
-                notificationId: notification._id
-            };
-            updateComment({ commentId: responseId, update });
-            setEditComment(false);
-        }
+        const update = {
+            commentContent: commentContent['update-comment'],
+            notificationId: notification?._id ?? ''
+        };
+        updateComment({ commentId: responseId, update });
+        setEditComment(false);
     };
 
     return (
@@ -142,6 +140,7 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
 
                         <Form
                             onSubmit={onSubmitUpdateComment}
+                            initialValues={{ 'update-comment': response }}
                             render={({ handleSubmit }) => (
                                 <form onSubmit={handleSubmit} className="needs-validation mb-3">
                                     <Field

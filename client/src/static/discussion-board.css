@@ -5,7 +5,7 @@
 .border-left-only {
     margin-top: 0px;
     border: none !important;
-    border-left: 2px solid black !important;
+    border-left: 1px solid rgb(148, 148, 148) !important; /* Reduced the width from 2px to 1px */
     border-radius: 0 !important;
 }
 

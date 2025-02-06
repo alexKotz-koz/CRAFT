@@ -92,7 +92,7 @@ const Comment = ({ comment, currentUser, studyId }) => {
 
     const isCommentCreator = currentUser._id === comment.user._id;
 
-
+   
     return (
         <div className="card border-left-only">
             <div className="card-body">
@@ -110,13 +110,13 @@ const Comment = ({ comment, currentUser, studyId }) => {
                     {!isCommentCreator && (
                         <>
                             <div className="d-flex align-items-center">
-                                {!isParticipant && <span>{comment.upvotes}</span>}
+                            {!isParticipant && <span className="mx-1">{comment.votes.filter(vote => vote.vote === 1).length}</span>}
                                 <span className={renderVoteSpanStyle('upvote')}>
                                     <GoArrowUp onClick={() => upVote(comment._id)} style={renderVoteIconStyle('upvote')} className="thick-icon" />
                                 </span>
                             </div>
                             <div className="d-flex align-items-center ms-1">
-                                {!isParticipant && <span>{comment.downvotes}</span>}
+                            {!isParticipant && <span className="mx-1">{comment.votes.filter(vote => vote.vote === -1).length}</span>}
                                 <span className={renderVoteSpanStyle('downvote')}>
                                     <GoArrowDown onClick={() => downVote(comment._id)} style={renderVoteIconStyle('downvote')} className="thick-icon" />
                                 </span>

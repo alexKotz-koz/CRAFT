@@ -8,7 +8,7 @@ const discussionApi = createApi({
     endpoints(builder) {
         return {
             fetchDiscussion: builder.query({
-                providesTags: ['vote', 'comment', 'subcomment'],
+                providesTags: ['vote', 'comment', 'subcomment', 'update-response'],
                 query: (taskId) => {
                     return {
                         url: `/discussion/${taskId}`,
@@ -87,9 +87,9 @@ const discussionApi = createApi({
                     },
             }),
             updateComment: builder.mutation({
+                invalidatesTags: ['update-response'],
                 query: ({commentId, update}) => {
                     const {commentContent, notificationId} = update;
-                    console.log("API: ", commentContent, notificationId)
                     return {
                         url: `/discussion/update-comment/${commentId}`,
                         method: 'POST',
