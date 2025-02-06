@@ -124,7 +124,7 @@ const Comment = ({ comment, currentUser, studyId }) => {
                         </>
                     )}
                     {isParticipant && (
-                        <div onClick={toggleReply} style={{ cursor: 'pointer' }} className="d-flex align-items-center small baged rounded-pill text-bg-dark pe-2 ms-2">
+                        <div onClick={toggleReply} style={{ cursor: 'pointer' }} className="d-flex align-items-center small badge rounded-pill text-bg-light pe-2 ms-2">
                             <GoReply className="mx-1 thick-icon" />
                             <span>Reply</span>
                         </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { GoArrowUp, GoArrowDown, GoCommentDiscussion, GoPlus, GoLightBulb, GoPencil } from "react-icons/go";
+import { GoArrowUp, GoArrowDown, GoCommentDiscussion, GoReply, GoLightBulb, GoPencil } from "react-icons/go";
 import { Form, Field } from "react-final-form";
 import { useCreateVoteMutation, useCreateCommentMutation, useCreateNotificationMutation, useUpdateCommentMutation } from "../../store";
 import Comment from "./Comment";
@@ -9,15 +9,13 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
     const [createVote, { error: errorVote, isLoading: isLoadingVote }] = useCreateVoteMutation();
     const [createComment, { error: errorComment, isLoading: isLoadingComment }] = useCreateCommentMutation();
     const [createNotification, { error: errorCreateNotification, isLoading: isLoadingCreateNotification }] = useCreateNotificationMutation();
-    const [updateComment, {error: errorUpdateComment, isLoading: isLoadingUpdateComment}] = useUpdateCommentMutation();
+    const [updateComment, { error: errorUpdateComment, isLoading: isLoadingUpdateComment }] = useUpdateCommentMutation();
 
     const [commentContent, setCommentContent] = useState("");
-    const [showComments, setShowComments] = useState(false);
+    const [showComments, setShowComments] = useState(true);
     const [showNewComment, setShowNewComment] = useState(false);
     const [editComment, setEditComment] = useState(false);
     const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
-
-    console.log("IR: ", response)
 
     let hasVoted = false;
     let currentUsersVote = 0;
@@ -125,6 +123,7 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                 notificationId: notification._id
             };
             updateComment({ commentId: responseId, update });
+            setEditComment(false);
         }
     };
 
@@ -185,25 +184,36 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                             </div>
                         </>
                     )}
-                    <div className={`badge rounded-pill text-bg-dark ${currentUser.username === username ? '' : 'ms-3'}`}>
-                        <span>{comments.length}</span>
-                        <GoCommentDiscussion className="mx-1" onClick={toggleComments} style={{ cursor: 'pointer' }} />
-                    </div>
+                    {isParticipant && (
+                        <div onClick={toggleNewComment} style={{ cursor: 'pointer' }} className="d-flex align-items-center small badge rounded-pill text-bg-light pe-2 ms-2">
+                            <GoReply className="mx-1 thick-icon" />
+                            <span>Reply</span>
+                        </div>
+                    )}
+                    {!isParticipant &&
+                        <div className={`badge rounded-pill text-bg-light ${currentUser.username === username ? '' : 'ms-3'}`}>
+                            <span>{comments.length}</span>
+                            <GoCommentDiscussion className="mx-1" onClick={toggleComments} style={{ cursor: 'pointer' }} />
+                        </div>
+                    }
                     {!isParticipant &&
                         <button
-                            className={`ms-2 badge rounded-pill ${hasNotification ? 'text-bg-dark' : 'text-bg-warning'}`}
+                            className={`ms-2 badge rounded-pill ${hasNotification ? 'text-bg-secondary' : 'text-bg-warning'}`}
                             onClick={handleSubmitClarification}
                             disabled={hasNotification}
                         >
                             {!hasNotification ? 'Clairfy' : 'Clairification Pending'} <GoLightBulb />
                         </button>
                     }
-                    {(isParticipant && unApprovedInitialResponseNotification) &&
+                    {(isParticipant && currentUser.username === username) &&
                         <button
-                            className="ms-2 badge rounded-pill text-bg-dark  "
+                            className="ms-2 badge rounded-pill text-bg-light"
                             onClick={() => setEditComment(true)}
                         >
-                            <GoPencil />
+                            <span className="me-1">
+                                <GoPencil />
+                            </span>
+                            <span>Edit</span>
                         </button>
 
                     }
@@ -233,12 +243,12 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                                 </button>
                             </form>
                         )}
-                        {!showNewComment && isParticipant &&
+                        {/*!showNewComment && isParticipant &&
                             <div className="end-0 m-1 btn btn-warning" style={{ cursor: 'pointer' }} onClick={toggleNewComment}>
                                 <GoPlus />
                                 <span className="ms-1">Add a new comment</span>
                             </div>
-                        }
+                        */}
                     </div>
                 )}
             </div>
