@@ -3,7 +3,7 @@ client/node_modules
 dev.js
 uploads
 data
-requirements.txt
+/requirements.txt
 # Logs
 logs
 *.log
