@@ -62,8 +62,8 @@ const StudyNewWizard = () => {
             })
 
             study = {
-                name: formValues.values.name,
-                description: formValues.values.description,
+                name: formValues.name,
+                description: formValues.description,
                 type: studyType,
                 participants: formValues.emailList,
                 tasks: questionList

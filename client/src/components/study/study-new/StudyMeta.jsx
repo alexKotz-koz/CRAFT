@@ -14,15 +14,13 @@ const StudyMeta = ({ onSubmit, initialValues, setStudyType }) => {
     if (!values.description) {
       errors.description = "You must provide a value";
     }
-    if (!values.studyType || (values.studyType !== 'app-review' && values.studyType !== 'survey')) {
-      errors.studyType = "You must select either App Review or Survey";
-    }
     return errors;
   };
 
   const handleFormSubmit = (values) => {
-    setStudyType(values.studyType);
-    onSubmit({values});
+    const updatedValues = { ...values, studyType: 'survey' };
+    setStudyType(updatedValues.studyType);
+    onSubmit(updatedValues);
   }
 
   return (
@@ -30,7 +28,7 @@ const StudyMeta = ({ onSubmit, initialValues, setStudyType }) => {
       <h3 className="text-center">Create New Study</h3>
       <Form
         onSubmit={handleFormSubmit}
-        initialValues={initialValues?.values}
+        initialValues={{ ...initialValues?.values, studyType: 'survey' }}
         validate={validate}
         render={({ handleSubmit, submitError }) => (
           <form onSubmit={handleSubmit} className="needs-validation" noValidate>
@@ -60,7 +58,8 @@ const StudyMeta = ({ onSubmit, initialValues, setStudyType }) => {
                 {({ meta }) => meta.error && meta.touched && <span className="text-danger">{meta.error}</span>}
               </Field>
             </div>
-            <div className="mb-3">
+            {/* Temporarily hide the Study Type field */}
+            {/* <div className="mb-3">
               <div className="d-flex justify-content-between align-items-center">
                 <label className="form-label">Study Type</label>
                 <GoQuestion data-tooltip-id='studytype' style={{ fontSize: '24px'}} />
@@ -84,7 +83,7 @@ const StudyMeta = ({ onSubmit, initialValues, setStudyType }) => {
               <Field name="studyType">
                 {({ meta }) => meta.error && meta.touched && <span className="text-danger">{meta.error}</span>}
               </Field>
-            </div>
+            </div> */}
             <div className="d-flex justify-content-end mt-3">
               <button type="submit" className="btn btn-success ms-2 me-2">
                 Next

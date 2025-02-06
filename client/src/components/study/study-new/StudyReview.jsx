@@ -1,7 +1,7 @@
 import React from 'react';
 
 const StudyReview = ({ onCancel, onSubmit, formValues, isLoading, error }) => {
-    const { values: {name, description, studyType} , emailList, contentList } = formValues;
+    const { name, description, studyType , emailList, contentList } = formValues;
 
     const renderContent = () => {
         if (studyType === 'survey') {
@@ -56,7 +56,7 @@ const StudyReview = ({ onCancel, onSubmit, formValues, isLoading, error }) => {
             </div>
             <div className="d-flex justify-content-between mt-3 mb-3">
                 <button type="button" className="btn btn-secondary" onClick={onCancel}>
-                    Cancel
+                    Back
                 </button>
                 <button type="button" className="btn btn-primary" onClick={onSubmit} disabled={isLoading}>
                     {isLoading ? 'Submitting...' : 'Submit'}

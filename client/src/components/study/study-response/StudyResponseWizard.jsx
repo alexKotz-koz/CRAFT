@@ -86,6 +86,7 @@ const StudyResponseWizard = ({ user }) => {
 
     return (
         <div className="container py-2 px-5 ">
+            <h3 className="text-center mb-5">Tasks</h3>
             {taskChunks.map((chunk, chunkIndex) => (
                 <div className="row" key={chunkIndex}>
                     <div className="card-group">

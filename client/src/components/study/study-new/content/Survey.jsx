@@ -169,12 +169,18 @@ const Survey = ({ initialValues, handleContentSubmit, onCancel }) => {
         };
         handleContentSubmit(contentList);
     };
-
+    const renderSupplementalButtonClass = (state) => {
+        if (state) {
+            return "btn btn-outline-secondary";
+        } else {
+            return "btn btn-secondary";
+        }
+    };
     return (
         <div>
             <div className="bg-body-tertiary border border-tertiary p-2 rounded mt-3 mb-3">
                 <h3 className="text-center">Add Content</h3>
-                <p className="text-muted p-3">Add content here.</p>
+                <p className="text-muted p-3">Add instructions on how to fill out the content form here...</p>
                 <Form
                     onSubmit={(values) => handleFormSubmit(values)}
                     render={({ handleSubmit, form }) => (
@@ -200,14 +206,15 @@ const Survey = ({ initialValues, handleContentSubmit, onCancel }) => {
                                 </div>
                             </div>
 
-                            <ContentButtonGroup
-                                showNewQuestion={showNewQuestion}
-                                setShowNewQuestion={setShowNewQuestion}
-                                showTableField={showTableField}
-                                setShowTableField={setShowTableField}
-                                showSubQuestionField={showSubQuestionField}
-                                setShowSubQuestionField={setShowSubQuestionField}
-                            />
+
+                            {!showNewQuestion && <button
+                                type="button"
+                                className="btn btn-info"
+                                onClick={() => setShowNewQuestion(!showNewQuestion)}
+                                disabled={showNewQuestion}
+                            >
+                                <GoPlus /> New Question
+                            </button>}
 
                             {showNewQuestion && (
                                 <div>
@@ -270,9 +277,26 @@ const Survey = ({ initialValues, handleContentSubmit, onCancel }) => {
                                             </button>
                                         </div>
                                     )}
-
+                                    {showNewQuestion &&
+                                        <button
+                                            type="button"
+                                            className={renderSupplementalButtonClass(showSubQuestionField)}
+                                            onClick={() => setShowSubQuestionField(!showSubQuestionField)}
+                                        >
+                                            Add Sub-Question ?
+                                        </button>
+                                    }
+                                    {/* Commented for demo, uncomment when table functionality is working
+                                    <ContentButtonGroup
+                                        showNewQuestion={showNewQuestion}
+                                        setShowNewQuestion={setShowNewQuestion}
+                                        showTableField={showTableField}
+                                        setShowTableField={setShowTableField}
+                                        showSubQuestionField={showSubQuestionField}
+                                        setShowSubQuestionField={setShowSubQuestionField}
+                                    />*/}
                                     <button type="button" onClick={handleAddQuestion} className="btn btn-info">
-                                        <GoPlus /> Add Question
+                                        Save Question
                                     </button>
                                 </div>
                             )}

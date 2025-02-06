@@ -84,7 +84,6 @@ const StudyDashboard = () => {
                     const taskResults = taskDiscussions[taskId];
                     let numComments = 0;
                     let promptsWithDiscussion = 0;
-                    console.log("task: ", task)
                     if (taskResults) {
                         taskResults.initialResponses.forEach((response) => {
                             response.responses.forEach((res) => {
@@ -100,7 +99,7 @@ const StudyDashboard = () => {
                         <div key={idx} className="w-25">
                             <Card>
                                 <CardHeader>
-                                    {task.name}
+                                    {task?.name ?? study.name}
                                 </CardHeader>
                                 <CardBody>
                                     <ul>

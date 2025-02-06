@@ -16,7 +16,7 @@ import StudyDashboard from "./study/study-dashboard/StudyDashboard";
 
 
 import Test from '../components/Test';
-import TestLexical from "./TestLexical";
+
 
 import { useFetchUserQuery } from '../store';
 
@@ -51,7 +51,6 @@ const App = () => {
         <Route path='/discussion/:taskId' element={<DiscussionBoard />} />
         <Route path='/discussion/landing/:studyId' element={<DiscussionBoardLanding user={user} />} />
         <Route path='/test' element={<Test />} />
-        <Route path='/test/lexical' element={<TestLexical />} />
       </Routes>
       </BrowserRouter>
     </div>
