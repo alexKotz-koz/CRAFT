@@ -1,7 +1,7 @@
 node_modules
 client/node_modules
 dev.js
-
+uploads
 # Logs
 logs
 *.log
