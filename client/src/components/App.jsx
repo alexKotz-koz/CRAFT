@@ -49,7 +49,7 @@ const App = () => {
         <Route path='/study/response/task/:taskId' element={<StudyResponse user={user} />} />
         <Route path='/password_reset' element={<PasswordReset />} />
         <Route path='/discussion/:taskId' element={<DiscussionBoard />} />
-        <Route path='/discussion/landing/:studyId' element={<DiscussionBoardLanding user={user} />} />
+        <Route path='/discussion/landing/:studyId' element={<DiscussionBoardLanding />} />
         <Route path='/test' element={<Test />} />
       </Routes>
       </BrowserRouter>

@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useFetchUserQuery } from "../store";
 import { GoBell } from "react-icons/go";
-import HeaderNotificationCard from "./HeaderNotificationCard";
+import HeaderNotificationCard from "./tools/HeaderNotificationCard";
 
 const Header = () => {
   const navigate = useNavigate();

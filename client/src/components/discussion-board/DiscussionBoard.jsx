@@ -24,7 +24,7 @@ const DiscussionBoard = () => {
     const responses = discussion.initialResponses.length > 0 ? discussion.initialResponses : [];
     
     if (responses <= 0 ){
-        return <div>Error occured when fetching discusison responses. Please contact administrative services for further assistance. </div>
+        return <div>No responses have been added to this discussion. Please check back later. </div>
     } else {
             return (
         <div className="container">

@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useLazyFetchDiscussionQuery, useFetchStudyCommentsQuery, useFetchStudyQuery } from "../../../store";
 import SimplePieChart from "./SimplePieChart";
 import TimeLinePlot from "./TimeLinePlot";
-import ButtonLink from "../../tools/ButtonLink";
-import { Card, CardBody, CardFooter, CardHeader } from "reactstrap";
+import StudyCard from "../../tools/StudyCard";
 
 const StudyDashboard = () => {
     const { studyId } = useParams();
+    const navigate = useNavigate();
+    
     const { data: study, error: errorStudy, isLoading: isLoadingStudy } = useFetchStudyQuery(studyId);
     const { data: comments, error: errorComments, isLoading: isLoadingComments } = useFetchStudyCommentsQuery(studyId);
     const [fetchTaskDiscussion, { data: taskDiscussion, error: errorTaskDiscussion, isLoading: isLoadingTaskDiscussion }] = useLazyFetchDiscussionQuery();
     const [taskDiscussions, setTaskDiscussions] = useState({});
-    console.log(study)
     useEffect(() => {
         if (study && study.tasks) {
             study.tasks.forEach(async (task) => {
@@ -42,23 +42,19 @@ const StudyDashboard = () => {
         { name: 'Incompleted Study', value: participantsUncompletedStudy }
     ];
 
-    // Comments over Time
     const commentData = [];
     comments.forEach(comment => {
         const commentDate = new Date(comment.dateCreated);
         const year = commentDate.getFullYear();
-        const month = commentDate.getMonth() + 1; // Months are zero-indexed
+        const month = commentDate.getMonth() + 1; 
         const day = commentDate.getDate();
         const hour = commentDate.getHours();
 
-        // Create a new date object in the desired format
         const formattedDate = `${year}-${month}-${day} ${hour}:00`;
 
-        // Add to commentData array
         commentData.push({ date: formattedDate, count: 1 });
     });
 
-    // Aggregate comment counts by date
     const aggregatedCommentData = commentData.reduce((acc, curr) => {
         const existing = acc.find(item => item.date === curr.date);
         if (existing) {
@@ -68,9 +64,49 @@ const StudyDashboard = () => {
         }
         return acc;
     }, []);
-
-    // Sort the aggregated data by date in ascending order
     aggregatedCommentData.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+
+    const renderResponded = ({task}) => {
+        return(
+            <p>Responded: {task.participants.filter(p => p.responded).length}/{task.participants.length}</p>
+        );
+    };
+
+    const renderDiscussions = ({promptsWithDiscussion}) => {
+        return (
+            <p className={promptsWithDiscussion > 0 ? 'text-success' : 'text-danger'}>Discussions: {promptsWithDiscussion}</p>
+        );
+    };
+
+    const renderViewDiscussion = ({ link }) => {
+        return (
+            <div className="mt-auto">
+                <div className="btn-group w-100">
+                    <button className="btn btn-secondary card-link" onClick={() => navigate(link)}>Go To Discussion</button>
+                </div>
+            </div>
+        );
+    };
+
+    const renderFooter = ({ task }) => {
+        return (
+            <div className="card-footer">
+                <small className="text-body-secondary">Date Created: {new Date(task._dateCreated).toLocaleDateString()}</small>
+            </div>
+        );
+    };
+
+    const renderTaskContent = (task, link, promptsWithDiscussion) => {
+        return(
+            <>
+                {renderResponded({ task })}
+                {renderDiscussions({promptsWithDiscussion})}
+                {renderViewDiscussion({ link })}
+                {renderFooter({ task })}
+            </>
+        );
+    }
 
     return (
         <div className="container-fluid">
@@ -96,26 +132,13 @@ const StudyDashboard = () => {
                     }
 
                     return (
-                        <div key={idx} className="w-25">
-                            <Card>
-                                <CardHeader>
-                                    {task?.name ?? study.name}
-                                </CardHeader>
-                                <CardBody>
-                                    <ul>
-                                        <li>
-                                            <p>Responded: {task.participants.filter(p => p.responded).length}/{task.participants.length}</p>
-                                        </li>
-                                        <li>
-                                            <p className={promptsWithDiscussion > 0 ? 'text-success' : 'text-danger'}>Discussions: {promptsWithDiscussion}</p>
-                                        </li>
-                                    </ul>
-                                </CardBody>
-                                <CardFooter className="d-flex justify-content-center">
-                                    <ButtonLink key={idx} to={discussionLink} text="Go To Discussion" additionalClasses="btn-primary btn-sm w-100" />
-                                </CardFooter>
-                            </Card>
-                        </div>
+                        <StudyCard 
+                            key={idx}
+                            cardIndex={idx}
+                            cardName={task?.name ?? study.name}
+                            cardDescription={task.instructions}
+                            content={renderTaskContent(task,discussionLink,promptsWithDiscussion)}
+                        />
                     );
                 })}
             </div>

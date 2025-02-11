@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import ButtonLink from './tools/ButtonLink';
+import StudyCard from './tools/StudyCard';
 import { useFetchUserQuery, useFetchStudiesQuery } from "../store";
 import '../static/custom.css';
 
@@ -41,106 +42,126 @@ const Home = () => {
 
     // FACILITATOR ///////////////////////////////////////////////////////////////////////////////////////////
 
-    const renderFacilitator = () => {
+    const facilitatorCompletedStudies = ({ study }) => {
         return (
-            <div className="row">
-                {userStudies.map((study) => {
-                    const studyId = study._id;
-                    const studyDashboardLink = `/study/dashboard/${studyId}`;
+            <p className="card-text">
+                Completed Studies: {study.participants.filter(p => p.responded).length} / {study.participants.length}
+            </p>
+        );
+    };
 
-                    return (
-                        <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4" key={study._id}>
-                            <div className="card h-100">
-                                <div className="card-body d-flex flex-column">
-                                    <h5 className="card-header mb-3">{study.name}</h5>
-                                    <p className="card-text description">{study.description}</p>
-                                    <p className="card-text">
-                                        Completed Studies: {study.participants.filter(p => p.responded).length} / {study.participants.length}
-                                    </p>
-                                    <div className="mt-auto">
-                                        <div className="btn-group w-100">
-                                            <button className="btn btn-secondary card-link" onClick={() => navigate(studyDashboardLink)}>View</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="card-footer">
-                                    <small className="text-body-secondary">Date Created: {new Date(study._dateCreated).toLocaleDateString()}</small>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
+    const facilitatorViewDashboard = ({ link }) => {
+        return (
+            <div className="mt-auto">
+                <div className="btn-group w-100">
+                    <button className="btn btn-secondary card-link" onClick={() => navigate(link)}>View</button>
+                </div>
             </div>
         );
     };
 
-    // PARTICIPANT ///////////////////////////////////////////////////////////////////////////////////////////
-
-    const handleViewDiscussion = async(studyId) => {
-        navigate(`/discussion/landing/${studyId}`)
-    }
-
-    const renderCompletedStudyCard = (status, study) => {
-        const studyId = study._id;
-        switch (status) {
-            case true:
-                return (
-                    <div className="btn-group w-100 mt-auto" role="group">
-                        <button
-                            className="btn btn-secondary text-decoration-none text-white"
-                            onClick={() => handleViewDiscussion(studyId)}
-                        >
-                            View Discussions
-                        </button>
-                    </div>
-                );
-            default:
-                return (
-                    <button
-                        className="btn btn-success text-decoration-none text-white w-100 mt-auto"
-                        onClick={() => navigate(`/study/response/${studyId}`)}
-                    >
-                        Open Study
-                    </button>
-                );
-        }
-    };
-
-
-    const renderParticipant = () => {
+    const facilitatorFooter = ({ study }) => {
         return (
-            <div className="row">
-                {userStudies.map((study, studyIndex) => (
-                    <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4" key={studyIndex}>
-                        <div className="card h-100">
-                            <div className="card-body d-flex flex-column">
-                                <h5 className="card-header mb-2">{study.name}</h5>
-                                <p className="card-text description">{study.description}</p>
-                                {renderCompletedStudyCard(respondedStatus[study._id], study)}
-                            </div>
-                        </div>
-                    </div>
-                ))}
+            <div className="card-footer">
+                <small className="text-body-secondary">Date Created: {new Date(study._dateCreated).toLocaleDateString()}</small>
             </div>
         );
     };
-    const renderContent = () => {
-        switch (user.role) {
-            case 'facilitator':
-                return renderFacilitator();
-            case 'participant':
-                return renderParticipant();
-            default:
-                return <div>Invalid user role</div>;
-        }
+
+
+    const facilitatorContent = (study) => {
+        return (
+            <>
+                {facilitatorCompletedStudies({ study })}
+                {facilitatorViewDashboard({ link: `/study/dashboard/${study._id}` })}
+                {facilitatorFooter({ study })}
+            </>
+        );
     };
 
+const renderFacilitator = () => {
     return (
-        <div className="container py-2 px-5 text-start">
-            <h3 className='text-center mb-5'>My Studies</h3>
-            {renderContent()}
+        <div className="row">
+            {userStudies.map((study) => {
+                return (
+                    <StudyCard 
+                        key={study._id}
+                        cardIndex={study._id}
+                        cardName={study.name}
+                        cardDescription={study.description}
+                        content={facilitatorContent(study)}
+                    />
+                );
+            })}
         </div>
     );
+};
+
+// PARTICIPANT ///////////////////////////////////////////////////////////////////////////////////////////
+
+const handleViewDiscussion = async (studyId) => {
+    navigate(`/discussion/landing/${studyId}`)
+}
+
+const renderCompletedStudyCard = (status, study) => {
+    const studyId = study._id;
+    switch (status) {
+        case true:
+            return (
+                <div className="card-footer w-100">
+                    <button
+                        className="btn btn-secondary text-decoration-none text-white w-100"
+                        onClick={() => handleViewDiscussion(studyId)}
+                    >
+                        View Discussions
+                    </button>
+                </div>
+            );
+        default:
+            return (
+                <button
+                    className="btn btn-success text-decoration-none text-white w-100 mt-auto"
+                    onClick={() => navigate(`/study/response/${studyId}`)}
+                >
+                    Open Study
+                </button>
+            );
+    }
+};
+
+
+const renderParticipant = () => {
+    return (
+        <div className="row">
+            {userStudies.map((study, studyIndex) => (
+                <StudyCard
+                    key={studyIndex}
+                    cardIndex={studyIndex}
+                    cardName={study.name}
+                    cardDescription={study.description}
+                    content={renderCompletedStudyCard(respondedStatus[study._id], study)}
+                />
+            ))}
+        </div>
+    );
+};
+const renderContent = () => {
+    switch (user.role) {
+        case 'facilitator':
+            return renderFacilitator();
+        case 'participant':
+            return renderParticipant();
+        default:
+            return <div>Invalid user role</div>;
+    }
+};
+
+return (
+    <div className="container py-2 px-5 text-start">
+        <h3 className='text-center mb-5'>My Studies</h3>
+        {renderContent()}
+    </div>
+);
 };
 
 export default Home;
