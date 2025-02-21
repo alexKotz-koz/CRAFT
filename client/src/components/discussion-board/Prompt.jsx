@@ -30,7 +30,6 @@ function Prompt({ prompt, responses, notifications, promptIndex, studyId, curren
             }));
     });
 
-
     return (
         //So janky!!!! -- Using filteredResponse.length to ignore the questions that have a prompt followed by children questions (i.e. parentQuestion: "Please review the table below and answer the following questions"...)
         filteredResponses.length > 0 && (

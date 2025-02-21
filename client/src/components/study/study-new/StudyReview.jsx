@@ -45,7 +45,7 @@ const StudyReview = ({ onCancel, onSubmit, formValues, isLoading, error }) => {
                 <ul className="list-group">
                     {emailList && emailList.map((participant, index) => (
                         <li key={index} className="list-group-item">
-                            {participant.email} | {participant.username}
+                            {participant.email}
                         </li>
                     ))}
                 </ul>

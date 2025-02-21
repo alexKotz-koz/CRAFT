@@ -3,17 +3,32 @@ import { useFetchUserQuery } from "../store";
 import { GoBell } from "react-icons/go";
 import HeaderNotificationCard from "./tools/HeaderNotificationCard";
 
-const Header = () => {
+const Header = ({ user }) => {
   const navigate = useNavigate();
   const { data, error, isLoading } = useFetchUserQuery();
   const handleLogout = () => {
     navigate('/');
   };
+  console.log("Header Data: ", data)
+
+  const renderNotificationCardStyle = (notification) => {
+    if (notification.status === 'clarify-pending-approval'){
+      return 'list-group-item bg-warning-subtle'
+    } else {
+      return 'list-group-item border border-dark-subtle rounded-2'
+    }
+  }
 
   const renderLoggedIn = () => {
     if (!data) {
       return null; // or a loading spinner, or any placeholder content
     }
+    let unreadNotificationCount = 0;
+    data.notifications.map((notification) => {
+      if (notification.status === 'clarify-pending-approval'){
+        unreadNotificationCount += 1;
+      }
+    })
     return (
       <div className="d-flex align-items-center justify-content-center">
           {(data?.role === "facilitator" || data?.role === "admin") && (
@@ -24,22 +39,25 @@ const Header = () => {
           <li className="nav-item dropdown">
               <div className="position-relative notification-icon" data-bs-toggle="dropdown" aria-expanded="false">
                   <GoBell className="text-dark" />
-                  {data.notifications.length > 0 && (
-                      <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                          {data.notifications.length}
-                          <span className="visually-hidden">unread notifications</span>
-                      </span>
-                  )}
+                  { // if the user has unread notifications show the red notification bubble ontop of the bell
+                    (data.notifications.length > 0 && unreadNotificationCount !== 0) && (
+                        <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            {unreadNotificationCount}
+                            <span className="visually-hidden">unread notifications</span>
+                        </span>
+                    )
+                  }
               </div>
               <ul className="dropdown-menu dropdown-menu-end p-0 notification-dropdown">
-                  <li className="card notification-card">
+                  <li className='card notification-card'>
                       <div className="card-body">
                           <h5 className="card-title">Notifications</h5>
                           <ul className="list-group list-group-flush">
                               {data.notifications.map((notification, index) => {
+                                console.log("Header Notification:", notification)
                                   return (
-                                      <li key={index} className="list-group-item" onClick={() => navigate(`/discussion/${notification.task._id}`)}>
-                                          <HeaderNotificationCard notification={notification} />
+                                      <li key={index} className={renderNotificationCardStyle(notification)}onClick={() => navigate(`/discussion/${notification.task._id}`)}>
+                                          <HeaderNotificationCard notification={notification} user={user} />
                                       </li>
                                   );
                               })}

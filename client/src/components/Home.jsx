@@ -45,7 +45,7 @@ const Home = () => {
     const facilitatorCompletedStudies = ({ study }) => {
         return (
             <p className="card-text">
-                Completed Studies: {study.participants.filter(p => p.responded).length} / {study.participants.length}
+                Participants Responded: {study.participants.filter(p => p.responded).length} / {study.participants.length}
             </p>
         );
     };

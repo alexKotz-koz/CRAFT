@@ -88,15 +88,25 @@ const discussionApi = createApi({
             }),
             updateComment: builder.mutation({
                 invalidatesTags: ['update-response'],
-                query: ({commentId, update}) => {
-                    const {commentContent, notificationId} = update;
+                query: ({commentId, update, task}) => {
+                    const {commentContent, notificationId, type} = update;
                     return {
                         url: `/discussion/update-comment/${commentId}`,
                         method: 'POST',
-                        body: {commentContent, notificationId}
-                    }
-                }
-            })
+                        body: {commentContent, notificationId, type, task}
+                    };
+                },
+            }),
+            updateNotification: builder.mutation({
+                query: ({responseId}) => {
+                    return {
+                        url: `/discussion/notifications/approve`,
+                        method: 'POST',
+                        body: {responseId}
+                    };
+                },
+            }),
+
         };
 
     }
@@ -112,6 +122,7 @@ export const {
     useFetchSubCommentsQuery,
     useCreateNotificationMutation,
     useFetchTaskNotificationsQuery,
-    useUpdateCommentMutation
+    useUpdateCommentMutation,
+    useUpdateNotificationMutation
 } = discussionApi;
 export { discussionApi };

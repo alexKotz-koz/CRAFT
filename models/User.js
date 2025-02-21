@@ -17,7 +17,7 @@ const UserSchema = new Schema({
     enum: ['facilitator', 'participant', 'admin'],
     required: true
   },
-  notifications: { type: [NotificationSchema], required: true, default: [] },
+  notifications: [{ type: Schema.Types.ObjectId, ref: 'Notification' }],
   avatar: { type: String },
 });
 

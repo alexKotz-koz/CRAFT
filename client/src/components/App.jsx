@@ -35,7 +35,7 @@ const App = () => {
   return (
     <div className='container-fluid'>
       <BrowserRouter>
-      <Header />
+      <Header user={user} />
 
       <Routes>
         <Route path='/' element={<Landing />} />

@@ -107,12 +107,12 @@ const StudyParticipants = ({ onSubmit, onCancel, initialValues }) => {
             >
               <GoPersonAdd /> Add
             </button>
-            {emailList.length > 0 && <div className="mt-2 text-muted">Email (Auto-generated Username)</div>}
+            {emailList.length > 0 && <div className="mt-2 text-muted">Emails Added</div>}
             <div className="mt-3">
               <ul className="list-group">
                 {emailList.map((item, index) => (
                   <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                    {item.email} ({item.username})
+                    {item.email}
                     <button
                       type="button"
                       className="btn btn-danger btn-sm"

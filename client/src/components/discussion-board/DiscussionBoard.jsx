@@ -9,7 +9,6 @@ const DiscussionBoard = () => {
     const { data: user, error: errorUser, isLoading: isLoadingUser } = useFetchUserQuery();
     const { data: notifications, error: errorNotifications, isLoading: isLoadingNotifications} = useFetchTaskNotificationsQuery({taskId});
   
-
     if (isLoadingDiscussion || isLoadingTask || isLoadingUser || isLoadingNotifications) {
         return <div>Loading...</div>;
     }
@@ -24,7 +23,7 @@ const DiscussionBoard = () => {
     const responses = discussion.initialResponses.length > 0 ? discussion.initialResponses : [];
     
     if (responses <= 0 ){
-        return <div>No responses have been added to this discussion. Please check back later. </div>
+        return <div className="p-3 text-danger-emphasis bg-danger-subtle border border-danger-subtle rounded-3 d-flex justify-content-center align-items-center w-50 mx-auto">No responses have been added to this discussion. Please check back later. </div>
     } else {
             return (
         <div className="container">

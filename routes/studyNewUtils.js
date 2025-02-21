@@ -27,8 +27,8 @@ const saveMediaFiles = (studyDir, mediaFiles, userId) => {
 
 const createStudyPrompts = async (questionList, studyId, userId) => {
     const studyDir = createStudyDirectory(studyId);
-    console.log("transformContentList studyDir Created: ", studyDir);
-    console.log("transformContentList questionList: ", questionList);
+    //console.log("transformContentList studyDir Created: ", studyDir);
+    //console.log("transformContentList questionList: ", questionList);
     
     const studyPrompts = [];
 

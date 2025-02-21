@@ -52,5 +52,6 @@ export {
   useFetchSubCommentsQuery,
   useCreateNotificationMutation,
   useFetchTaskNotificationsQuery,
-  useUpdateCommentMutation
+  useUpdateCommentMutation,
+  useUpdateNotificationMutation
 } from './apis/discussionApi';

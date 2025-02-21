@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const NotificationSchema = new Schema({
     type: {
         type: String,
-        enum: ['clairfy', 'upvote', 'downvote', 'comment'],
+        enum: ['clarify', 'upvote', 'downvote', 'comment'],
         required: true
     },
     comment: { type: Schema.Types.ObjectId, ref: 'Comment'},
@@ -14,7 +14,7 @@ const NotificationSchema = new Schema({
     toUser: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     status: {
         type: String,
-        enum: ['unread', 'read', 'clairfy-pending-approval', 'clairfy-approved']
+        enum: ['unread', 'read', 'clarify-pending-approval', 'clarification-submitted', 'clarify-approved']
     },
     _dateCreated: { type: Date, default: Date.now},
 });

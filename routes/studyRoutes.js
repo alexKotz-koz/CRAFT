@@ -56,9 +56,9 @@ module.exports = (app) => {
                 await studyTask.save();
 
                 const studyPromptsForDiscussion = await fetchStudyPrompts(studyPrompts);
-                console.log("studyPromptsForDiscussion: ", studyPromptsForDiscussion);
+                //console.log("studyPromptsForDiscussion: ", studyPromptsForDiscussion);
                 const studyPromptsRaw = extractStudyPromptsRaw(studyPromptsForDiscussion);
-                console.log("studyPromptsRaw: ", studyPromptsRaw)
+                //console.log("studyPromptsRaw: ", studyPromptsRaw)
                 const discussion = new Discussion({
                     study: study._id,
                     task: studyTask._id,
@@ -223,7 +223,7 @@ module.exports = (app) => {
 
     app.get('/api/study/task/:taskId', requireLogin, async (req, res) => {
         const { taskId } = req.params;
-        console.log("taskID: ", taskId)
+        //console.log("taskID: ", taskId)
         try {
             let task;
             task = await StudyTask.findById(taskId)

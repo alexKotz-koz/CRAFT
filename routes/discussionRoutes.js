@@ -12,8 +12,8 @@ module.exports = (app) => {
         const { taskId } = req.params;
         try {
             const discussion = await Discussion.findOne({ task: taskId })
-                .populate({path: 'prompts', model: 'StudyPrompt'})
-                .populate({path: 'study', populate: [ {path: 'name', select: 'name'}]})
+                .populate({ path: 'prompts', model: 'StudyPrompt' })
+                .populate({ path: 'study', populate: [{ path: 'name', select: 'name' }] })
                 .populate({
                     path: 'initialResponses',
                     populate: [
@@ -22,16 +22,16 @@ module.exports = (app) => {
                             select: 'username avatar'
                         },
                         {
-                            path: 'responses.comments', 
+                            path: 'responses.comments',
                             populate: [
-                                { path: 'user', select: 'username avatar' }, 
-                                { path: 'comments', populate: { path: 'user', select: 'username avatar' }},
-                                { path: 'votes', populate: { path: 'voter', select: 'username avatar'}} 
+                                { path: 'user', select: 'username avatar' },
+                                { path: 'comments', populate: { path: 'user', select: 'username avatar' } },
+                                { path: 'votes', populate: { path: 'voter', select: 'username avatar' } }
                             ]
                         },
                         {
-                            path: 'responses.votes', 
-                            populate: { path: 'voter', select: 'username avatar' } 
+                            path: 'responses.votes',
+                            populate: { path: 'voter', select: 'username avatar' }
                         }
 
                     ]
@@ -52,11 +52,11 @@ module.exports = (app) => {
     // API: createVote
     app.post('/api/discussion/:promptId/:responseId/vote', requireLogin, async (req, res) => {
         const { promptId, responseId } = req.params;
-        const { voteType } = req.body; 
-        const userId = req.user._id; 
-        console.log("Prompt, Response", promptId, responseId)
+        const { voteType } = req.body;
+        const userId = req.user._id;
+        //console.log("Prompt, Response", promptId, responseId)
         try {
-            const studyResponse = await StudyResponse.findOne({'responses._id':responseId});
+            const studyResponse = await StudyResponse.findOne({ 'responses._id': responseId });
             if (!studyResponse) {
                 return res.status(404).send("Response not found");
             }
@@ -70,28 +70,28 @@ module.exports = (app) => {
             //console.log("USer vote: ", userVote
 
             // ToDo: Refactor to switch statement
-            if (userVote){
-                if (voteType === 'upvote'){
-                    if (userVote.vote === 1){
+            if (userVote) {
+                if (voteType === 'upvote') {
+                    if (userVote.vote === 1) {
                         //console.log("User is attempting to revert an upvote");
                         userVote.vote = 0;
-                    } else if (userVote.vote === -1){
+                    } else if (userVote.vote === -1) {
                         //console.log("User is attempting to switch an upvote for a downvote");
                         userVote.vote = 1;
-                    } else if (userVote.vote === 0 ){
+                    } else if (userVote.vote === 0) {
                         //console.log("User is attempting to switch a nuetral vote (from previous action) to an upvote");
                         userVote.vote = 1;
                     } else {
                         return res.status(400).send("Invalid vote operation");
                     }
                 } else if (voteType === 'downvote') {
-                    if (userVote.vote === -1){
+                    if (userVote.vote === -1) {
                         //console.log("User is attempting to revert a downvote");
                         userVote.vote = 0;
                     } else if (userVote.vote === 1) {
                         //console.log("user is attempting to switch an upvote for a downvote");
                         userVote.vote = -1;
-                    } else if (userVote.vote === 0){
+                    } else if (userVote.vote === 0) {
                         //console.log("User is attempting to switch a nuetral vote (from previous action) to a downvote");
                         userVote.vote = -1;
                     }
@@ -100,15 +100,15 @@ module.exports = (app) => {
                     }
                 } else {
                     return res.status(400).send("Invalid vote type");
-                } 
+                }
             } else {
                 //console.log("no user vote exists")
-                if (voteType === 'upvote'){
+                if (voteType === 'upvote') {
                     //console.log("User is trying to submit an initial upvote")
-                    response.votes.push({ voter: userId, vote: 1});
-                } else if (voteType === 'downvote'){
+                    response.votes.push({ voter: userId, vote: 1 });
+                } else if (voteType === 'downvote') {
                     //console.log("user is trying to submit an initial downvote")
-                    response.votes.push({ voter: userId, vote: -1});
+                    response.votes.push({ voter: userId, vote: -1 });
                 } else {
                     return res.status(400).send("Invalid vote type");
                 }
@@ -130,7 +130,7 @@ module.exports = (app) => {
         const userId = req.user._id;
 
         try {
-            const studyResponse = await StudyResponse.findOne({'responses._id':responseId});
+            const studyResponse = await StudyResponse.findOne({ 'responses._id': responseId });
             if (!studyResponse) {
                 return res.status(404).send("Response not found");
             }
@@ -180,23 +180,23 @@ module.exports = (app) => {
 
             const userVote = comment.votes.find(vote => vote.voter.toString() === userId.toString());
 
-            if (userVote){
-                if (voteType === 'upvote'){
-                    if (userVote.vote === 1){
+            if (userVote) {
+                if (voteType === 'upvote') {
+                    if (userVote.vote === 1) {
                         userVote.vote = 0;
-                    } else if (userVote.vote === -1){
+                    } else if (userVote.vote === -1) {
                         userVote.vote = 1;
-                    } else if (userVote.vote === 0 ){
+                    } else if (userVote.vote === 0) {
                         userVote.vote = 1;
                     } else {
                         return res.status(400).send("Invalid vote operation");
                     }
                 } else if (voteType === 'downvote') {
-                    if (userVote.vote === -1){
+                    if (userVote.vote === -1) {
                         userVote.vote = 0;
                     } else if (userVote.vote === 1) {
                         userVote.vote = -1;
-                    } else if (userVote.vote === 0){
+                    } else if (userVote.vote === 0) {
                         userVote.vote = -1;
                     }
                     else {
@@ -204,12 +204,12 @@ module.exports = (app) => {
                     }
                 } else {
                     return res.status(400).send("Invalid vote type");
-                } 
+                }
             } else {
-                if (voteType === 'upvote'){
-                    comment.votes.push({ voter: userId, vote: 1});
-                } else if (voteType === 'downvote'){
-                    comment.votes.push({ voter: userId, vote: -1});
+                if (voteType === 'upvote') {
+                    comment.votes.push({ voter: userId, vote: 1 });
+                } else if (voteType === 'downvote') {
+                    comment.votes.push({ voter: userId, vote: -1 });
                 } else {
                     return res.status(400).send("Invalid vote type");
                 }
@@ -275,18 +275,19 @@ module.exports = (app) => {
     app.post('/api/discussion/:postId/notify', requireLogin, async (req, res) => {
         const { postId } = req.params;
         const { postType, notificationType, fromUser, toUser, task } = req.body;
+        console.log("Create Notification -> task: ", task);
         try {
-            switch(postType){
+            switch (postType) {
                 case 'comment':
                     break;
                 case 'initialResponse':
                     switch (notificationType) {
-                        case 'clairfy':
+                        case 'clarify':
 
-                            try{
+                            try {
                                 const toUserId = await User.findOne({ username: toUser }).select('_id');
 
-                                if(!toUserId) {
+                                if (!toUserId) {
                                     res.status(400).send("No participant found");
                                 }
 
@@ -295,7 +296,7 @@ module.exports = (app) => {
                                     initialResponse: postId,
                                     fromUser,
                                     toUser: toUserId,
-                                    status: 'clairfy-pending-approval',
+                                    status: 'clarify-pending-approval',
                                     task: task
                                 });
 
@@ -303,10 +304,10 @@ module.exports = (app) => {
 
                                 await User.findByIdAndUpdate(
                                     toUserId._id,
-                                    { $push: { notifications: notification } },
+                                    { $push: { notifications: notification._id } },
                                     { new: true, useFindAndModify: false }
                                 );
-                
+
                                 res.send(notification);
                             } catch (err) {
                                 console.error("Error creating notification: ", err);
@@ -330,11 +331,24 @@ module.exports = (app) => {
                 default:
                     return res.status(400).send("Invalid post type");
             }
-        } catch(err) {
+        } catch (err) {
             console.error("Error creating notification: ", err);
             res.status(422).send(err);
         }
-    
+
+    });
+    app.post('/api/discussion/notifications/approve', requireLogin, async (req, res) => {
+        const { responseId } = req.body;
+        try {
+            const result = await Notification.updateMany(
+                { initialResponse: responseId },
+                { $set: { status: 'clarify-approved' } }
+            );
+            res.send(result);
+        } catch (err) {
+            console.error("Error updating notifications:", err);
+            res.status(422).send(err);
+        }
     });
 
     app.get('/api/discussion/notifications/:taskId', requireLogin, async (req, res) => {
@@ -357,26 +371,82 @@ module.exports = (app) => {
         }
     });
 
-    app.post('/api/discussion/update-comment/:commentId', requireLogin, async(req, res) => {
+    app.post('/api/discussion/update-comment/:commentId', requireLogin, async (req, res) => {
         const { commentId } = req.params;
-        const { commentContent, notificationId } = req.body;
-        console.log("updat: ", commentContent, notificationId)
+        const { commentContent, notificationId, type, task } = req.body;
+        let response;
+        let fromUser;
+        let toUser;
+        //console.log("Update Comment Route -> task: ", task);
         try {
+            // update the response
+            if (type === 'initialResponse') {
+                const studyResponse = await StudyResponse.findOneAndUpdate(
+                    { 'responses._id': commentId },
+                    { $set: { 'responses.$.response': commentContent } },
+                    { new: true }
+                );
 
-            const studyResponse = await StudyResponse.findOneAndUpdate(
-                { 'responses._id': commentId },
-                { $set: { 'responses.$.response': commentContent } },
-                { new: true }
-            );
-    
-            if (!studyResponse) {
-                return res.status(404).send({ error: 'Response not found' });
+                if (!studyResponse) {
+                    return res.status(404).send({ error: 'Response not found' });
+                } else {
+                    response = studyResponse;
+                }
+            } else if (type === 'comment') {
+                const comment = await Comment.findOneAndUpdate(
+                    { '_id': commentId },
+                    { $set: { 'content': commentContent } },
+                    { new: true }
+                )
+                if (!comment) {
+                    return res.status(404).send({ error: 'Comment not found' });
+                } else {
+                    response = comment;
+                }
             }
 
-            
-    
-            res.send(studyResponse);
-        } catch(err) {
+            //console.log("newComment: ", response);
+            // update the participant side notification
+            let notification;
+            if (notificationId && mongoose.Types.ObjectId.isValid(notificationId)) {
+                notification = await Notification.findOneAndUpdate(
+                    { '_id': notificationId },
+                    { $set: { 'status': 'clarification-submitted' } },
+                    { new: true }
+                );
+                toUser = notification.toUser;
+                fromUser = notification.fromUser;
+
+                if (!notification) {
+                    return res.status(404).send({ error: 'Notification not found' });
+                }
+
+                await notification.save();
+            }
+            //console.log("notification associated with comment update: ", notification)
+
+            //create a new notification to facilitator, to review updated comment
+            let facilitatorNotification;
+
+            if (type === 'initialResponse') {
+                facilitatorNotification = new Notification({
+                    type: 'clarify',
+                    initialResponse: commentId,
+                    fromUser: toUser,
+                    toUser: fromUser,
+                    status: 'clarify-pending-approval',
+                    task: task
+                });
+                await facilitatorNotification.save();
+                await User.findByIdAndUpdate(
+                    fromUser._id,
+                    { $push: { notifications: facilitatorNotification._id } },
+                    { new: true, useFindAndModify: false }
+                );
+            }
+
+            res.send({ response, notification });
+        } catch (err) {
             console.error("Error updating comment: ", err);
             res.status(422).send(err);
         }

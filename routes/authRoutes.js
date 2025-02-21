@@ -35,7 +35,7 @@ module.exports = (app) => {
 
         do {
             username = generateUsername();
-            console.log("/auth/generate_username: ", username);
+            //console.log("/auth/generate_username: ", username);
             existingUser = await User.findOne({ username });
         } while (existingUser);
 
@@ -137,22 +137,27 @@ module.exports = (app) => {
         });
     });
 
-    app.get("/auth/current_user", async (req, res) => {
+       app.get("/auth/current_user", async (req, res) => {
         const currentUser = req.user;
-
+    
         if (!currentUser) {
             return res.send(null);
         }
-
+    
         const currentUserId = currentUser._id;
-
+        
         try {
             const user = await User.findById(currentUserId)
-                .populate('notifications.fromUser')
-                .populate('notifications.toUser')
-                .populate('notifications.initialResponse.responses')
-                .populate('notifications.comment')
-                .populate('notifications.task');
+                .populate({
+                    path: 'notifications',
+                    model: 'Notification',
+                    populate: [
+                        { path: 'toUser', model: 'User' },
+                        { path: 'fromUser', model: 'User' },
+                        { path: 'task', model: 'StudyTask' }, // Assuming you have a Task model
+                    ]
+                });
+                //console.log("user: ", user)
             if (!user) {
                 return res.status(400).send("Error fetching user");
             }
@@ -162,7 +167,6 @@ module.exports = (app) => {
             res.status(400).send(err);
         }
     });
-
     app.get("/auth/all_users", async (req, res) => {
         try {
             const allUsers = await User.find();

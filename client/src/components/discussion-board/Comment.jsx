@@ -1,15 +1,19 @@
 import { useState } from 'react';
-import { GoArrowUp, GoArrowDown, GoReply } from "react-icons/go";
-import { useCreateCommentVoteMutation, useCreateSubCommentMutation, useFetchSubCommentsQuery } from "../../store";
+import { Form, Field } from "react-final-form";
+
+import { GoArrowUp, GoArrowDown, GoPencil, GoReply } from "react-icons/go";
+import { useCreateCommentVoteMutation, useCreateSubCommentMutation, useFetchSubCommentsQuery, useUpdateCommentMutation } from "../../store";
 import '../../static/discussion-board.css';
 
 const Comment = ({ comment, currentUser, studyId }) => {
     const [createVote, { error: errorVote, isLoading: isLoadingVote }] = useCreateCommentVoteMutation();
     const [createSubcomment, { error: errorSubcomment, isLoading: isLoadingSubcomment }] = useCreateSubCommentMutation();
+    const [updateComment, { error: errorUpdateComment, isLoading: isLoadingUpdateComment }] = useUpdateCommentMutation();
     const [subCommentContent, setSubCommentContent] = useState("");
     const [showReply, setShowReply] = useState(false);
-    const { data: subcomments, error: errorFetchSubcomments, isLoading: isLoadingFetchSubcomments } = useFetchSubCommentsQuery({ commentId: comment._id });
+    const [editComment, setEditComment] = useState(false);
 
+    const { data: subcomments, error: errorFetchSubcomments, isLoading: isLoadingFetchSubcomments } = useFetchSubCommentsQuery({ commentId: comment._id });
 
     const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
 
@@ -90,8 +94,18 @@ const Comment = ({ comment, currentUser, studyId }) => {
     };
 
     const isCommentCreator = currentUser._id === comment.user._id;
+    const originalComment = comment.content;
 
-   
+    const onSubmitUpdateComment =  (values) => {
+        const update = {
+            commentContent: values['update-comment'],
+            notificationId: '', // currently no logic to handle notifications related to the comments
+            type: 'comment'
+        };
+        updateComment({ commentId: comment._id, update });
+        setEditComment(false);
+    };
+
     return (
         <div className="card border-left-only">
             <div className="card-body">
@@ -102,20 +116,42 @@ const Comment = ({ comment, currentUser, studyId }) => {
                     </h6>
                     <small className="text-muted">{new Date(comment.dateCreated).toLocaleDateString()}</small>
                 </div>
-                <div className="d-flex justify-content-start align-items-start mb-2">
-                    <p className="card-text">{comment.content}</p>
+                <div className="d-inline justify-content-start align-items-start mb-1">
+                    {editComment ?
+                        <Form
+                            onSubmit={onSubmitUpdateComment}
+                            initialValues={{ 'update-comment': originalComment }}
+                            render={({ handleSubmit }) => (
+                                <form onSubmit={handleSubmit} className="needs-validation mb-3">
+                                    <Field
+                                        name="update-comment"
+                                        component="textarea"
+                                        type="text"
+                                        className="form-control"
+                                    />
+                                    <Field name="update-comment">
+                                        {({ meta }) => meta.error && meta.touched && <span className="text-danger">{meta.error}</span>}
+                                    </Field>
+                                    <div>
+                                        <button type="submit" className="mt-2 btn btn-success">Submit</button>
+                                        <button className="mt-2 ms-2 btn btn-secondary" onClick={() => setEditComment(!editComment)}>Cancel</button>
+                                    </div>
+                                </form>
+                            )}
+                        />
+                        : <p className="card-text mb-2">{originalComment}</p>}
                 </div>
                 <div className="d-flex align-items-center justify-content-start">
                     {!isCommentCreator && (
                         <>
                             <div className="d-flex align-items-center">
-                            {!isParticipant && <span className="mx-1">{comment.votes.filter(vote => vote.vote === 1).length}</span>}
+                                {!isParticipant && <span className="mx-1">{comment.votes.filter(vote => vote.vote === 1).length}</span>}
                                 <span className={renderVoteSpanStyle('upvote')}>
                                     <GoArrowUp onClick={() => upVote(comment._id)} style={renderVoteIconStyle('upvote')} className="thick-icon" />
                                 </span>
                             </div>
                             <div className="d-flex align-items-center ms-1">
-                            {!isParticipant && <span className="mx-1">{comment.votes.filter(vote => vote.vote === -1).length}</span>}
+                                {!isParticipant && <span className="mx-1">{comment.votes.filter(vote => vote.vote === -1).length}</span>}
                                 <span className={renderVoteSpanStyle('downvote')}>
                                     <GoArrowDown onClick={() => downVote(comment._id)} style={renderVoteIconStyle('downvote')} className="thick-icon" />
                                 </span>
@@ -128,6 +164,17 @@ const Comment = ({ comment, currentUser, studyId }) => {
                             <span>Reply</span>
                         </div>
                     )}
+                    {(isParticipant && currentUser.username === comment.user.username) &&
+                        <button
+                            className="ms-2 badge rounded-pill text-bg-light"
+                            onClick={() => setEditComment(true)}
+                        >
+                            <span className="me-1">
+                                <GoPencil />
+                            </span>
+                            <span>Edit</span>
+                        </button>
+                    }
                 </div>
                 {showReply && (
                     <form onSubmit={handleReplySubmit} className="mt-3">

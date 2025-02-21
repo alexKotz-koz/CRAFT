@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { GoArrowUp, GoArrowDown, GoCommentDiscussion, GoReply, GoLightBulb, GoPencil } from "react-icons/go";
 import { Form, Field } from "react-final-form";
-import { useCreateVoteMutation, useCreateCommentMutation, useCreateNotificationMutation, useUpdateCommentMutation } from "../../store";
+import { useCreateVoteMutation, useCreateCommentMutation, useCreateNotificationMutation, useUpdateCommentMutation,useFetchDiscussionQuery, useUpdateNotificationMutation } from "../../store";
 import Comment from "./Comment";
 import '../../static/discussion-board.css';
 
@@ -10,6 +10,8 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
     const [createComment, { error: errorComment, isLoading: isLoadingComment }] = useCreateCommentMutation();
     const [createNotification, { error: errorCreateNotification, isLoading: isLoadingCreateNotification }] = useCreateNotificationMutation();
     const [updateComment, { error: errorUpdateComment, isLoading: isLoadingUpdateComment }] = useUpdateCommentMutation();
+    const { refetch: refetchDiscussion } = useFetchDiscussionQuery(taskId);
+    const [updateNotification, {error: errorUpdateNotification, isLoading: isLoadingUpdateNotification}] = useUpdateNotificationMutation();
 
     const [commentContent, setCommentContent] = useState("");
     const [showComments, setShowComments] = useState(true);
@@ -29,12 +31,12 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
         });
     }
 
-    if (isLoadingVote || isLoadingComment || isLoadingCreateNotification) {
+    if (isLoadingVote || isLoadingComment || isLoadingCreateNotification || isLoadingUpdateComment || isLoadingUpdateNotification) {
         return <div>Loading...</div>;
     }
 
-    if (errorVote || errorComment || errorCreateNotification) {
-        return <div>Error: {errorVote?.data || errorComment?.data || errorCreateNotification?.data}</div>;
+    if (errorVote || errorComment || errorCreateNotification || errorUpdateComment || errorUpdateNotification) {
+        return <div>Error: {errorVote?.data || errorComment?.data || errorCreateNotification?.data || errorUpdateComment?.data || errorUpdateNotification?.data}</div>;
     }
 
     const upVote = () => {
@@ -100,29 +102,46 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
     };
 
     const hasNotification = notifications.some((notification) => {
-        return notification.initialResponse === responseId;
+        //console.log("note: ", notification)
+        return notification.initialResponse === responseId && notification.status === 'clarify-pending-approval';
     });
+    //console.log("hasNotification: ", hasNotification)
 
     const usersNotifications = notifications.filter((notification) => notification.toUser._id === currentUser._id);
-    const initialResponseNotification = usersNotifications.find((notification) => notification.initialResponse === responseId);
+    console.log("usersNotifications: ", usersNotifications);
+    //const initialResponseNotification = usersNotifications.find((notification) => notification.initialResponse === responseId);
+    const initialResponseNotification = usersNotifications.find((notification) =>
+        notification.initialResponse === responseId && notification.status === 'clarify-pending-approval'
+    );
+    //console.log("initialResponseNotification: ", initialResponseNotification)
     let unApprovedInitialResponseNotification = false;
     if (initialResponseNotification) {
-        unApprovedInitialResponseNotification = initialResponseNotification.status === 'clairfy-pending-approval' ? true : false;
+        unApprovedInitialResponseNotification = initialResponseNotification.status === 'clarify-pending-approval' ? true : false;
     }
 
 
     const handleSubmitClarification = () => {
-        createNotification({ postId: responseId, postType: 'initialResponse', notificationType: 'clairfy', fromUser: currentUser._id, toUser: username, task: taskId });
+        createNotification({ postId: responseId, postType: 'initialResponse', notificationType: 'clarify', fromUser: currentUser._id, toUser: username, task: taskId });
     };
 
     const onSubmitUpdateComment = (commentContent) => {
         const notification = usersNotifications.find((notification) => notification.initialResponse === responseId);
+        //console.log("notification: ", notification)
+        //console.log("Study Response ID: ", responseId);
         const update = {
             commentContent: commentContent['update-comment'],
-            notificationId: notification?._id ?? ''
+            notificationId: notification?._id ?? '',
+            type: 'initialResponse'
         };
-        updateComment({ commentId: responseId, update });
+        updateComment({ commentId: responseId, update, task: taskId });
         setEditComment(false);
+        refetchDiscussion();
+
+    };
+
+    const approveClarification = () =>{
+        updateNotification({responseId});
+        
     };
 
     return (
@@ -201,7 +220,15 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                             onClick={handleSubmitClarification}
                             disabled={hasNotification}
                         >
-                            {!hasNotification ? 'Clairfy' : 'Clairification Pending'} <GoLightBulb />
+                            {!hasNotification ? 'Clarify' : 'Clairification Pending'} <GoLightBulb />
+                        </button>
+                    }
+                    {(!isParticipant && hasNotification && unApprovedInitialResponseNotification) && 
+                        <button
+                            className="ms-2 badge rounded-pill text-bg-secondary"
+                            onClick={approveClarification}
+                        >
+                            Approve Clarification
                         </button>
                     }
                     {(isParticipant && currentUser.username === username) &&
@@ -220,7 +247,7 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                 {showComments && (
                     <div className="mt-3">
                         {comments.map((comment, idx) => (
-                            <Comment key={idx} comment={comment} currentUser={currentUser} studyId={studyId} />
+                            <Comment key={idx} comment={comment} currentUser={currentUser} studyId={studyId} onSubmitUpdateComment={onSubmitUpdateComment} />
                         ))}
                         {showNewComment && (
                             <form onSubmit={handleCommentSubmit} className="mt-3">
@@ -242,12 +269,6 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                                 </button>
                             </form>
                         )}
-                        {/*!showNewComment && isParticipant &&
-                            <div className="end-0 m-1 btn btn-warning" style={{ cursor: 'pointer' }} onClick={toggleNewComment}>
-                                <GoPlus />
-                                <span className="ms-1">Add a new comment</span>
-                            </div>
-                        */}
                     </div>
                 )}
             </div>
