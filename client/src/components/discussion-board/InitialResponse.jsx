@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { GoArrowUp, GoArrowDown, GoCommentDiscussion, GoReply, GoLightBulb, GoPencil } from "react-icons/go";
 import { Form, Field } from "react-final-form";
-import { useCreateVoteMutation, useCreateCommentMutation, useCreateNotificationMutation, useUpdateCommentMutation,useFetchDiscussionQuery, useUpdateNotificationMutation } from "../../store";
+import { useCreateVoteMutation, useCreateCommentMutation, useCreateNotificationMutation, useUpdateCommentMutation, useFetchDiscussionQuery, useUpdateNotificationMutation } from "../../store";
 import Comment from "./Comment";
 import '../../static/discussion-board.css';
 
@@ -11,12 +11,13 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
     const [createNotification, { error: errorCreateNotification, isLoading: isLoadingCreateNotification }] = useCreateNotificationMutation();
     const [updateComment, { error: errorUpdateComment, isLoading: isLoadingUpdateComment }] = useUpdateCommentMutation();
     const { refetch: refetchDiscussion } = useFetchDiscussionQuery(taskId);
-    const [updateNotification, {error: errorUpdateNotification, isLoading: isLoadingUpdateNotification}] = useUpdateNotificationMutation();
+    const [updateNotification, { error: errorUpdateNotification, isLoading: isLoadingUpdateNotification }] = useUpdateNotificationMutation();
 
     const [commentContent, setCommentContent] = useState("");
     const [showComments, setShowComments] = useState(true);
     const [showNewComment, setShowNewComment] = useState(false);
     const [editComment, setEditComment] = useState(false);
+    const [showClarificationComment, setShowClarificationComment] = useState(false);
     const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
 
     let hasVoted = false;
@@ -119,10 +120,11 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
         unApprovedInitialResponseNotification = initialResponseNotification.status === 'clarify-pending-approval' ? true : false;
     }
 
+    const triggerClarification = () => {
+        setShowClarificationComment(true);
+    }
 
-    const handleSubmitClarification = () => {
-        createNotification({ postId: responseId, postType: 'initialResponse', notificationType: 'clarify', fromUser: currentUser._id, toUser: username, task: taskId });
-    };
+
 
     const onSubmitUpdateComment = (commentContent) => {
         const notification = usersNotifications.find((notification) => notification.initialResponse === responseId);
@@ -138,10 +140,19 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
         refetchDiscussion();
 
     };
-
-    const approveClarification = () =>{
-        updateNotification({responseId});
-        
+    const handleSubmitClarification = async (commentContent) => {
+        const comment = commentContent['facilitator-comment'];
+        try {
+            await createNotification({ postId: responseId, postType: 'initialResponse', notificationType: 'clarify', fromUser: currentUser._id, toUser: username, task: taskId });
+            await createComment({ promptId, responseId, content: comment, studyId });
+        } catch (error) {
+            console.error("Error submitting clarification:", error);
+            // Handle the error appropriately, e.g., show a notification or set an error state
+        }
+        setShowClarificationComment(!showClarificationComment);
+    };
+    const approveClarification = () => {
+        updateNotification({ responseId });
     };
 
     return (
@@ -183,6 +194,30 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                         </Form>
 
                         : <p className="card-text mb-2">{response}</p>}
+                    {showClarificationComment && (
+                        <Form
+                            onSubmit={handleSubmitClarification}
+                            render={({ handleSubmit }) => (
+                                <form onSubmit={handleSubmit} className="needs-validation mb-3">
+                                    <Field
+                                        name="facilitator-comment"
+                                        component="textarea"
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Please specify what part of the response needs clarification..."
+                                    />
+                                    <Field name="facilitator-comment">
+                                        {({ meta }) => meta.error && meta.touched && <span className="text-danger">{meta.error}</span>}
+                                    </Field>
+                                    <div>
+                                        <button type="submit" className="mt-2 btn btn-success">Submit</button>
+                                        <button className="mt-2 ms-2 btn btn-secondary" onClick={() => setShowClarificationComment(!showClarificationComment)}>Cancel</button>
+                                    </div>
+                                </form>
+                            )}
+                        >
+                        </Form>
+                    )}
 
                 </div>
                 <div className="d-flex align-items-center justify-content-start">
@@ -217,13 +252,13 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                     {!isParticipant &&
                         <button
                             className={`ms-2 badge rounded-pill ${hasNotification ? 'text-bg-secondary' : 'text-bg-warning'}`}
-                            onClick={handleSubmitClarification}
+                            onClick={triggerClarification}
                             disabled={hasNotification}
                         >
                             {!hasNotification ? 'Clarify' : 'Clairification Pending'} <GoLightBulb />
                         </button>
                     }
-                    {(!isParticipant && hasNotification && unApprovedInitialResponseNotification) && 
+                    {(!isParticipant && hasNotification && unApprovedInitialResponseNotification) &&
                         <button
                             className="ms-2 badge rounded-pill text-bg-secondary"
                             onClick={approveClarification}

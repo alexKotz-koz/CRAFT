@@ -9,7 +9,7 @@ const Header = ({ user }) => {
   const handleLogout = () => {
     navigate('/');
   };
-  console.log("Header Data: ", data)
+  //console.log("Header Data: ", data)
 
   const renderNotificationCardStyle = (notification) => {
     if (notification.status === 'clarify-pending-approval'){
@@ -54,7 +54,7 @@ const Header = ({ user }) => {
                           <h5 className="card-title">Notifications</h5>
                           <ul className="list-group list-group-flush">
                               {data.notifications.map((notification, index) => {
-                                console.log("Header Notification:", notification)
+                                //console.log("Header Notification:", notification)
                                   return (
                                       <li key={index} className={renderNotificationCardStyle(notification)}onClick={() => navigate(`/discussion/${notification.task._id}`)}>
                                           <HeaderNotificationCard notification={notification} user={user} />
