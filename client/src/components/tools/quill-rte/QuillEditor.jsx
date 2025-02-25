@@ -1,48 +1,55 @@
-import React, { useEffect, useRef } from 'react';
-import Quill from 'quill';
-import QuillTableBetter from 'quill-table-better';
-import 'quill/dist/quill.snow.css';
-import 'quill-table-better/dist/quill-table-better.css';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
-Quill.register({
-  'modules/table-better': QuillTableBetter
-}, true);
+const QuillEditor = ({ editorState, onChange }) => {
+    const modules = {
+        toolbar: {
+            container: [
+                [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+             
+                ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+                //[{ 'list': 'ordered' }, { 'list': 'bullet' },
+                //{ 'indent': '-1' }, { 'indent': '+1' }],
+                ['link'],
+                [{ 'align': [] }],
+            ],
+            
+        },
+    };
 
-const toolbarOptions = [
-  ['bold', 'italic', 'underline', 'strike'],
-  ['table-better']
-];
+    const formats = [
+        'header', 
+        'font',
+        'bold', 
+        'italic',
+        'underline', 
+        'strike', 
+        'blockquote',
+        //'list', 
+        //'bullet', 
+        //'indent',
+        'link', 
+        //'image', 
+        'align'
+    ];
 
-const options = {
-  theme: 'snow',
-  modules: {
-    table: false,
-    toolbar: toolbarOptions,
-    'table-better': {
-      language: 'en_US',
-      menus: ['column', 'row', 'merge', 'table', 'cell', 'wrap', 'copy', 'delete'],
-      toolbarTable: true
-    },
-    keyboard: {
-      bindings: QuillTableBetter.keyboardBindings
-    }
-  }
-};
+    const handleOnChange = (content) => {
+        onChange(content);
+    };
 
-const QuillEditor = () => {
-  const quillRef = useRef(null);
 
-  useEffect(() => {
-    if (quillRef.current) {
-      new Quill(quillRef.current, options);
-    }
-  }, []);
 
-  return (
-    <div>
-      <div ref={quillRef} />
-    </div>
-  );
+    return (
+        <div>
+            <ReactQuill
+                value={editorState}
+                onChange={handleOnChange}
+                modules={modules}
+                formats={formats}
+                theme="snow"
+            />
+        </div>
+    );
 };
 
 export default QuillEditor;

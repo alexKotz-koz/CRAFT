@@ -9,8 +9,8 @@ const UserSchema = new Schema({
   googleId: String,
   username: { type: String, required: true, index: { unique: true } },
   password: String,
-  //firstName: { type: String, required: true }, --Later implementation
-  //lastName: String, --Later implementation
+  firstName: { type: String}, 
+  lastName: { type: String},
   email: { type: String, required: true, index: { unique: true } },
   role: {
     type: String,

@@ -16,8 +16,6 @@ function Prompt({ prompt, responses, notifications, promptIndex, studyId, curren
         setIsExpanded(!isExpanded);
     };
 
-    //console.log("prompt: ", prompt)
-
     const filteredResponses = responses.flatMap(responseObj => {
         return responseObj.responses
             .filter(response => {
@@ -33,7 +31,7 @@ function Prompt({ prompt, responses, notifications, promptIndex, studyId, curren
     return (
         //So janky!!!! -- Using filteredResponse.length to ignore the questions that have a prompt followed by children questions (i.e. parentQuestion: "Please review the table below and answer the following questions"...)
         filteredResponses.length > 0 && (
-        <div className="card" style={{ borderTop: 'none', borderRight: 'none', borderBottom: 'none', borderLeft: 'none' }}>
+        <div className="card bg-body-tertiary border border-tertiary p-2 rounded">
             <div className="card-body" onClick={handleClick}>
                 <div className="d-flex align-items-center">
                     <h5 className="card-header fw-bolder" style={{ background: 'none' }}>

@@ -69,7 +69,7 @@ module.exports = (app) => {
 
     app.post('/auth/create_user', async (req, res) => {
         try {
-            const { password, email, role } = req.body;
+            const { firstName, lastName, password, email, role } = req.body;
             let username = req.body.username;
             if (!email && !password) {
                 return res
@@ -97,6 +97,8 @@ module.exports = (app) => {
             const newUser = new User({
                 email,
                 username,
+                firstName,
+                lastName,
                 role,
                 password: hashed,
                 avatar,
@@ -157,7 +159,6 @@ module.exports = (app) => {
                         { path: 'task', model: 'StudyTask' }, // Assuming you have a Task model
                     ]
                 });
-                //console.log("user: ", user)
             if (!user) {
                 return res.status(400).send("Error fetching user");
             }
