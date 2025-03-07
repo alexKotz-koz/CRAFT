@@ -5,6 +5,7 @@ const studyApi = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: '/api'
     }),
+    tagTypes: ['Study'],
     endpoints(builder) {
         return {
             

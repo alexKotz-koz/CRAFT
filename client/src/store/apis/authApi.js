@@ -5,6 +5,7 @@ const authApi = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: '/auth'
     }),
+    tagTypes: ['User', 'Notification'], 
     endpoints(builder){
         return{
             fetchAllUsers: builder.query({
@@ -16,7 +17,7 @@ const authApi = createApi({
                 },
             }),
             fetchUser: builder.query({
-                providesTags: ['User', 'notification'],
+                providesTags: ['User', 'Notification'],
                 query: () => {
                     return {
                         url: '/current_user',

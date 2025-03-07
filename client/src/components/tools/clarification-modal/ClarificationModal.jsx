@@ -6,23 +6,18 @@ import { Form, Field } from "react-final-form";
 
 const ClarificationModal = ({ isOpen, toggle, selectedStudyResponseId, notification }) => {
     const { data: studyResponse, isLoading: isLoadingStudyResponse, error: errorStudyResponse } = useFetchStudyResponseQuery({ studyResponseId: selectedStudyResponseId });
-    const { data: currentUser, error: errorUser, isLoading: isLoadingUser } = useFetchUserQuery();
+    const { data: currentUser, error: errorUser, isLoading: isLoadingUser, refetch } = useFetchUserQuery();
     const [createComment, { error: errorComment, isLoading: isLoadingComment }] = useCreateCommentMutation();
     const [updateNotification, { error: errorUpdateNotification, isLoading: isLoadingUpdateNotification }] = useUpdateNotificationMutation();
     const [createNotification, { error: errorCreateNotification, isLoading: isLoadingCreateNotification }] = useCreateNotificationMutation();
-
 
     if (isLoadingStudyResponse || isLoadingUser || isLoadingComment || isLoadingUpdateNotification || isLoadingCreateNotification) {
         return <div>Loading...</div>;
     }
 
-    if (errorStudyResponse || errorUser || errorComment | errorUpdateNotification || errorCreateNotification) {
+    if (errorStudyResponse || errorUser || errorComment || errorUpdateNotification || errorCreateNotification) {
         return <div>Error: {errorStudyResponse?.data || errorUser?.data || errorComment?.data || errorUpdateNotification?.data || errorCreateNotification?.data}</div>;
     }
-
-    /*console.log("CM data: ", studyResponse);
-    console.log("CM currentUser:", currentUser)
-    console.log("CM notification: ", notification)*/
 
     const stripHtmlTags = (html) => {
         return html.replace(/<\/?[^>]+(>|$)/g, "");
@@ -42,27 +37,28 @@ const ClarificationModal = ({ isOpen, toggle, selectedStudyResponseId, notificat
 
     const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
 
-
     const handleSubmitClarificationComment = async (commentContent) => {
         const comment = commentContent['update-comment'];
         try {
-            createComment({ promptId, responseId, content: comment, studyId });
-            updateNotification({ notificationId, newStatus: 'clarification-submitted' });
-            createNotification({ postId: responseId, postType: 'initialResponse', notificationType: 'clarify', fromUser: currentUserId, toUser: notification.fromUser.username, task: taskId });
+            await createComment({ promptId, responseId, content: comment, studyId });
+            await updateNotification({ notificationId, newStatus: 'clarification-submitted' });
+            await createNotification({ postId: responseId, postType: 'initialResponse', notificationType: 'clarify', fromUser: currentUserId, toUser: notification.fromUser.username, task: taskId });
+            refetch(); // Trigger refetch of user data
             toggle();
         } catch (err) {
             console.error("Error submitting clarification:", err);
         }
-    }
+    };
 
-    const markNotificationAsRead = async ()=> {
+    const markNotificationAsRead = async () => {
         try {
-            updateNotification({notificationId, newStatus: 'read'});
+            await updateNotification({ notificationId, newStatus: 'read' });
+            refetch(); // Trigger refetch of user data
             toggle();
         } catch (err) {
             console.error("Error updating notification status: ", err);
         }
-    }
+    };
 
     return (
         <Modal isOpen={isOpen} toggle={toggle} centered backdrop='static'>

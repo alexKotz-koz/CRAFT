@@ -5,6 +5,7 @@ const discussionApi = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: '/api'
     }),
+    tagTypes: ['Notification', 'User'],
     endpoints(builder) {
         return {
             fetchDiscussion: builder.query({
@@ -98,7 +99,7 @@ const discussionApi = createApi({
                 },
             }),
             updateNotification: builder.mutation({
-                invalidatesTags: ['notification', 'User'],
+                invalidatesTags: ['Notification', 'User'],
                 query: ({notificationId, newStatus}) => {
                     return {
                         url: `/discussion/notifications/update`,
