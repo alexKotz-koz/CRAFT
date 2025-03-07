@@ -8,6 +8,7 @@ const requireLogin = require('../middlewares/requireLogin');
 
 module.exports = (app) => {
     // GET Task Discussion
+    // API: fetchDiscussion
     app.get('/api/discussion/:taskId', requireLogin, async (req, res) => {
         const { taskId } = req.params;
         try {
@@ -24,8 +25,8 @@ module.exports = (app) => {
                         {
                             path: 'responses.comments',
                             populate: [
-                                { path: 'user', select: 'username avatar' },
-                                { path: 'comments', populate: { path: 'user', select: 'username avatar' } },
+                                { path: 'user', select: 'username avatar firstName lastName role' },
+                                { path: 'comments', populate: { path: 'user', select: 'username avatar firstName lastName role' } },
                                 { path: 'votes', populate: { path: 'voter', select: 'username avatar' } }
                             ]
                         },
@@ -124,6 +125,7 @@ module.exports = (app) => {
     });
 
     // Comment on Initial Response
+    // API: createComment
     app.post('/api/discussion/:promptId/:responseId/comment', requireLogin, async (req, res) => {
         const { promptId, responseId } = req.params;
         const { content, studyId } = req.body;
@@ -225,6 +227,7 @@ module.exports = (app) => {
     });
 
     // Comment on Comment
+    // API: createSubComment
     app.post('/api/discussion/:commentId/subcomment', requireLogin, async (req, res) => {
         const { commentId } = req.params;
         const { content, studyId } = req.body;
@@ -260,6 +263,7 @@ module.exports = (app) => {
     });
 
     // GET all subcomments for a specific user
+    // API: fetchSubComments
     app.get('/api/discussion/:commentId/subcomment', requireLogin, async (req, res) => {
         const { commentId } = req.params;
         try {
@@ -272,10 +276,11 @@ module.exports = (app) => {
     });
 
     // Create and Send Notification
+    // API: createNotification
     app.post('/api/discussion/:postId/notify', requireLogin, async (req, res) => {
         const { postId } = req.params;
         const { postType, notificationType, fromUser, toUser, task } = req.body;
-        console.log("Create Notification -> task: ", task);
+        
         try {
             switch (postType) {
                 case 'comment':
@@ -337,12 +342,15 @@ module.exports = (app) => {
         }
 
     });
-    app.post('/api/discussion/notifications/approve', requireLogin, async (req, res) => {
-        const { responseId } = req.body;
+
+    // Update notificaiton status
+    // API: updateNotification
+    app.post('/api/discussion/notifications/update', requireLogin, async (req, res) => {
+        const { notificationId, newStatus } = req.body;
         try {
             const result = await Notification.updateMany(
-                { initialResponse: responseId },
-                { $set: { status: 'clarify-approved' } }
+                { _id: notificationId },
+                { $set: { status: newStatus } }
             );
             res.send(result);
         } catch (err) {
@@ -351,6 +359,8 @@ module.exports = (app) => {
         }
     });
 
+    // GET notifications related to a task
+    // API: fetchTaskNotifications
     app.get('/api/discussion/notifications/:taskId', requireLogin, async (req, res) => {
         const { taskId } = req.params;
         try {
@@ -371,6 +381,8 @@ module.exports = (app) => {
         }
     });
 
+    // Update a comment, update notification related to comment, create facilitator notification
+    // API: updateComment 
     app.post('/api/discussion/update-comment/:commentId', requireLogin, async (req, res) => {
         const { commentId } = req.params;
         const { commentContent, notificationId, type, task } = req.body;
@@ -445,11 +457,68 @@ module.exports = (app) => {
                 );
             }
 
+            //console.log("Facilitator Notification: ", facilitatorNotification);
+
             res.send({ response, notification });
         } catch (err) {
             console.error("Error updating comment: ", err);
             res.status(422).send(err);
         }
-    })
+    });
+
+    //GET a full StudyResponse
+    // API: fetchStudyResponse 
+    // Used in: ClarificationModal.jsx
+    app.get('/api/discussion/studyResponse/:studyResponseId', requireLogin, async (req, res) => {
+        const { studyResponseId } = req.params;
+        try {
+            const studyResponse = await StudyResponse.findOne({ 'responses._id': studyResponseId })
+                .populate({
+                    path: 'responses',
+                    populate: [
+                        {
+                            path: 'prompt',
+                            model: 'StudyPrompt'
+                        },
+                        {
+                            path: 'comments',
+                            model: 'Comment',
+                            populate: { path: 'user', select: 'username avatar firstName lastName role' }
+                        },
+                        {
+                            path: 'votes',
+                            populate: { path: 'voter', select: 'username avatar firstName lastName role' }
+                        }
+                    ]
+                })
+                .populate({
+                    path: '_participant',
+                    select: 'username avatar'
+                });
+    
+            if (!studyResponse) {
+                return res.status(404).send("StudyResponse not found");
+            }
+            //console.log("StudyResponse:", studyResponse)
+            const matchingResponse = studyResponse.responses.find(response => response._id.toString() === studyResponseId);
+            if (!matchingResponse) {
+                return res.status(404).send("Response not found in StudyResponse");
+            }
+    
+            const response = {
+                matchingResponse,
+                participant: studyResponse._participant,
+                study: studyResponse.study,
+                task: studyResponse.task,
+                dateCreated: studyResponse._dateCreated
+            };
+    
+            res.send(response);
+        } catch (err) {
+            console.error("Error fetching study response:", err);
+            res.status(422).send(err);
+        }
+    });
+
 
 };

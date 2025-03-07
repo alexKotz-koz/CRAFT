@@ -1,18 +1,18 @@
-const HeaderNotificationCard = ({ notification, user }) => {
+const HeaderNotificationCard = ({ notification, currentUserIsParticipant }) => {
 
     const renderClairifyNotification = () => {
 
-        if (user.role === 'facilitator') {
+        if (!currentUserIsParticipant) {
             return (
-                <div className="d-flex flex-column">
+                <div className="d-flex flex-column cursor-pointer" style={{whiteSpace: 'wrap'}}>
                     <div><strong>{notification.fromUser.username}</strong> has submitted a clarification</div>
                 </div>
             );
-        } else if (user.role === 'participant') {
+        } else if (currentUserIsParticipant) {
             return (
-                <div className="d-flex flex-column">
-                    { }
-                    <div><strong>{notification.fromUser.username}</strong> has requested a clairfication</div>
+                <div className="d-flex flex-column cursor-pointer" style={{whiteSpace: 'wrap'}}>
+
+                    <div><strong>{notification.fromUser.username} </strong> has requested a clairfication</div>
                 </div>
             );
 

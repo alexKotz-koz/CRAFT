@@ -1,21 +1,30 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Form, Field } from "react-final-form";
 
 import { GoArrowUp, GoArrowDown, GoPencil, GoReply } from "react-icons/go";
+import { PiCertificate } from "react-icons/pi";
+
 import { useCreateCommentVoteMutation, useCreateSubCommentMutation, useFetchSubCommentsQuery, useUpdateCommentMutation } from "../../store";
 import '../../static/discussion-board.css';
 
-const Comment = ({ comment, currentUser, studyId }) => {
+const Comment = ({ comment, currentUser, studyId, location }) => {
     const [createVote, { error: errorVote, isLoading: isLoadingVote }] = useCreateCommentVoteMutation();
     const [createSubcomment, { error: errorSubcomment, isLoading: isLoadingSubcomment }] = useCreateSubCommentMutation();
     const [updateComment, { error: errorUpdateComment, isLoading: isLoadingUpdateComment }] = useUpdateCommentMutation();
     const [subCommentContent, setSubCommentContent] = useState("");
     const [showReply, setShowReply] = useState(false);
     const [editComment, setEditComment] = useState(false);
+    const [showOptions, setShowOptions] = useState(false);
 
     const { data: subcomments, error: errorFetchSubcomments, isLoading: isLoadingFetchSubcomments } = useFetchSubCommentsQuery({ commentId: comment._id });
 
     const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
+
+    useEffect(()=> {
+        if (location === 'discussion-board'){
+            setShowOptions(true);
+        } 
+    }, [])
 
     let hasVotedComment = false;
     let currentUsersVote = 0;
@@ -106,13 +115,24 @@ const Comment = ({ comment, currentUser, studyId }) => {
         setEditComment(false);
     };
 
+    const userDisplayName = comment.user.role === 'participant' 
+        ? comment.user.username 
+        : `${comment.user.firstName} ${comment.user.lastName}`;
+
     return (
         <div className="card border-left-only">
             <div className="card-body">
                 <div className="d-flex justify-content-between align-items-center">
                     <h6 className="card-title">
                         <img src={comment.user.avatar} alt={`${comment.user.username}'s avatar`} className="avatar-img-header mr-2" />
-                        {comment.user.username}
+                        {userDisplayName}
+                        {comment.user.role !== 'participant' && 
+                        <div className='rounded-pill text-bg-light'>
+                            <PiCertificate  /> Facilitator
+                        </div>
+                        
+                        
+                        }
                     </h6>
                     <small className="text-muted">{new Date(comment.dateCreated).toLocaleDateString()}</small>
                 </div>
@@ -142,7 +162,7 @@ const Comment = ({ comment, currentUser, studyId }) => {
                         : <p className="card-text mb-2">{originalComment}</p>}
                 </div>
                 <div className="d-flex align-items-center justify-content-start">
-                    {!isCommentCreator && (
+                    {(!isCommentCreator && showOptions) && (
                         <>
                             <div className="d-flex align-items-center">
                                 {!isParticipant && <span className="mx-1">{comment.votes.filter(vote => vote.vote === 1).length}</span>}
@@ -158,7 +178,7 @@ const Comment = ({ comment, currentUser, studyId }) => {
                             </div>
                         </>
                     )}
-                    {isParticipant && (
+                    {(isParticipant && showOptions) && (
                         <div onClick={toggleReply} style={{ cursor: 'pointer' }} className="d-flex align-items-center small badge rounded-pill text-bg-light pe-2 ms-2">
                             <GoReply className="mx-1 thick-icon" />
                             <span>Reply</span>

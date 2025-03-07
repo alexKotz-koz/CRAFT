@@ -66,7 +66,7 @@ const discussionApi = createApi({
                 },
             }),
             createNotification: builder.mutation({
-                invalidatesTags: ['notification'],
+                invalidatesTags: ['notification', 'User'],
                 query: ({ postId, postType, notificationType, fromUser, toUser, task }) => {
                     //console.log("Api: ", postId, postType, fromUser, toUser, task)
                     return {
@@ -98,11 +98,22 @@ const discussionApi = createApi({
                 },
             }),
             updateNotification: builder.mutation({
-                query: ({responseId}) => {
+                invalidatesTags: ['notification', 'User'],
+                query: ({notificationId, newStatus}) => {
                     return {
-                        url: `/discussion/notifications/approve`,
+                        url: `/discussion/notifications/update`,
                         method: 'POST',
-                        body: {responseId}
+                        body: {notificationId, newStatus}
+                    };
+                },
+            }),
+            fetchStudyResponse: builder.query({
+                query: ({studyResponseId}) => {
+                    //console.log("fetchStudyResponse: ", studyResponseId);
+                    return {
+                        url: `/discussion/studyResponse/${studyResponseId}`,
+                        method: 'GET',
+
                     };
                 },
             }),
@@ -123,6 +134,7 @@ export const {
     useCreateNotificationMutation,
     useFetchTaskNotificationsQuery,
     useUpdateCommentMutation,
-    useUpdateNotificationMutation
+    useUpdateNotificationMutation,
+    useFetchStudyResponseQuery,
 } = discussionApi;
 export { discussionApi };

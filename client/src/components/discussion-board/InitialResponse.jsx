@@ -120,9 +120,9 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
         unApprovedInitialResponseNotification = initialResponseNotification.status === 'clarify-pending-approval' ? true : false;
     }
 
-    const triggerClarification = () => {
+    /*const triggerClarification = () => {
         setShowClarificationComment(true);
-    }
+    }*/
 
 
 
@@ -140,23 +140,36 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
         refetchDiscussion();
 
     };
-    const handleSubmitClarification = async (commentContent) => {
-        const comment = commentContent['facilitator-comment'];
+    const handleSubmitClarification = async () => {
         try {
             await createNotification({ postId: responseId, postType: 'initialResponse', notificationType: 'clarify', fromUser: currentUser._id, toUser: username, task: taskId });
+        } catch (error) {
+            console.error("Error submitting clarification:", error);
+        }
+        setShowClarificationComment(!showClarificationComment);
+    };
+    const handleSubmitClarificationComment = async(commentContent) => {
+        const comment = commentContent['facilitator-comment'];
+        try {
             await createComment({ promptId, responseId, content: comment, studyId });
         } catch (error) {
             console.error("Error submitting clarification:", error);
             // Handle the error appropriately, e.g., show a notification or set an error state
         }
         setShowClarificationComment(!showClarificationComment);
-    };
-    const approveClarification = () => {
+    }
+    /*const approveClarification = () => {
         updateNotification({ responseId });
-    };
+    };*/
+ 
+
+    // Div that colors the card based on notification status
+    //<div className={`card mb-2 border-left-only ${unApprovedInitialResponseNotification ? 'bg-warning-subtle' : ''}`}></div>
+
+
 
     return (
-        <div className={`card mb-2 border-left-only ${unApprovedInitialResponseNotification ? 'bg-warning-subtle' : ''}`}>
+        <div className='card mb-2 border-left-only'>
             <div className="card-body">
                 <div className="d-flex justify-content-between align-items-center">
                     <h5 className="card-title">
@@ -196,7 +209,7 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                         : <p className="card-text mb-2">{response}</p>}
                     {showClarificationComment && (
                         <Form
-                            onSubmit={handleSubmitClarification}
+                            onSubmit={handleSubmitClarificationComment}
                             render={({ handleSubmit }) => (
                                 <form onSubmit={handleSubmit} className="needs-validation mb-3">
                                     <Field
@@ -252,18 +265,10 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                     {!isParticipant &&
                         <button
                             className={`ms-2 badge rounded-pill ${hasNotification ? 'text-bg-secondary' : 'text-bg-warning'}`}
-                            onClick={triggerClarification}
+                            onClick={handleSubmitClarification}
                             disabled={hasNotification}
                         >
                             {!hasNotification ? 'Clarify' : 'Clairification Pending'} <GoLightBulb />
-                        </button>
-                    }
-                    {(!isParticipant && hasNotification && unApprovedInitialResponseNotification) &&
-                        <button
-                            className="ms-2 badge rounded-pill text-bg-secondary"
-                            onClick={approveClarification}
-                        >
-                            Approve Clarification
                         </button>
                     }
                     {(isParticipant && currentUser.username === username) &&
@@ -282,7 +287,7 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                 {showComments && (
                     <div className="mt-3">
                         {comments.map((comment, idx) => (
-                            <Comment key={idx} comment={comment} currentUser={currentUser} studyId={studyId} onSubmitUpdateComment={onSubmitUpdateComment} />
+                            <Comment key={idx} comment={comment} currentUser={currentUser} studyId={studyId} location="discussion-board" />
                         ))}
                         {showNewComment && (
                             <form onSubmit={handleCommentSubmit} className="mt-3">

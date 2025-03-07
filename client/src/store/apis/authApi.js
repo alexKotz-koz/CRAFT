@@ -16,7 +16,7 @@ const authApi = createApi({
                 },
             }),
             fetchUser: builder.query({
-                providesTags: ['User'],
+                providesTags: ['User', 'notification'],
                 query: () => {
                     return {
                         url: '/current_user',

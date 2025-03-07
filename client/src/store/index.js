@@ -53,5 +53,6 @@ export {
   useCreateNotificationMutation,
   useFetchTaskNotificationsQuery,
   useUpdateCommentMutation,
-  useUpdateNotificationMutation
+  useUpdateNotificationMutation,
+  useFetchStudyResponseQuery,
 } from './apis/discussionApi';
