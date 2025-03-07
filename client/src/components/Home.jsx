@@ -10,7 +10,6 @@ const Home = () => {
     const { data: user, error: userError, isLoading: isLoadingUser } = useFetchUserQuery();
     const { data: userStudies, error: studiesError, isLoading: isLoadingStudies } = useFetchStudiesQuery();
     const [respondedStatus, setRespondedStatus] = useState({});
-    const [tasks, setTasks] = useState([]);
 
     // Participant: Upon initial render, get all studies associated with the logged in user && get the status (responded/not responded) for each study
     useEffect(() => {

@@ -8,7 +8,8 @@ const requireLogin = require('../middlewares/requireLogin');
 
 module.exports = (app) => {
     // GET Task Discussion
-    // API: fetchDiscussion
+    // API: fetchDiscussion, useLazyFetchDiscussionQuery
+    // Used in: DiscussionBoard.jsx, InitialResponse.jsx, (lazy) StudyDashboard
     app.get('/api/discussion/:taskId', requireLogin, async (req, res) => {
         const { taskId } = req.params;
         try {
@@ -51,6 +52,7 @@ module.exports = (app) => {
 
     // Vote Initial Response
     // API: createVote
+    // Used in: InitialResponse.jsx
     app.post('/api/discussion/:promptId/:responseId/vote', requireLogin, async (req, res) => {
         const { promptId, responseId } = req.params;
         const { voteType } = req.body;
@@ -126,6 +128,7 @@ module.exports = (app) => {
 
     // Comment on Initial Response
     // API: createComment
+    // Used in: InitialResponse.jsx, ClarificationModal.jsx
     app.post('/api/discussion/:promptId/:responseId/comment', requireLogin, async (req, res) => {
         const { promptId, responseId } = req.params;
         const { content, studyId } = req.body;
@@ -169,6 +172,7 @@ module.exports = (app) => {
 
     // Vote on Subcomment
     // API: createCommentVote
+    // Used in: Comment.jsx
     app.post('/api/discussion/:commentId/vote', requireLogin, async (req, res) => {
         const { commentId } = req.params;
         const { voteType } = req.body;
@@ -228,6 +232,7 @@ module.exports = (app) => {
 
     // Comment on Comment
     // API: createSubComment
+    // Used in: Comment.jsx
     app.post('/api/discussion/:commentId/subcomment', requireLogin, async (req, res) => {
         const { commentId } = req.params;
         const { content, studyId } = req.body;
@@ -264,6 +269,7 @@ module.exports = (app) => {
 
     // GET all subcomments for a specific user
     // API: fetchSubComments
+    // Used in: Comment.jsx
     app.get('/api/discussion/:commentId/subcomment', requireLogin, async (req, res) => {
         const { commentId } = req.params;
         try {
@@ -277,6 +283,7 @@ module.exports = (app) => {
 
     // Create and Send Notification
     // API: createNotification
+    // Used in: InitialResponse.jsx, ClarificationModal.jsx
     app.post('/api/discussion/:postId/notify', requireLogin, async (req, res) => {
         const { postId } = req.params;
         const { postType, notificationType, fromUser, toUser, task } = req.body;
@@ -345,6 +352,7 @@ module.exports = (app) => {
 
     // Update notificaiton status
     // API: updateNotification
+    // Used in: InitialResponse.jsx, ClarificationModal.jsx
     app.post('/api/discussion/notifications/update', requireLogin, async (req, res) => {
         const { notificationId, newStatus } = req.body;
         try {
@@ -361,6 +369,7 @@ module.exports = (app) => {
 
     // GET notifications related to a task
     // API: fetchTaskNotifications
+    // Used in: DiscussionBoard.jsx
     app.get('/api/discussion/notifications/:taskId', requireLogin, async (req, res) => {
         const { taskId } = req.params;
         try {
@@ -383,6 +392,7 @@ module.exports = (app) => {
 
     // Update a comment, update notification related to comment, create facilitator notification
     // API: updateComment 
+    // Used in: Comment.jsx, InitialResponse.jsx
     app.post('/api/discussion/update-comment/:commentId', requireLogin, async (req, res) => {
         const { commentId } = req.params;
         const { commentContent, notificationId, type, task } = req.body;

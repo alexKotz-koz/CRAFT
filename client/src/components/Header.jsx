@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useFetchUserQuery, useUpdateNotificationMutation } from "../store";
+import { useFetchUserQuery } from "../store";
 import { GoBell } from "react-icons/go";
 import HeaderNotificationCard from "./tools/HeaderNotificationCard";
 import ClarificationModal from "./tools/clarification-modal/ClarificationModal";
@@ -11,19 +11,18 @@ const Header = ({ user }) => {
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedStudyResponseId, setSelectedStudyResponseId] = useState("");
     const [notification, setNotification] = useState({});
-    const [hasOpenedNotification, setHasOpenedNotification] = useState(false);
-    const [updateNotification] = useUpdateNotificationMutation();
+
 
     const handleLogout = () => {
         navigate('/');
     };
     //console.log("Header Data: ", data)
-    console.log("Header -> user:", user)
+    //console.log("Header -> user:", user)
 
   
 
     const renderClarificationModal = (studyResponseId, notification) => {
-        console.log("renderClarificationModal: ", studyResponseId);
+        //console.log("renderClarificationModal: ", studyResponseId);
 
         setSelectedStudyResponseId(studyResponseId);
         setNotification(notification);
@@ -81,7 +80,6 @@ const Header = ({ user }) => {
                                     {data.notifications.map((notification, index) => {
                                         //console.log("Header Notification:", notification)
                                         //navigate(`/discussion/${notification.task._id}`)
-                                        console.log(notification)
                                         return (
                                             <li
                                                 key={index}

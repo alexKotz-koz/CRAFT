@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
-import { useCreateStudyResponseMutation, useFetchStudyQuery } from "../../../store";
+import { useFetchStudyQuery } from "../../../store";
 import { Collapse, Card, CardBody, CardHeader, Button } from 'reactstrap';
 
 

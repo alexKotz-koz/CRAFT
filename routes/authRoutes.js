@@ -12,23 +12,9 @@ function generateUsername() {
     return `${adjective}-${noun}`;
 }
 
-
-
 module.exports = (app) => {
-    app.get('/auth/google',
-        passport.authenticate('google', {
-            scope: ['profile', 'email'],
-        })
-    );
-
-    app.get('/auth/google/callback',
-        passport.authenticate('google',
-            (req, res) => {
-                res.redirect('/')
-            }
-        )
-    );
-
+    // API: fetchUsername, useLazyFetchUsernameQuery
+    // Used in: StudyParticipants.jsx
     app.get('/auth/generate_username', requireLogin, async (req, res) => {
         let username;
         let existingUser;
@@ -42,6 +28,8 @@ module.exports = (app) => {
         res.json({ username });
     });
 
+    // API: passwordReset
+    // Used in: PasswordReset.jsx
     app.post('/auth/password_reset', async (req, res) => {
         const { email, currentPassword, newPassword } = req.body;
         try {
@@ -67,6 +55,8 @@ module.exports = (app) => {
         }
     });
 
+    // API: createUser
+    // Used in: SignUp.jsx, StudyNewWizard.jsx
     app.post('/auth/create_user', async (req, res) => {
         try {
             const { firstName, lastName, password, email, role } = req.body;
@@ -79,7 +69,7 @@ module.exports = (app) => {
 
 
             let existingUser;
-            
+
             if (username === "") {
                 do {
                     username = generateUsername();
@@ -111,8 +101,8 @@ module.exports = (app) => {
         }
     });
 
-
-
+    // API: loginUser
+    // Used in: Login.jsx
     app.post('/auth/login', (req, res, next) => {
         passport.authenticate('local', (err, user, info) => {
             if (err) {
@@ -130,6 +120,8 @@ module.exports = (app) => {
         })(req, res, next);
     });
 
+    // API: 
+    // Used in:
     app.get('/auth/logout', requireLogin, (req, res) => {
         req.logout((err) => {
             if (err) {
@@ -139,15 +131,17 @@ module.exports = (app) => {
         });
     });
 
-       app.get("/auth/current_user", async (req, res) => {
+    // API: fetchUser
+    // Used in: DiscussionBoard.jsx, ClarificationModal.jsx, App.jsx, Header.jsx, Home.jsx
+    app.get("/auth/current_user", async (req, res) => {
         const currentUser = req.user;
-    
+
         if (!currentUser) {
             return res.send(null);
         }
-    
+
         const currentUserId = currentUser._id;
-        
+
         try {
             const user = await User.findById(currentUserId)
                 .populate({
@@ -168,6 +162,9 @@ module.exports = (app) => {
             res.status(400).send(err);
         }
     });
+
+    // API: 
+    // Used in:
     app.get("/auth/all_users", async (req, res) => {
         try {
             const allUsers = await User.find();
@@ -176,6 +173,9 @@ module.exports = (app) => {
             return next(err);
         }
     });
+
+    // API: useLazyCheckUsernameAvailabilityQuery
+    // Used in: StudyParticipants.jsx
     app.post('/auth/check_user', async (req, res) => {
         const { checkUser } = req.body;
         try {

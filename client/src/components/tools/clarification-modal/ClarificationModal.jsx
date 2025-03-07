@@ -5,8 +5,6 @@ import Comment from '../../discussion-board/Comment';
 import { Form, Field } from "react-final-form";
 
 const ClarificationModal = ({ isOpen, toggle, selectedStudyResponseId, notification }) => {
-    console.log("ClarificationModal: ", selectedStudyResponseId);
-
     const { data: studyResponse, isLoading: isLoadingStudyResponse, error: errorStudyResponse } = useFetchStudyResponseQuery({ studyResponseId: selectedStudyResponseId });
     const { data: currentUser, error: errorUser, isLoading: isLoadingUser } = useFetchUserQuery();
     const [createComment, { error: errorComment, isLoading: isLoadingComment }] = useCreateCommentMutation();
@@ -22,9 +20,9 @@ const ClarificationModal = ({ isOpen, toggle, selectedStudyResponseId, notificat
         return <div>Error: {errorStudyResponse?.data || errorUser?.data || errorComment?.data || errorUpdateNotification?.data || errorCreateNotification?.data}</div>;
     }
 
-    console.log("CM data: ", studyResponse);
+    /*console.log("CM data: ", studyResponse);
     console.log("CM currentUser:", currentUser)
-    console.log("CM notification: ", notification)
+    console.log("CM notification: ", notification)*/
 
     const stripHtmlTags = (html) => {
         return html.replace(/<\/?[^>]+(>|$)/g, "");

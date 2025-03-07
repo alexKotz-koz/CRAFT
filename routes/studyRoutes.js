@@ -20,6 +20,7 @@ Current implementation of StudyTask includes two discriminators. All routes curr
 module.exports = (app) => {
     // Create a new study
     // API: useCreateStudyMutation
+    // Used in: StudyNewWizard.jsx
     app.post('/api/study/new', requireLogin, requireFacilitatorPermissions, async (req, res) => {
 
         const { name, description, type, participants, tasks } = req.body;
@@ -80,6 +81,7 @@ module.exports = (app) => {
 
     // Create a new Initial Response to the study
     // API: useCreateStudyResponseMutation
+    // Used in: StudyResponse.jsx
     app.post('/api/study/response', requireLogin, async (req, res) => {
 
         const { studyId, taskId, responses, participant, dateCreated } = req.body;
@@ -133,6 +135,7 @@ module.exports = (app) => {
 
     // Get all studies that are associated with the current user
     // API: useFetchStudiesQuery
+    // Used in: Home.jsx
     app.get('/api/study/my_studies', requireLogin, async (req, res) => {
         let studies;
         switch (req.user.role) {
@@ -153,6 +156,7 @@ module.exports = (app) => {
 
     // Get a study by a studyId
     // API: useFetchStudyQuery
+    // Used in: StudyDashboard.jsx, StudyResponse.jsx, StudyResponseWizard.jsx, Study.jsx
     app.get('/api/study/:studyId', requireLogin, async (req, res) => {
         const { studyId } = req.params;
         const userId = req.user._id;
@@ -207,8 +211,10 @@ module.exports = (app) => {
             res.status(422).send({ error: "Failed to fetch study", details: err.message });
         }
     });
+    
     //Get all comments for a specific study
     // API: useFetchStudyCommentsQuery
+    // Used in: StudyDashboard.jsx
     app.get('/api/study/:studyId/comments', requireLogin, async (req, res) => {
         const { studyId } = req.params;
         try {
@@ -221,6 +227,8 @@ module.exports = (app) => {
         }
     });
 
+    //API: fetchTask
+    //Used in: DiscussionBoard.jsx, StudyResponse.jsx
     app.get('/api/study/task/:taskId', requireLogin, async (req, res) => {
         const { taskId } = req.params;
         //console.log("taskID: ", taskId)
@@ -249,6 +257,8 @@ module.exports = (app) => {
 
     });
 
+    // API: fetchStudyTasks
+    // Used in: DiscussionBoardLanding.jsx
     app.get('/api/study/tasks/:studyId', requireLogin, async (req, res) => {
         const { studyId } = req.params;
         try {
