@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useFetchUserQuery } from "../store";
-import { GoBell } from "react-icons/go";
+import { GoBell, GoBug } from "react-icons/go";
 import HeaderNotificationCard from "./tools/HeaderNotificationCard";
 import ClarificationModal from "./tools/clarification-modal/ClarificationModal";
 
@@ -55,6 +55,16 @@ const Header = ({ user }) => {
 
         return (
             <div className="d-flex align-items-center justify-content-center">
+                <li className="nav-item ms-3 me-3">
+                    <a 
+                        href="https://forms.gle/3E1bLCKU7Teom9Ve9" 
+                        target="_blank" 
+                        rel="noopener noreferrer" //https://stackoverflow.com/questions/50709625/link-with-target-blank-and-rel-noopener-noreferrer-still-vulnerable
+                        style={{ fontSize: "1.15rem" }} 
+                    >
+                        <GoBug className="text-dark" />
+                    </a>
+                </li>
                 {(data?.role === "facilitator" || data?.role === "admin") && (
                     <li className="nav-item">
                         <Link to="/study/new" className="nav-link active">New Study</Link>

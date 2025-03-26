@@ -114,7 +114,6 @@ const Comment = ({ comment, currentUser, studyId, location }) => {
         updateComment({ commentId: comment._id, update });
         setEditComment(false);
     };
-
     const userDisplayName = comment.user.role === 'participant' 
         ? comment.user.username 
         : `${comment.user.firstName} ${comment.user.lastName}`;
@@ -130,8 +129,6 @@ const Comment = ({ comment, currentUser, studyId, location }) => {
                         <div className='rounded-pill text-bg-light'>
                             <PiCertificate  /> Facilitator
                         </div>
-                        
-                        
                         }
                     </h6>
                     <small className="text-muted">{new Date(comment.dateCreated).toLocaleDateString()}</small>

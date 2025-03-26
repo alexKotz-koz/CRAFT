@@ -273,7 +273,7 @@ module.exports = (app) => {
     app.get('/api/discussion/:commentId/subcomment', requireLogin, async (req, res) => {
         const { commentId } = req.params;
         try {
-            const subcomments = await SubComment.find({ parentComment: commentId }).populate('user', 'username avatar');
+            const subcomments = await SubComment.find({ parentComment: commentId }).populate('user', 'username avatar role');
             res.send(subcomments);
         } catch (err) {
             console.error("Error fetching subcomments:", err);
@@ -481,15 +481,13 @@ module.exports = (app) => {
     // Used in: ClarificationModal.jsx
     app.get('/api/discussion/studyResponse/:studyResponseId', requireLogin, async (req, res) => {
         const { studyResponseId } = req.params;
+        console.log("fetchStudyResponse: studyResponseId = ", studyResponseId);
+    
         try {
             const studyResponse = await StudyResponse.findOne({ 'responses._id': studyResponseId })
                 .populate({
                     path: 'responses',
                     populate: [
-                        {
-                            path: 'prompt',
-                            model: 'StudyPrompt'
-                        },
                         {
                             path: 'comments',
                             model: 'Comment',
@@ -509,14 +507,40 @@ module.exports = (app) => {
             if (!studyResponse) {
                 return res.status(404).send("StudyResponse not found");
             }
-            //console.log("StudyResponse:", studyResponse)
+    
             const matchingResponse = studyResponse.responses.find(response => response._id.toString() === studyResponseId);
             if (!matchingResponse) {
                 return res.status(404).send("Response not found in StudyResponse");
             }
     
+            // Check if the prompt ID contains "childPrompt"
+            const promptId = matchingResponse.prompt;
+            let prompt;
+    
+            if (typeof promptId === 'string' && promptId.includes('childPrompt')) {
+                // Extract the parent prompt ID and the child index
+                const [parentPromptId, childIndex] = promptId.split('-childPrompt-');
+                const parentPrompt = await mongoose.model('StudyPrompt').findById(parentPromptId);
+    
+                if (!parentPrompt || !parentPrompt.childPrompts || !parentPrompt.childPrompts[childIndex]) {
+                    return res.status(404).send("Child prompt not found");
+                }
+    
+                // Get the correct child prompt
+                prompt = parentPrompt.childPrompts[childIndex];
+            } else {
+                // Populate the prompt normally if it's not a child prompt
+                prompt = await mongoose.model('StudyPrompt').findById(promptId);
+                if (!prompt) {
+                    return res.status(404).send("Prompt not found");
+                }
+            }
+    
             const response = {
-                matchingResponse,
+                matchingResponse: {
+                    ...matchingResponse.toObject(),
+                    prompt // Include the resolved prompt
+                },
                 participant: studyResponse._participant,
                 study: studyResponse.study,
                 task: studyResponse.task,
