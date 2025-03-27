@@ -103,33 +103,23 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
     };
 
     const hasNotification = notifications.some((notification) => {
-        //console.log("note: ", notification)
         return notification.initialResponse === responseId && notification.status === 'clarify-pending-approval';
     });
-    //console.log("hasNotification: ", hasNotification)
 
     const usersNotifications = notifications.filter((notification) => notification.toUser._id === currentUser._id);
-    console.log("usersNotifications: ", usersNotifications);
-    //const initialResponseNotification = usersNotifications.find((notification) => notification.initialResponse === responseId);
+
     const initialResponseNotification = usersNotifications.find((notification) =>
         notification.initialResponse === responseId && notification.status === 'clarify-pending-approval'
     );
-    //console.log("initialResponseNotification: ", initialResponseNotification)
+
     let unApprovedInitialResponseNotification = false;
+
     if (initialResponseNotification) {
         unApprovedInitialResponseNotification = initialResponseNotification.status === 'clarify-pending-approval' ? true : false;
     }
 
-    /*const triggerClarification = () => {
-        setShowClarificationComment(true);
-    }*/
-
-
-
     const onSubmitUpdateComment = (commentContent) => {
         const notification = usersNotifications.find((notification) => notification.initialResponse === responseId);
-        //console.log("notification: ", notification)
-        //console.log("Study Response ID: ", responseId);
         const update = {
             commentContent: commentContent['update-comment'],
             notificationId: notification?._id ?? '',
@@ -140,6 +130,10 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
         refetchDiscussion();
 
     };
+
+    // CLARIFICATION REQUEST
+    // Creates new clarification request notification from the facilitator (current user) to the pariticipant
+    // Hides the comment textarea 
     const handleSubmitClarification = async () => {
         try {
             await createNotification({ postId: responseId, postType: 'initialResponse', notificationType: 'clarify', fromUser: currentUser._id, toUser: username, task: taskId });
@@ -148,24 +142,19 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
         }
         setShowClarificationComment(!showClarificationComment);
     };
+
+    // CLARIFICATION REQUEST
+    // Creates facilitator comment
+    // Hides the comment textarea
     const handleSubmitClarificationComment = async(commentContent) => {
         const comment = commentContent['facilitator-comment'];
         try {
             await createComment({ promptId, responseId, content: comment, studyId });
         } catch (error) {
             console.error("Error submitting clarification:", error);
-            // Handle the error appropriately, e.g., show a notification or set an error state
         }
         setShowClarificationComment(!showClarificationComment);
     }
-    /*const approveClarification = () => {
-        updateNotification({ responseId });
-    };*/
- 
-
-    // Div that colors the card based on notification status
-    //<div className={`card mb-2 border-left-only ${unApprovedInitialResponseNotification ? 'bg-warning-subtle' : ''}`}></div>
-
 
 
     return (
@@ -207,7 +196,10 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                         </Form>
 
                         : <p className="card-text mb-2">{response}</p>}
-                    {showClarificationComment && (
+                    
+                    
+                    { // CLARIFICATION REQUEST: Text area and buttons for submitting a clarification request comment
+                    showClarificationComment && (
                         <Form
                             onSubmit={handleSubmitClarificationComment}
                             render={({ handleSubmit }) => (
@@ -262,7 +254,8 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                             <GoCommentDiscussion className="mx-1" onClick={toggleComments} style={{ cursor: 'pointer' }} />
                         </div>
                     }
-                    {!isParticipant &&
+                    {//CLARIFICATION REQUEST: Icon to trigger the clarification request workflow and show the form for comment submission
+                    !isParticipant &&
                         <button
                             className={`ms-2 badge rounded-pill ${hasNotification ? 'text-bg-secondary' : 'text-bg-warning'}`}
                             onClick={handleSubmitClarification}

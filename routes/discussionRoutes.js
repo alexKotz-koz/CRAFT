@@ -554,6 +554,9 @@ module.exports = (app) => {
         }
     });
 
+    // Toggle visibility of comment
+    // API: hideComment
+    // Used in: Comment.jsx
     app.post('/api/discussion/hide-comment/:commentId', requireLogin, async (req, res) => {
         const {commentId} = req.params;
         const {state} = req.body;
