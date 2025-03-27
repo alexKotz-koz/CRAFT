@@ -9,7 +9,7 @@ const discussionApi = createApi({
     endpoints(builder) {
         return {
             fetchDiscussion: builder.query({
-                providesTags: ['vote', 'comment', 'subcomment', 'update-response'],
+                providesTags: ['vote', 'comment', 'subcomment', 'update-response', 'change-visibility'],
                 query: (taskId) => {
                     return {
                         url: `/discussion/${taskId}`,
@@ -118,6 +118,16 @@ const discussionApi = createApi({
                     };
                 },
             }),
+            hideComment: builder.mutation({
+                invalidatesTags: ['change-visibility', 'subcomment'],
+                query: ({commentId, state}) => {
+                    return {
+                        url: `/discussion/hide-comment/${commentId}`,
+                        method: 'POST',
+                        body: {state},
+                    };
+                },
+            }),
 
         };
 
@@ -137,5 +147,6 @@ export const {
     useUpdateCommentMutation,
     useUpdateNotificationMutation,
     useFetchStudyResponseQuery,
+    useHideCommentMutation,
 } = discussionApi;
 export { discussionApi };

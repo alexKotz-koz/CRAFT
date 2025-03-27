@@ -14,7 +14,8 @@ const BaseCommentSchema = new Schema({
     votes: [VoteSchema],
     dateCreated: { type: Date, default: Date.now },
     studyId: { type: Schema.Types.ObjectId, ref: 'Study', required: true },
-    previousComments: [PreviousCommentSchema]
+    previousComments: [PreviousCommentSchema],
+    visible: {type: Boolean, default: true},
 }, { discriminatorKey: 'kind', timestamps: true });
 
 // Create the base model

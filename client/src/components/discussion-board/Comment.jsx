@@ -3,27 +3,31 @@ import { Form, Field } from "react-final-form";
 
 import { GoArrowUp, GoArrowDown, GoPencil, GoReply } from "react-icons/go";
 import { PiCertificate } from "react-icons/pi";
+import { BiHide } from "react-icons/bi";
 
-import { useCreateCommentVoteMutation, useCreateSubCommentMutation, useFetchSubCommentsQuery, useUpdateCommentMutation } from "../../store";
+import { useCreateCommentVoteMutation, useCreateSubCommentMutation, useFetchSubCommentsQuery, useUpdateCommentMutation, useHideCommentMutation, useFetchDiscussionQuery } from "../../store";
 import '../../static/discussion-board.css';
 
-const Comment = ({ comment, currentUser, studyId, location }) => {
+const Comment = ({ comment, currentUser, studyId, location, taskId }) => {
     const [createVote, { error: errorVote, isLoading: isLoadingVote }] = useCreateCommentVoteMutation();
     const [createSubcomment, { error: errorSubcomment, isLoading: isLoadingSubcomment }] = useCreateSubCommentMutation();
     const [updateComment, { error: errorUpdateComment, isLoading: isLoadingUpdateComment }] = useUpdateCommentMutation();
+    const [hideComment, { error: errorHideComment, isLoading: isLoadingHideComment }] = useHideCommentMutation();
+
     const [subCommentContent, setSubCommentContent] = useState("");
     const [showReply, setShowReply] = useState(false);
     const [editComment, setEditComment] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
+    //const [isVisible, setIsVisible] = useState(comment.visible);
 
     const { data: subcomments, error: errorFetchSubcomments, isLoading: isLoadingFetchSubcomments } = useFetchSubCommentsQuery({ commentId: comment._id });
-
+    
     const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
 
-    useEffect(()=> {
-        if (location === 'discussion-board'){
+    useEffect(() => {
+        if (location === 'discussion-board') {
             setShowOptions(true);
-        } 
+        }
     }, [])
 
     let hasVotedComment = false;
@@ -39,12 +43,12 @@ const Comment = ({ comment, currentUser, studyId, location }) => {
         });
     }
 
-    if (isLoadingVote || isLoadingSubcomment || isLoadingFetchSubcomments) {
+    if (isLoadingVote || isLoadingSubcomment || isLoadingFetchSubcomments || isLoadingHideComment) {
         return <div>Loading...</div>;
     }
 
-    if (errorVote || errorSubcomment || errorFetchSubcomments) {
-        return <div>Error: {errorVote?.data || errorSubcomment?.data || errorFetchSubcomments?.data}</div>;
+    if (errorVote || errorSubcomment || errorFetchSubcomments || errorHideComment) {
+        return <div>Error: {errorVote?.data || errorSubcomment?.data || errorFetchSubcomments?.data || errorHideComment?.data}</div>;
     }
 
     const upVote = (commentId) => {
@@ -105,7 +109,7 @@ const Comment = ({ comment, currentUser, studyId, location }) => {
     const isCommentCreator = currentUser._id === comment.user._id;
     const originalComment = comment.content;
 
-    const onSubmitUpdateComment =  (values) => {
+    const onSubmitUpdateComment = (values) => {
         const update = {
             commentContent: values['update-comment'],
             notificationId: '', // currently no logic to handle notifications related to the comments
@@ -114,8 +118,14 @@ const Comment = ({ comment, currentUser, studyId, location }) => {
         updateComment({ commentId: comment._id, update });
         setEditComment(false);
     };
-    const userDisplayName = comment.user.role === 'participant' 
-        ? comment.user.username 
+
+    const handleHideComment = (commentId, state) => {
+        hideComment({ commentId, state: !state, taskId });
+        //setIsVisible(!state);
+    };
+
+    const userDisplayName = comment.user.role === 'participant'
+        ? comment.user.username
         : `${comment.user.firstName} ${comment.user.lastName}`;
 
     return (
@@ -125,38 +135,54 @@ const Comment = ({ comment, currentUser, studyId, location }) => {
                     <h6 className="card-title">
                         <img src={comment.user.avatar} alt={`${comment.user.username}'s avatar`} className="avatar-img-header mr-2" />
                         {userDisplayName}
-                        {comment.user.role !== 'participant' && 
-                        <div className='rounded-pill text-bg-light'>
-                            <PiCertificate  /> Facilitator
-                        </div>
+                        {comment.user.role !== 'participant' &&
+                            <div className='rounded-pill text-bg-light'>
+                                <PiCertificate /> Facilitator
+                            </div>
                         }
                     </h6>
                     <small className="text-muted">{new Date(comment.dateCreated).toLocaleDateString()}</small>
                 </div>
                 <div className="d-inline justify-content-start align-items-start mb-1">
-                    {editComment ?
-                        <Form
-                            onSubmit={onSubmitUpdateComment}
-                            initialValues={{ 'update-comment': originalComment }}
-                            render={({ handleSubmit }) => (
-                                <form onSubmit={handleSubmit} className="needs-validation mb-3">
-                                    <Field
-                                        name="update-comment"
-                                        component="textarea"
-                                        type="text"
-                                        className="form-control"
-                                    />
-                                    <Field name="update-comment">
-                                        {({ meta }) => meta.error && meta.touched && <span className="text-danger">{meta.error}</span>}
-                                    </Field>
-                                    <div>
-                                        <button type="submit" className="mt-2 btn btn-success">Submit</button>
-                                        <button className="mt-2 ms-2 btn btn-secondary" onClick={() => setEditComment(!editComment)}>Cancel</button>
-                                    </div>
-                                </form>
-                            )}
-                        />
-                        : <p className="card-text mb-2">{originalComment}</p>}
+                    {comment.visible ? (
+                        editComment ? (
+                            <Form
+                                onSubmit={onSubmitUpdateComment}
+                                initialValues={{ 'update-comment': originalComment }}
+                                render={({ handleSubmit }) => (
+                                    <form onSubmit={handleSubmit} className="needs-validation mb-3">
+                                        <Field
+                                            name="update-comment"
+                                            component="textarea"
+                                            type="text"
+                                            className="form-control"
+                                        />
+                                        <Field name="update-comment">
+                                            {({ meta }) => meta.error && meta.touched && <span className="text-danger">{meta.error}</span>}
+                                        </Field>
+                                        <div>
+                                            <button type="submit" className="mt-2 btn btn-success">Submit</button>
+                                            <button
+                                                type="button"
+                                                className="mt-2 ms-2 btn btn-secondary"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    setEditComment(false);
+                                                }}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </form>
+                                )}
+                            />
+                        ) : (
+                            <p className="card-text mb-2">{originalComment}</p>
+                        )
+                    ) : (
+                        <p className="card-text mb-2 bg-secondary">This comment was hidden by the facilitator</p>
+                    )}
+
                 </div>
                 <div className="d-flex align-items-center justify-content-start">
                     {(!isCommentCreator && showOptions) && (
@@ -190,6 +216,16 @@ const Comment = ({ comment, currentUser, studyId, location }) => {
                                 <GoPencil />
                             </span>
                             <span>Edit</span>
+                        </button>
+                    }
+                    {!isParticipant &&
+                        <button
+                            className={`ms-2 badge rounded-pill ${comment.visible? 'text-bg-light' : 'text-bg-info'}`}
+                            onClick={() => handleHideComment(comment._id, comment.visible)}
+                        >
+                            <span>
+                                <BiHide />
+                            </span>
                         </button>
                     }
                 </div>

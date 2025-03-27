@@ -55,4 +55,5 @@ export {
   useUpdateCommentMutation,
   useUpdateNotificationMutation,
   useFetchStudyResponseQuery,
+  useHideCommentMutation
 } from './apis/discussionApi';

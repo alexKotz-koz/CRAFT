@@ -418,7 +418,7 @@ module.exports = (app) => {
                 const comment = await Comment.findOneAndUpdate(
                     { '_id': commentId },
                     { $set: { 'content': commentContent } },
-                    { new: true }
+                    { new: true } // returns the new comment
                 )
                 if (!comment) {
                     return res.status(404).send({ error: 'Comment not found' });
@@ -554,5 +554,21 @@ module.exports = (app) => {
         }
     });
 
+    app.post('/api/discussion/hide-comment/:commentId', requireLogin, async (req, res) => {
+        const {commentId} = req.params;
+        const {state} = req.body;
+
+        try {
+            const comment = await Comment.findOneAndUpdate(
+                { '_id': commentId },
+                { $set: { 'visible': state } },
+                { new: true } // returns the new comment
+            ) 
+            res.send({comment});       
+        } catch (err) {
+            console.error("Error deleteing comment: ", err);
+            res.status(422).send(err);
+        }
+    });
 
 };

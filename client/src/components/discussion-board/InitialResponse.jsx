@@ -287,7 +287,7 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                 {showComments && (
                     <div className="mt-3">
                         {comments.map((comment, idx) => (
-                            <Comment key={idx} comment={comment} currentUser={currentUser} studyId={studyId} location="discussion-board" />
+                            <Comment key={idx} comment={comment} currentUser={currentUser} studyId={studyId} location="discussion-board" taskId={taskId} />
                         ))}
                         {showNewComment && (
                             <form onSubmit={handleCommentSubmit} className="mt-3">
