@@ -5,6 +5,7 @@ import Comment from '../../discussion-board/Comment';
 import { Form, Field } from "react-final-form";
 
 const ClarificationModal = ({ isOpen, toggle, selectedStudyResponseId, notification }) => {
+    console.log("ClarificationModal selectedStudyResponseId: ", selectedStudyResponseId);
     const { data: studyResponse, isLoading: isLoadingStudyResponse, error: errorStudyResponse } = useFetchStudyResponseQuery({ studyResponseId: selectedStudyResponseId });
     const { data: currentUser, error: errorUser, isLoading: isLoadingUser, refetch } = useFetchUserQuery();
     const [createComment, { error: errorComment, isLoading: isLoadingComment }] = useCreateCommentMutation();

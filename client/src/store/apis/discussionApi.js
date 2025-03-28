@@ -110,7 +110,7 @@ const discussionApi = createApi({
             }),
             fetchStudyResponse: builder.query({
                 query: ({studyResponseId}) => {
-                    //console.log("fetchStudyResponse: ", studyResponseId);
+                    console.log("fetchStudyResponse: ", studyResponseId);
                     return {
                         url: `/discussion/studyResponse/${studyResponseId}`,
                         method: 'GET',
