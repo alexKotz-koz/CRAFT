@@ -29,21 +29,22 @@ const createStudyPrompts = async (questionList, studyId, userId) => {
     //const studyDir = createStudyDirectory(studyId);
     //console.log("transformContentList studyDir Created: ", studyDir);
     //console.log("transformContentList questionList: ", questionList);
-    
+
     const studyPrompts = [];
 
     for (const question of questionList) {
 
-        const tables = question.tables.map(table => ({
-            numColumns: table.numColumns,
-            numRows: table.numRows,
-            columnNames: table.columnNames,
-            values: table.values.flat().map(cell => ({
-                column: cell.column,
-                row: cell.row,
-                value: cell.value
-            }))
-        }));
+        const tables = Array.isArray(question.tables)
+            ? question.tables.map(table => ({
+                numColumns: table.numColumns,
+                numRows: table.numRows,
+                columnNames: table.columnNames,
+                values: table.values.flat().map(cell => ({
+                    column: cell.column,
+                    row: cell.row,
+                    value: cell.value
+                }))
+            })) : [];
 
         const studyPrompt = new StudyPrompt({
             study: studyId,
@@ -70,7 +71,7 @@ const extractStudyPromptsRaw = (studyPrompts) => {
     const studyPromptsRaw = [];
 
     studyPrompts.forEach((question) => {
-        
+
         studyPromptsRaw.push({ id: question._id, question: question.prompt });
 
         // Extract child prompts

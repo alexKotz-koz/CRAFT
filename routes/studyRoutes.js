@@ -9,6 +9,7 @@ const Comment = mongoose.model('Comment');
 const requireLogin = require('../middlewares/requireLogin');
 const requireFacilitatorPermissions = require('../middlewares/requireFacilitatorPermissions');
 const { createStudyDirectory, saveMediaFiles, createStudyPrompts, extractStudyPromptsRaw, createStudyTask, fetchStudyPrompts } = require('./studyNewUtils');
+const { forEach } = require('lodash');
 
 /* TODO:
 
@@ -23,7 +24,13 @@ module.exports = (app) => {
     // Used in: StudyNewWizard.jsx
     app.post('/api/study/new', requireLogin, requireFacilitatorPermissions, async (req, res) => {
 
-        const { name, description, type, participants, tasks } = req.body;
+        const { name, description, preface, type, participants, tasks } = req.body;
+        console.log("Create Study ROUTE")
+        console.log("name: ", name)
+        console.log("description: ", description);
+        console.log("type: ", type);
+        console.log("participants: ", participants);
+        console.log("tasks: ", tasks);
 
         const existingStudy = await Study.findOne({ name });
         if (existingStudy) {
@@ -33,6 +40,7 @@ module.exports = (app) => {
         const study = new Study({
             name,
             description,
+            preface,
             type,
             participants,
             _createdBy: req.user.id,
@@ -69,6 +77,47 @@ module.exports = (app) => {
 
                 await discussion.save();
                 study.tasks = studyTask._id;
+                await study.save();
+            } else if (type === 'app-review') {
+                for (const task of tasks) {
+                    // Create study prompts for the current task
+                    const studyPrompts = await createStudyPrompts(task.questions, study._id, req.user.id);
+            
+                    // Create a new StudyTaskAppReview for the current task
+                    const studyTask = new StudyTaskAppReview({
+                        study: study._id,
+                        participants,
+                        prompts: studyPrompts,
+                        instructions: task.instructions,
+                        name: task.name, // Include the task name
+                        _createdBy: req.user.id,
+                        _dateCreated: Date.now()
+                    });
+            
+                    await studyTask.save();
+            
+                    // Fetch prompts for discussion
+                    const studyPromptsForDiscussion = await fetchStudyPrompts(studyPrompts);
+                    const studyPromptsRaw = extractStudyPromptsRaw(studyPromptsForDiscussion);
+            
+                    // Create a discussion for the current task
+                    const discussion = new Discussion({
+                        study: study._id,
+                        task: studyTask._id,
+                        prompts: studyPromptsRaw,
+                        initialResponses: []
+                    });
+            
+                    await discussion.save();
+            
+                    // Add the task to the study's tasks array
+                    if (!study.tasks) {
+                        study.tasks = [];
+                    }
+                    study.tasks.push(studyTask._id);
+                }
+            
+                // Save the study with the updated tasks array
                 await study.save();
             }
             

@@ -6,6 +6,7 @@ const StudyParticipantSchema = require('./StudyParticipant');
 const StudySchema = new Schema({
     name: { type: String, required: true },
     description: { type: String, required: true },
+    preface: {type: String, required: true},
     participants: { type: [StudyParticipantSchema], required: true },
     type: {
         type: String,

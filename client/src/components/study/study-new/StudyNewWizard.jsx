@@ -64,6 +64,7 @@ const StudyNewWizard = () => {
             study = {
                 name: formValues.name,
                 description: formValues.description,
+                preface: formValues.preface,
                 type: studyType,
                 participants: formValues.emailList,
                 tasks: questionList
@@ -72,9 +73,10 @@ const StudyNewWizard = () => {
             study = {
                 name: formValues.name,
                 description: formValues.description,
+                preface: formValues.preface,
                 type: formValues.studyType,
                 participants: formValues.emailList,
-                tasks: formValues.taskList
+                tasks: formValues.contentList
             };
         }
 
@@ -105,6 +107,8 @@ const StudyNewWizard = () => {
         }
     };
     const renderContent = () => {
+        console.log("Current Stage: ", currentStage)
+        console.log("FormValues: ", formValues)
         switch (currentStage) {
             case 0:
                 return (

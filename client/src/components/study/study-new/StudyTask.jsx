@@ -14,6 +14,7 @@ const StudyContent = ({ onSubmit, onCancel, studyType, initialValues }) => {
 
 
     const handleContentSubmit = (values) => {
+        console.log("StudyTask handleContentSubmit values: ", values);
         setContentList(values || []);
         onSubmit({ contentList: values });
     };
@@ -21,7 +22,7 @@ const StudyContent = ({ onSubmit, onCancel, studyType, initialValues }) => {
     const renderComponent = () => {
         switch (studyType) {
             case 'app-review':
-                return <AppReview />
+                return <AppReview initialValues={initialValues} handleFormSubmit={handleContentSubmit} onCancel={onCancel} />
             case 'survey':
                 return <Survey initialValues={initialValues} handleContentSubmit={handleContentSubmit} onCancel={onCancel} />
             default:
