@@ -25,12 +25,6 @@ module.exports = (app) => {
     app.post('/api/study/new', requireLogin, requireFacilitatorPermissions, async (req, res) => {
 
         const { name, description, preface, type, participants, tasks } = req.body;
-        console.log("Create Study ROUTE")
-        console.log("name: ", name)
-        console.log("description: ", description);
-        console.log("type: ", type);
-        console.log("participants: ", participants);
-        console.log("tasks: ", tasks);
 
         const existingStudy = await Study.findOne({ name });
         if (existingStudy) {
@@ -50,9 +44,9 @@ module.exports = (app) => {
 
         try {
             await study.save();
-            
+
             if (type === 'survey') {
-                const studyPrompts= await createStudyPrompts(tasks, study._id, req.user.id);
+                const studyPrompts = await createStudyPrompts(tasks, study._id, req.user.id);
                 const studyTask = new StudyTaskSurvey({
                     study: study._id,
                     participants,
@@ -61,13 +55,11 @@ module.exports = (app) => {
                     _createdBy: req.user.id,
                     _dateCreated: Date.now()
                 });
-            
+
                 await studyTask.save();
 
                 const studyPromptsForDiscussion = await fetchStudyPrompts(studyPrompts);
-                //console.log("studyPromptsForDiscussion: ", studyPromptsForDiscussion);
                 const studyPromptsRaw = extractStudyPromptsRaw(studyPromptsForDiscussion);
-                //console.log("studyPromptsRaw: ", studyPromptsRaw)
                 const discussion = new Discussion({
                     study: study._id,
                     task: studyTask._id,
@@ -82,7 +74,7 @@ module.exports = (app) => {
                 for (const task of tasks) {
                     // Create study prompts for the current task
                     const studyPrompts = await createStudyPrompts(task.questions, study._id, req.user.id);
-            
+
                     // Create a new StudyTaskAppReview for the current task
                     const studyTask = new StudyTaskAppReview({
                         study: study._id,
@@ -93,13 +85,13 @@ module.exports = (app) => {
                         _createdBy: req.user.id,
                         _dateCreated: Date.now()
                     });
-            
+
                     await studyTask.save();
-            
+
                     // Fetch prompts for discussion
                     const studyPromptsForDiscussion = await fetchStudyPrompts(studyPrompts);
                     const studyPromptsRaw = extractStudyPromptsRaw(studyPromptsForDiscussion);
-            
+
                     // Create a discussion for the current task
                     const discussion = new Discussion({
                         study: study._id,
@@ -107,20 +99,20 @@ module.exports = (app) => {
                         prompts: studyPromptsRaw,
                         initialResponses: []
                     });
-            
+
                     await discussion.save();
-            
+
                     // Add the task to the study's tasks array
                     if (!study.tasks) {
                         study.tasks = [];
                     }
                     study.tasks.push(studyTask._id);
                 }
-            
+
                 // Save the study with the updated tasks array
                 await study.save();
             }
-            
+
             res.send({ study });
         } catch (err) {
             console.error("Error creating study:", err);
@@ -131,9 +123,10 @@ module.exports = (app) => {
     // Create a new Initial Response to the study
     // API: useCreateStudyResponseMutation
     // Used in: StudyResponse.jsx
+    // *** Note: Uses users email to find and update records
     app.post('/api/study/response', requireLogin, async (req, res) => {
 
-        const { studyId, taskId, responses, participant, dateCreated } = req.body;
+        const { studyId, taskId, taskType, responses, participant, dateCreated } = req.body;
 
         const studyResponse = new StudyResponse({
             study: studyId,
@@ -149,33 +142,68 @@ module.exports = (app) => {
             // Update the Study document to add the response
             await Study.findByIdAndUpdate(studyId, { $push: { responses: studyResponse._id } });
 
-            await StudyTaskSurvey.findOneAndUpdate(
-                { _id: taskId, 'participants.email': req.user.email },
-                { $set: { 'participants.$.responded': true } }
-            );
-
-            // Check if all tasks have been completed by the participant
-            const tasks = await StudyTaskSurvey.find({ study: studyId });
-            const allTasksCompleted = tasks.every(task =>
-                task.participants.some(participant =>
-                    participant.email === req.user.email && participant.responded === true
-                )
-            );
-
-            if (allTasksCompleted) {
-                // Update the StudyParticipant.responded value to true
-                await Study.findOneAndUpdate(
-                    { _id: studyId, 'participants.email': req.user.email },
+            if (taskType === 'survey') {
+                await StudyTaskSurvey.findOneAndUpdate(
+                    { _id: taskId, 'participants.email': req.user.email },
                     { $set: { 'participants.$.responded': true } }
                 );
+
+                // Check if all tasks have been completed by the participant
+                const tasks = await StudyTaskSurvey.find({ study: studyId });
+                const allTasksCompleted = tasks.every(task =>
+                    task.participants.some(participant =>
+                        participant.email === req.user.email && participant.responded === true
+                    )
+                );
+
+                if (allTasksCompleted) {
+                    // Update the StudyParticipant.responded value to true
+                    await Study.findOneAndUpdate(
+                        { _id: studyId, 'participants.email': req.user.email },
+                        { $set: { 'participants.$.responded': true } }
+                    );
+                }
+
+                // Update the Discussion.initialResponses array with the new response
+                await Discussion.findOneAndUpdate(
+                    { task: taskId },
+                    { $push: { initialResponses: studyResponse._id } }
+                );
+
+                res.send(studyResponse);
+
+            } else if (taskType === 'app-review'){
+
+                await StudyTaskAppReview.findOneAndUpdate(
+                    {_id: taskId, 'participants.email': req.user.email},
+                    { $set: { 'participants.$.responded': true } }
+                );
+
+                const tasks = await StudyTaskAppReview.find({ study: studyId });
+                const allTasksCompleted = tasks.every(task =>
+                    task.participants.some(participant =>
+                        participant.email === req.user.email && participant.responded === true
+                    )
+                );
+
+                if (allTasksCompleted) {
+                    // Update the StudyParticipant.responded value to true
+                    await Study.findOneAndUpdate(
+                        { _id: studyId, 'participants.email': req.user.email },
+                        { $set: { 'participants.$.responded': true } }
+                    );
+                }
+
+                // Update the Discussion.initialResponses array with the new response
+                await Discussion.findOneAndUpdate(
+                    { task: taskId },
+                    { $push: { initialResponses: studyResponse._id } }
+                );
+
+                res.send(studyResponse);
             }
 
-            // Update the Discussion.initialResponses array with the new response
-            await Discussion.findOneAndUpdate(
-                { task: taskId },
-                { $push: { initialResponses: studyResponse._id } }
-            );
-            res.send(studyResponse);
+
         } catch (err) {
             console.error("Error creating initial study response:", err);
             res.status(422).send(err);
@@ -260,7 +288,7 @@ module.exports = (app) => {
             res.status(422).send({ error: "Failed to fetch study", details: err.message });
         }
     });
-    
+
     //Get all comments for a specific study
     // API: useFetchStudyCommentsQuery
     // Used in: StudyDashboard.jsx
@@ -280,18 +308,17 @@ module.exports = (app) => {
     //Used in: DiscussionBoard.jsx, StudyResponse.jsx
     app.get('/api/study/task/:taskId', requireLogin, async (req, res) => {
         const { taskId } = req.params;
-        //console.log("taskID: ", taskId)
         try {
             let task;
             task = await StudyTask.findById(taskId)
-                .populate({path: 'prompts', model: 'StudyPrompt'});
+                .populate({ path: 'prompts', model: 'StudyPrompt' });
             if (!task) {
                 task = await StudyTaskSurvey.findById(taskId)
-                    .populate({path: 'prompts', model: 'StudyPrompt'});
+                    .populate({ path: 'prompts', model: 'StudyPrompt' });
                 if (!task) {
                     task = await StudyTaskAppReview.findById(taskId)
-                        .populate({path: 'prompts', model: 'StudyPrompt'});
-                    if (!task){
+                        .populate({ path: 'prompts', model: 'StudyPrompt' });
+                    if (!task) {
                         return res.status(404).send("No Task Found");
                     }
                 }

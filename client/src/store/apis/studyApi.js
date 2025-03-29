@@ -12,7 +12,6 @@ const studyApi = createApi({
             createStudy: builder.mutation({
                 invalidatesTags: ['Study'],
                 query: (study) => {
-                    console.log("createStudyAPI study: ", study);
                     return {
                         url: '/study/new',
                         method: 'POST',
@@ -65,7 +64,6 @@ const studyApi = createApi({
             }),
             fetchStudyTasks: builder.query({
                 query: (studyId) => {
-                    console.log("api studyId", studyId)
                     return {
                         url: `/study/tasks/${studyId}`,
                         method: 'GET'

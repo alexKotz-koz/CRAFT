@@ -12,7 +12,6 @@ const StudyResponseWizard = ({ user }) => {
     const [respondedStatus, setRespondedStatus] = useState({});
 
     console.log(study)
-    console.log(user)
 
     useEffect(() => {
         if (study && study.tasks) {
@@ -28,6 +27,7 @@ const StudyResponseWizard = ({ user }) => {
             setRespondedStatus(status);
         }
     }, [study, user]);
+
     if (isLoadingStudy) {
         return <div>Loading...</div>;
     }
@@ -44,6 +44,8 @@ const StudyResponseWizard = ({ user }) => {
         return <div>No study data available</div>;
     }
 
+    //console.log("StudyResponseWizard responsedStatus: ", respondedStatus)
+    
     const taskChunks = study.tasks.reduce((resultArray, item, index) => {
         const chunkIndex = Math.floor(index / 4);
 
@@ -57,6 +59,8 @@ const StudyResponseWizard = ({ user }) => {
     }, []);
 
     const renderCompletedTaskCard = (status, taskId) => {
+        //console.log("StudyResponseWizard status: ", status)
+        //console.log("StudyResponseWizard taskID: ", taskId)
         switch (status) {
             case true:
                 return (
@@ -91,7 +95,7 @@ const StudyResponseWizard = ({ user }) => {
                 <div className="row" key={chunkIndex}>
                     <div className="card-group">
                         {chunk.map((task, index) => { 
-                            console.log("task: ", task)
+                            //console.log("task: ", task)
                             return (
                             <div className="col-3" key={index}>
                                 <div className="card p-3 h-100">

@@ -20,7 +20,7 @@ const Header = ({ user }) => {
     //console.log("Header -> user:", user)
 
     const renderClarificationModal = (studyResponseId, notification) => {
-        console.log("renderClarificationModal: ", studyResponseId);
+        //console.log("renderClarificationModal: ", studyResponseId);
 
         setSelectedStudyResponseId(studyResponseId);
         setNotification(notification);

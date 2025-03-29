@@ -78,45 +78,33 @@ const Home = () => {
         );
     };
 
-const renderFacilitator = () => {
-    return (
-        <div className="row">
-            {userStudies.map((study) => {
-                return (
-                    <StudyCard 
-                        key={study._id}
-                        cardIndex={study._id}
-                        cardName={study.name}
-                        cardDescription={study.description}
-                        content={facilitatorContent(study)}
-                    />
-                );
-            })}
-        </div>
-    );
-};
+    const renderFacilitator = () => {
+        return (
+            <div className="row">
+                {userStudies.map((study) => {
+                    return (
+                        <StudyCard
+                            key={study._id}
+                            cardIndex={study._id}
+                            cardName={study.name}
+                            cardDescription={study.description}
+                            content={facilitatorContent(study)}
+                        />
+                    );
+                })}
+            </div>
+        );
+    };
 
-// PARTICIPANT ///////////////////////////////////////////////////////////////////////////////////////////
+    // PARTICIPANT ///////////////////////////////////////////////////////////////////////////////////////////
 
-const handleViewDiscussion = async (studyId) => {
-    navigate(`/discussion/landing/${studyId}`)
-}
+    const handleViewDiscussion = async (studyId) => {
+        navigate(`/discussion/landing/${studyId}`)
+    }
 
-const renderCompletedStudyCard = (status, study) => {
-    const studyId = study._id;
-    switch (status) {
-        case true:
-            return (
-                <div className="card-footer w-100">
-                    <button
-                        className="btn btn-secondary text-decoration-none text-white w-100"
-                        onClick={() => handleViewDiscussion(studyId)}
-                    >
-                        View Discussions
-                    </button>
-                </div>
-            );
-        default:
+    const renderCompletedStudyCard = (status, study) => {
+        const studyId = study._id;
+        if (study.tasks.length > 1) {
             return (
                 <button
                     className="btn btn-success text-decoration-none text-white w-100 mt-auto"
@@ -125,42 +113,66 @@ const renderCompletedStudyCard = (status, study) => {
                     Open Study
                 </button>
             );
-    }
-};
+        } else {
+            switch (status) {
+                case true:
+                    return (
+                        <div className="card-footer w-100">
+                            <button
+                                className="btn btn-secondary text-decoration-none text-white w-100"
+                                onClick={() => handleViewDiscussion(studyId)}
+                            >
+                                View Discussions
+                            </button>
+                        </div>
+                    );
+                default:
+                    return (
+                        <button
+                            className="btn btn-success text-decoration-none text-white w-100 mt-auto"
+                            onClick={() => navigate(`/study/response/${studyId}`)}
+                        >
+                            Open Study
+                        </button>
+                    );
+            }
+        }
+
+    };
 
 
-const renderParticipant = () => {
+    const renderParticipant = () => {
+        return (
+            <div className="row">
+                {userStudies.map((study, studyIndex) => (
+                    <StudyCard
+                        key={studyIndex}
+                        cardIndex={studyIndex}
+                        cardName={study.name}
+                        cardDescription={study.description}
+                        content={renderCompletedStudyCard(respondedStatus[study._id], study)}
+                    />
+                ))}
+            </div>
+        );
+    };
+    const renderContent = () => {
+        switch (user.role) {
+            case 'facilitator':
+                return renderFacilitator();
+            case 'participant':
+                return renderParticipant();
+            default:
+                return <div>Invalid user role</div>;
+        }
+    };
+
     return (
-        <div className="row">
-            {userStudies.map((study, studyIndex) => (
-                <StudyCard
-                    key={studyIndex}
-                    cardIndex={studyIndex}
-                    cardName={study.name}
-                    cardDescription={study.description}
-                    content={renderCompletedStudyCard(respondedStatus[study._id], study)}
-                />
-            ))}
+        <div className="container py-2 px-5 text-start">
+            <h3 className='text-center mb-5'>My Studies</h3>
+            {renderContent()}
         </div>
     );
-};
-const renderContent = () => {
-    switch (user.role) {
-        case 'facilitator':
-            return renderFacilitator();
-        case 'participant':
-            return renderParticipant();
-        default:
-            return <div>Invalid user role</div>;
-    }
-};
-
-return (
-    <div className="container py-2 px-5 text-start">
-        <h3 className='text-center mb-5'>My Studies</h3>
-        {renderContent()}
-    </div>
-);
 };
 
 export default Home;

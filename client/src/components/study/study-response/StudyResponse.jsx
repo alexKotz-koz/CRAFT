@@ -19,7 +19,6 @@ const StudyResponse = ({ user }) => {
     if (errorTask || responseError) {
         return <div>Error: {responseError?.data.error || errorTask?.data.error}</div>;
     }
-
     const handleFormSubmit = async (values) => {
         const responses = Object.keys(values).map((key) => ({
             prompt: key,
@@ -30,6 +29,7 @@ const StudyResponse = ({ user }) => {
             studyId: task.study,
             taskId: taskId,
             responses,
+            taskType: task.taskType,
             participant: user._id,
             dateCreated: Date.now(),
         };
