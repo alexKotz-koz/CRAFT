@@ -39,7 +39,8 @@ export {
   useFetchStudyQuery,
   useFetchStudyCommentsQuery,
   useFetchTaskQuery,
-  useFetchStudyTasksQuery
+  useFetchStudyTasksQuery,
+  useFetchStudyPrefaceQuery
 } from './apis/studyApi';
 
 export {

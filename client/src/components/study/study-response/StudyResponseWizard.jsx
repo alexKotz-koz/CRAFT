@@ -11,7 +11,7 @@ const StudyResponseWizard = ({ user }) => {
     const { data: study, error: errorStudy, isLoading: isLoadingStudy, refetch: refetchStudy } = useFetchStudyQuery(studyId);
     const [respondedStatus, setRespondedStatus] = useState({});
 
-    console.log(study)
+    console.log("StudyResponseWizrd: ",study)
 
     useEffect(() => {
         if (study && study.tasks) {
@@ -95,7 +95,6 @@ const StudyResponseWizard = ({ user }) => {
                 <div className="row" key={chunkIndex}>
                     <div className="card-group">
                         {chunk.map((task, index) => { 
-                            //console.log("task: ", task)
                             return (
                             <div className="col-3" key={index}>
                                 <div className="card p-3 h-100">

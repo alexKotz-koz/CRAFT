@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useFetchUserQuery } from "../store";
 import { GoBell, GoBug } from "react-icons/go";
 import HeaderNotificationCard from "./tools/HeaderNotificationCard";
-import ClarificationModal from "./tools/clarification-modal/ClarificationModal";
+import ClarificationModal from "./tools/modals/ClarificationModal";
 
 const Header = ({ user }) => {
     const navigate = useNavigate();

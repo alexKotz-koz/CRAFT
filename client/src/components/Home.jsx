@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import ButtonLink from './tools/ButtonLink';
 import StudyCard from './tools/StudyCard';
+import PrefaceModal from './tools/modals/PrefaceModal';
 import { useFetchUserQuery, useFetchStudiesQuery } from "../store";
 import '../static/custom.css';
 
@@ -10,6 +11,12 @@ const Home = () => {
     const { data: user, error: userError, isLoading: isLoadingUser } = useFetchUserQuery();
     const { data: userStudies, error: studiesError, isLoading: isLoadingStudies } = useFetchStudiesQuery();
     const [respondedStatus, setRespondedStatus] = useState({});
+
+    const [prefaceModalOpen, setPrefaceModalOpen] = useState(false);
+    const [studyName, setStudyName] = useState("");
+    const [studyId, setStudyId] = useState("");
+    const [studyPreface, setStudyPreface] = useState("");
+
 
     // Participant: Upon initial render, get all studies associated with the logged in user && get the status (responded/not responded) for each study
     useEffect(() => {
@@ -36,7 +43,6 @@ const Home = () => {
     if (!user) {
         return <div>No user data available</div>;
     }
-
 
 
     // FACILITATOR ///////////////////////////////////////////////////////////////////////////////////////////
@@ -102,13 +108,41 @@ const Home = () => {
         navigate(`/discussion/landing/${studyId}`)
     }
 
+    const showPreface = (currentUser, study) => {
+        const participant = study.participants.find(p => p.username === currentUser);
+        const hasResponded = participant.responded;
+        if (hasResponded) {
+            return false
+        } else if (!hasResponded) {
+            return true
+        }
+    };
+
+    const showPrefaceModal = (study) => {
+        console.log("toggle", study)
+        setStudyName(study.name);
+        setStudyPreface(study.preface);
+        setStudyId(study._id);
+        setPrefaceModalOpen(!prefaceModalOpen);
+    }
+
     const renderCompletedStudyCard = (status, study) => {
         const studyId = study._id;
+        const currentUser = user.username;
+        
         if (study.tasks.length > 1) {
             return (
                 <button
                     className="btn btn-success text-decoration-none text-white w-100 mt-auto"
-                    onClick={() => navigate(`/study/response/${studyId}`)}
+                    onClick={
+                        () => {
+                            if (showPreface(currentUser, study)) {
+                                showPrefaceModal(study);
+                            } else {
+                                navigate(`/study/response/${studyId}`);
+                            }
+                        } 
+                    }
                 >
                     Open Study
                 </button>
@@ -171,6 +205,15 @@ const Home = () => {
         <div className="container py-2 px-5 text-start">
             <h3 className='text-center mb-5'>My Studies</h3>
             {renderContent()}
+            {prefaceModalOpen &&
+                <PrefaceModal 
+                    isOpen={prefaceModalOpen} 
+                    toggle={showPrefaceModal} 
+                    studyName={studyName} 
+                    studyId={studyId} 
+                    preface={studyPreface}
+                />
+            }
         </div>
     );
 };

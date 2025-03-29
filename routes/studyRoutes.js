@@ -355,5 +355,11 @@ module.exports = (app) => {
             console.error("Error fetching tasks: ", JSON.stringify(err));
             res.status(500).send(err);
         }
-    })
+    });
+
+    // API: fetchStudyPreface
+    // Used in: 
+    app.get('/api/study/:studyId/preface', requireLogin, async (req, res) => {
+
+    });
 };
