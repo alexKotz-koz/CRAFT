@@ -248,7 +248,8 @@ const Comment = ({ comment, currentUser, studyId, location, taskId }) => {
                     </form>
                 )}
                 {subcomments && subcomments.map((subcomment) => (
-                    <Comment key={subcomment._id} comment={subcomment} currentUser={currentUser} />
+                    
+                    <Comment key={subcomment._id} comment={subcomment} currentUser={currentUser} studyId={studyId} location="discussion-board" taskId={taskId} />
                 ))}
             </div>
         </div>
