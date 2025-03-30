@@ -43,8 +43,6 @@ const StudyResponseWizard = ({ user }) => {
     if (!study || !study.tasks) {
         return <div>No study data available</div>;
     }
-
-    //console.log("StudyResponseWizard responsedStatus: ", respondedStatus)
     
     const taskChunks = study.tasks.reduce((resultArray, item, index) => {
         const chunkIndex = Math.floor(index / 4);

@@ -1,33 +1,47 @@
 import React, { useState } from 'react';
-import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Spinner } from 'reactstrap';
 import { useFetchStudyResponseQuery, useFetchUserQuery, useCreateCommentMutation, useUpdateNotificationMutation, useCreateNotificationMutation } from '../../../store';
 import Comment from '../../discussion-board/Comment';
 import { Form, Field } from "react-final-form";
 
 const ClarificationModal = ({ isOpen, toggle, selectedStudyResponseId, notification }) => {
-    console.log("ClarificationModal selectedStudyResponseId: ", selectedStudyResponseId);
     const { data: studyResponse, isLoading: isLoadingStudyResponse, error: errorStudyResponse } = useFetchStudyResponseQuery({ studyResponseId: selectedStudyResponseId });
     const { data: currentUser, error: errorUser, isLoading: isLoadingUser, refetch } = useFetchUserQuery();
     const [createComment, { error: errorComment, isLoading: isLoadingComment }] = useCreateCommentMutation();
     const [updateNotification, { error: errorUpdateNotification, isLoading: isLoadingUpdateNotification }] = useUpdateNotificationMutation();
     const [createNotification, { error: errorCreateNotification, isLoading: isLoadingCreateNotification }] = useCreateNotificationMutation();
 
+    const [showFullPrompt, setShowFullPrompt] = useState(false); // State to toggle full prompt visibility
+
     if (isLoadingStudyResponse || isLoadingUser || isLoadingComment || isLoadingUpdateNotification || isLoadingCreateNotification) {
-        return <div>Loading...</div>;
+        return (
+            <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+                <Spinner color="primary" />
+            </div>
+        );
     }
 
     if (errorStudyResponse || errorUser || errorComment || errorUpdateNotification || errorCreateNotification) {
         return <div>Error: {errorStudyResponse?.data || errorUser?.data || errorComment?.data || errorUpdateNotification?.data || errorCreateNotification?.data}</div>;
     }
 
-    const stripHtmlTags = (html) => {
-        return html.replace(/<\/?[^>]+(>|$)/g, "");
+    const parseTextContent = (html) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        return doc.body.textContent || ''; // Extract plain text content
+    };
+
+    const parseFirstElementText = (html) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        return doc.body.firstChild ? doc.body.firstChild.textContent : '';
     };
 
     const studyId = studyResponse.study;
     const taskId = studyResponse.task;
     const dataPrompt = studyResponse.matchingResponse.prompt.prompt;
-    const prompt = stripHtmlTags(dataPrompt);
+    const fullPrompt = parseTextContent(dataPrompt); // Extract full plain text
+    const shortPrompt = parseFirstElementText(dataPrompt); // Extract text from the first element
     const { response, comments } = studyResponse.matchingResponse;
     const { username, avatar } = studyResponse.participant;
     const promptId = studyResponse.matchingResponse.prompt._id;
@@ -61,9 +75,22 @@ const ClarificationModal = ({ isOpen, toggle, selectedStudyResponseId, notificat
         }
     };
 
+    const toggleFullPrompt = () => {
+        setShowFullPrompt(!showFullPrompt); // Toggle the visibility of the full prompt
+    };
+
     return (
         <Modal isOpen={isOpen} toggle={toggle} centered backdrop='static'>
-            <ModalHeader toggle={toggle}>{prompt}</ModalHeader>
+            <ModalHeader toggle={toggle}>
+                {showFullPrompt ? fullPrompt : shortPrompt}
+                <button
+                    className="btn btn-link p-0 ms-2"
+                    onClick={toggleFullPrompt}
+                    style={{ textDecoration: 'none' }}
+                >
+                    {showFullPrompt ? "Show Less" : "Show Full Prompt"}
+                </button>
+            </ModalHeader>
             <ModalBody>
                 <div className='container-fluid'>
                     <div className='row'>
@@ -116,11 +143,10 @@ const ClarificationModal = ({ isOpen, toggle, selectedStudyResponseId, notificat
                 </div>
             </ModalBody>
             {!isParticipant &&
-            <ModalFooter>
-                <Button color='success' onClick={() => markNotificationAsRead()}>Mark as Read</Button>
-                <Button color='secondary' onClick={() => toggle()}>Cancel</Button>  
-            </ModalFooter>
-                
+                <ModalFooter>
+                    <Button color='success' onClick={() => markNotificationAsRead()}>Mark as Read</Button>
+                    <Button color='secondary' onClick={() => toggle()}>Cancel</Button>
+                </ModalFooter>
             }
         </Modal>
     );

@@ -4,6 +4,7 @@ import { Form, Field } from "react-final-form";
 import { GoArrowUp, GoArrowDown, GoPencil, GoReply } from "react-icons/go";
 import { PiCertificate } from "react-icons/pi";
 import { BiHide } from "react-icons/bi";
+import {Spinner} from "reactstrap";
 
 import { useCreateCommentVoteMutation, useCreateSubCommentMutation, useFetchSubCommentsQuery, useUpdateCommentMutation, useHideCommentMutation, useFetchDiscussionQuery } from "../../store";
 import '../../static/discussion-board.css';
@@ -21,7 +22,7 @@ const Comment = ({ comment, currentUser, studyId, location, taskId }) => {
     //const [isVisible, setIsVisible] = useState(comment.visible);
 
     const { data: subcomments, error: errorFetchSubcomments, isLoading: isLoadingFetchSubcomments } = useFetchSubCommentsQuery({ commentId: comment._id });
-    
+
     const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
 
     useEffect(() => {
@@ -44,7 +45,11 @@ const Comment = ({ comment, currentUser, studyId, location, taskId }) => {
     }
 
     if (isLoadingVote || isLoadingSubcomment || isLoadingFetchSubcomments || isLoadingHideComment) {
-        return <div>Loading...</div>;
+        return (
+            <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+                <Spinner color="primary" />
+            </div>
+        );
     }
 
     if (errorVote || errorSubcomment || errorFetchSubcomments || errorHideComment) {
@@ -220,7 +225,7 @@ const Comment = ({ comment, currentUser, studyId, location, taskId }) => {
                     }
                     {!isParticipant &&
                         <button
-                            className={`ms-2 badge rounded-pill ${comment.visible? 'text-bg-light' : 'text-bg-info'}`}
+                            className={`ms-2 badge rounded-pill ${comment.visible ? 'text-bg-light' : 'text-bg-info'}`}
                             onClick={() => handleHideComment(comment._id, comment.visible)}
                         >
                             <span>
@@ -248,7 +253,7 @@ const Comment = ({ comment, currentUser, studyId, location, taskId }) => {
                     </form>
                 )}
                 {subcomments && subcomments.map((subcomment) => (
-                    
+
                     <Comment key={subcomment._id} comment={subcomment} currentUser={currentUser} studyId={studyId} location="discussion-board" taskId={taskId} />
                 ))}
             </div>

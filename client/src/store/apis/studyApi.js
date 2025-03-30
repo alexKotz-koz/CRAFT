@@ -70,14 +70,6 @@ const studyApi = createApi({
                     }
                 }
             }),
-            fetchStudyPreface: builder.query({
-                query: (studyId) => {
-                    return {
-                        url: `/study/preface/${studyId}`,
-                        method: 'GET'
-                    }
-                }
-            })
         };
     }
 
@@ -90,6 +82,5 @@ export const {
     useFetchStudyCommentsQuery,
     useFetchTaskQuery,
     useFetchStudyTasksQuery,
-    useFetchStudyPrefaceQuery
 } = studyApi;
 export { studyApi };

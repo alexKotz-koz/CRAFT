@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useFetchUserQuery } from "../store";
 import { GoBell, GoBug } from "react-icons/go";
+import { Spinner } from "reactstrap";
 import HeaderNotificationCard from "./tools/HeaderNotificationCard";
 import ClarificationModal from "./tools/modals/ClarificationModal";
 
@@ -12,6 +13,17 @@ const Header = ({ user }) => {
     const [selectedStudyResponseId, setSelectedStudyResponseId] = useState("");
     const [notification, setNotification] = useState({});
 
+    if (isLoading) {
+        return (
+            <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+                <Spinner color="primary" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return <div>Error: {error?.data.error}</div>;
+    }
 
     const handleLogout = () => {
         navigate('/');
@@ -37,7 +49,7 @@ const Header = ({ user }) => {
 
     const renderLoggedIn = () => {
         if (!data) {
-            return null; 
+            return null;
         }
 
         let unreadNotificationCount = 0;
@@ -54,11 +66,11 @@ const Header = ({ user }) => {
         return (
             <div className="d-flex align-items-center justify-content-center">
                 <li className="nav-item ms-3 me-3">
-                    <a 
-                        href="https://forms.gle/3E1bLCKU7Teom9Ve9" 
-                        target="_blank" 
+                    <a
+                        href="https://forms.gle/3E1bLCKU7Teom9Ve9"
+                        target="_blank"
                         rel="noopener noreferrer" //https://stackoverflow.com/questions/50709625/link-with-target-blank-and-rel-noopener-noreferrer-still-vulnerable
-                        style={{ fontSize: "1.15rem" }} 
+                        style={{ fontSize: "1.15rem" }}
                     >
                         <GoBug className="text-dark" />
                     </a>
@@ -163,7 +175,7 @@ const Header = ({ user }) => {
                     toggle={renderClarificationModal}
                     selectedStudyResponseId={selectedStudyResponseId}
                     notification={notification}
-                    
+
                 />
             }
 

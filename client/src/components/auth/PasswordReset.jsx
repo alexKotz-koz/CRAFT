@@ -59,7 +59,7 @@ const PasswordReset = () => {
               ))}
               {submitError && <div className='alert alert-danger'>{submitError}</div>}
               {error && <div className='alert alert-danger'>{error.data.error}</div>}
-              <button type="submit" disabled={isLoading}>Reset Password</button>
+              <button className="btn btn-primary" type="submit" disabled={isLoading}>Reset Password</button>
             </form>
           )}
         />

@@ -19,6 +19,7 @@ const StudyResponse = ({ user }) => {
     if (errorTask || responseError) {
         return <div>Error: {responseError?.data.error || errorTask?.data.error}</div>;
     }
+    console.log(task)
     const handleFormSubmit = async (values) => {
         const responses = Object.keys(values).map((key) => ({
             prompt: key,
@@ -124,6 +125,7 @@ const StudyResponse = ({ user }) => {
 
         return (
             <div>
+                
                 <label className="form-label">{parsedMainPrompt}</label>
                 {parsedChildPrompts.length > 0 ? (
                     <div className="mb-3">
@@ -216,6 +218,10 @@ const StudyResponse = ({ user }) => {
 
     return (
         <div className='container mb-3'>
+            <h3>{task.name}</h3>
+                    <div className="p-4 mb-3 bg-light rounded">
+                <p style={{ whiteSpace: 'pre-wrap' }}>{task.instructions}</p>
+            </div>
             <Form
                 onSubmit={handleFormSubmit}
                 validate={validate}

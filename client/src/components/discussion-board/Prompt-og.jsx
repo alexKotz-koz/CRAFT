@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { GoChevronDown, GoChevronLeft } from 'react-icons/go';
 import InitialResponse from "./InitialResponse";
-import parse, { domToReact } from 'html-react-parser';
 
 function Prompt({ prompt, responses, notifications, promptIndex, studyId, currentUser, taskId }) {
     const [isExpanded, setIsExpanded] = useState(true);
-    const [showFullPrompt, setShowFullPrompt] = useState(false); // State to toggle full prompt visibility
-
     if (responses.length <= 0) {
         return <div>Error fetching responses for this discussion. Please contact administrative services for further assistance.</div>
     }
@@ -18,50 +15,6 @@ function Prompt({ prompt, responses, notifications, promptIndex, studyId, curren
     const handleClick = () => {
         setIsExpanded(!isExpanded);
     };
-
-    const toggleFullPrompt = () => {
-        setShowFullPrompt(!showFullPrompt); // Toggle the visibility of the full prompt
-    };
-
-    // Parse the HTML content of the prompt
-    const parseOptions = {
-        replace: ({ name, children }) => {
-            switch (name) {
-                case 'h1':
-                    return <h1>{domToReact(children)}</h1>;
-                case 'h2':
-                    return <h2>{domToReact(children)}</h2>;
-                case 'p':
-                    return <p>{domToReact(children)}</p>;
-                case 'b':
-                    return <b>{domToReact(children)}</b>;
-                case 'i':
-                    return <i>{domToReact(children)}</i>;
-                case 'u':
-                    return <u>{domToReact(children)}</u>;
-                case 'strike':
-                    return <strike>{domToReact(children)}</strike>;
-                case 'blockquote':
-                    return <blockquote>{domToReact(children)}</blockquote>;
-                case 'ol':
-                    return <ol>{domToReact(children)}</ol>;
-                case 'ul':
-                    return <ul>{domToReact(children)}</ul>;
-                case 'li':
-                    return <li>{domToReact(children)}</li>;
-                case 'a':
-                    return <a href={children[0]?.attribs?.href}>{domToReact(children)}</a>;
-                case 'img':
-                    return <img src={children[0]?.attribs?.src} alt="" />;
-                case 'div':
-                    return <div>{domToReact(children)}</div>;
-                default:
-                    return null;
-            }
-        }
-    };
-
-    const parsedPrompt = parse(prompt.question, parseOptions);
 
     const filteredResponses = responses.flatMap(responseObj => {
         return responseObj.responses
@@ -76,13 +29,13 @@ function Prompt({ prompt, responses, notifications, promptIndex, studyId, curren
     });
 
     return (
+        //So janky!!!! -- Using filteredResponse.length to ignore the questions that have a prompt followed by children questions (i.e. parentQuestion: "Please review the table below and answer the following questions"...)
         filteredResponses.length > 0 && (
         <div className="card bg-body-tertiary border border-tertiary p-2 rounded">
             <div className="card-body" onClick={handleClick}>
                 <div className="d-flex align-items-center">
-                    {/* Card Title */}
                     <h5 className="card-header fw-bolder" style={{ background: 'none' }}>
-                        {questionTitle} {/* Display truncated prompt as the title */}
+                        {questionTitle}
                     </h5>
                     <div className="ms-auto">
                         {isExpanded ? (
@@ -95,21 +48,6 @@ function Prompt({ prompt, responses, notifications, promptIndex, studyId, curren
             </div>
             {isExpanded && (
                 <div className="card-body">
-                    {/* Full Prompt Section */}
-                    <div className="mb-3">
-                        <div style={{ whiteSpace: 'pre-wrap' }}>
-                            {showFullPrompt ? parsedPrompt :''}
-                        </div>
-                        <button
-                            className="btn btn-link p-0"
-                            onClick={toggleFullPrompt}
-                            style={{ textDecoration: 'none' }}
-                        >
-                            {showFullPrompt ? "Show Less" : "Show Full Prompt"}
-                        </button>
-                    </div>
-
-                    {/* Responses Section */}
                     {filteredResponses.map((response, index) => {
                         const { username, avatar } = response._participant;
                         const dateCreated = response._dateCreated;

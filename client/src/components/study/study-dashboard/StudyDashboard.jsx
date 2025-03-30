@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Spinner } from "reactstrap";
 import { useLazyFetchDiscussionQuery, useFetchStudyCommentsQuery, useFetchStudyQuery } from "../../../store";
 import SimplePieChart from "./SimplePieChart";
 import TimeLinePlot from "./TimeLinePlot";
@@ -8,7 +9,7 @@ import StudyCard from "../../tools/StudyCard";
 const StudyDashboard = () => {
     const { studyId } = useParams();
     const navigate = useNavigate();
-    
+
     const { data: study, error: errorStudy, isLoading: isLoadingStudy } = useFetchStudyQuery(studyId);
     const { data: comments, error: errorComments, isLoading: isLoadingComments } = useFetchStudyCommentsQuery(studyId);
     const [fetchTaskDiscussion, { data: taskDiscussion, error: errorTaskDiscussion, isLoading: isLoadingTaskDiscussion }] = useLazyFetchDiscussionQuery();
@@ -23,13 +24,16 @@ const StudyDashboard = () => {
         }
     }, [study, fetchTaskDiscussion]);
 
-    if (isLoadingStudy || isLoadingComments) {
-        return <div>Loading...</div>;
+    if (isLoadingStudy || isLoadingComments || isLoadingTaskDiscussion) {
+        return (
+            <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+                <Spinner color="primary" />
+            </div>
+        );
     }
 
-    if (errorStudy || errorComments) {
-        console.log("Error: ", errorStudy);
-        return <div>Error: {errorStudy.data || errorComments.data}</div>;
+    if (errorStudy || errorComments || errorTaskDiscussion) {
+        return <div>Error: {errorStudy.data || errorComments.data || errorTaskDiscussion?.data}</div>;
     }
 
     const { dateCreated, dateModified, description, instructions, name, participants, prompts, responses } = study;
@@ -46,7 +50,7 @@ const StudyDashboard = () => {
     comments.forEach(comment => {
         const commentDate = new Date(comment.dateCreated);
         const year = commentDate.getFullYear();
-        const month = commentDate.getMonth() + 1; 
+        const month = commentDate.getMonth() + 1;
         const day = commentDate.getDate();
         const hour = commentDate.getHours();
 
@@ -67,13 +71,13 @@ const StudyDashboard = () => {
     aggregatedCommentData.sort((a, b) => new Date(a.date) - new Date(b.date));
 
 
-    const renderResponded = ({task}) => {
-        return(
+    const renderResponded = ({ task }) => {
+        return (
             <p>Responded: {task.participants.filter(p => p.responded).length}/{task.participants.length}</p>
         );
     };
 
-    const renderDiscussions = ({promptsWithDiscussion}) => {
+    const renderDiscussions = ({ promptsWithDiscussion }) => {
         return (
             <p className={promptsWithDiscussion > 0 ? 'text-success' : 'text-danger'}>Discussions: {promptsWithDiscussion}</p>
         );
@@ -98,10 +102,10 @@ const StudyDashboard = () => {
     };
 
     const renderTaskContent = (task, link, promptsWithDiscussion) => {
-        return(
+        return (
             <>
                 {renderResponded({ task })}
-                {renderDiscussions({promptsWithDiscussion})}
+                {renderDiscussions({ promptsWithDiscussion })}
                 {renderViewDiscussion({ link })}
                 {renderFooter({ task })}
             </>
@@ -132,12 +136,12 @@ const StudyDashboard = () => {
                     }
 
                     return (
-                        <StudyCard 
+                        <StudyCard
                             key={idx}
                             cardIndex={idx}
                             cardName={task?.name ?? study.name}
                             cardDescription={task.instructions}
-                            content={renderTaskContent(task,discussionLink,promptsWithDiscussion)}
+                            content={renderTaskContent(task, discussionLink, promptsWithDiscussion)}
                         />
                     );
                 })}

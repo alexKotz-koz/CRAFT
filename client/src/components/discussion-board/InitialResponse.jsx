@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { GoArrowUp, GoArrowDown, GoCommentDiscussion, GoReply, GoLightBulb, GoPencil } from "react-icons/go";
 import { Form, Field } from "react-final-form";
+import { Spinner } from "reactstrap";
 import { useCreateVoteMutation, useCreateCommentMutation, useCreateNotificationMutation, useUpdateCommentMutation, useFetchDiscussionQuery, useUpdateNotificationMutation } from "../../store";
 import Comment from "./Comment";
 import '../../static/discussion-board.css';
@@ -33,7 +34,11 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
     }
 
     if (isLoadingVote || isLoadingComment || isLoadingCreateNotification || isLoadingUpdateComment || isLoadingUpdateNotification) {
-        return <div>Loading...</div>;
+        return (
+            <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+                <Spinner color="primary" />
+            </div>
+        );
     }
 
     if (errorVote || errorComment || errorCreateNotification || errorUpdateComment || errorUpdateNotification) {
@@ -146,7 +151,7 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
     // CLARIFICATION REQUEST
     // Creates facilitator comment
     // Hides the comment textarea
-    const handleSubmitClarificationComment = async(commentContent) => {
+    const handleSubmitClarificationComment = async (commentContent) => {
         const comment = commentContent['facilitator-comment'];
         try {
             await createComment({ promptId, responseId, content: comment, studyId });
@@ -196,33 +201,33 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                         </Form>
 
                         : <p className="card-text mb-2">{response}</p>}
-                    
-                    
+
+
                     { // CLARIFICATION REQUEST: Text area and buttons for submitting a clarification request comment
-                    showClarificationComment && (
-                        <Form
-                            onSubmit={handleSubmitClarificationComment}
-                            render={({ handleSubmit }) => (
-                                <form onSubmit={handleSubmit} className="needs-validation mb-3">
-                                    <Field
-                                        name="facilitator-comment"
-                                        component="textarea"
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Please specify what part of the response needs clarification..."
-                                    />
-                                    <Field name="facilitator-comment">
-                                        {({ meta }) => meta.error && meta.touched && <span className="text-danger">{meta.error}</span>}
-                                    </Field>
-                                    <div>
-                                        <button type="submit" className="mt-2 btn btn-success">Submit</button>
-                                        <button className="mt-2 ms-2 btn btn-secondary" onClick={() => setShowClarificationComment(!showClarificationComment)}>Cancel</button>
-                                    </div>
-                                </form>
-                            )}
-                        >
-                        </Form>
-                    )}
+                        showClarificationComment && (
+                            <Form
+                                onSubmit={handleSubmitClarificationComment}
+                                render={({ handleSubmit }) => (
+                                    <form onSubmit={handleSubmit} className="needs-validation mb-3">
+                                        <Field
+                                            name="facilitator-comment"
+                                            component="textarea"
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="Please specify what part of the response needs clarification..."
+                                        />
+                                        <Field name="facilitator-comment">
+                                            {({ meta }) => meta.error && meta.touched && <span className="text-danger">{meta.error}</span>}
+                                        </Field>
+                                        <div>
+                                            <button type="submit" className="mt-2 btn btn-success">Submit</button>
+                                            <button className="mt-2 ms-2 btn btn-secondary" onClick={() => setShowClarificationComment(!showClarificationComment)}>Cancel</button>
+                                        </div>
+                                    </form>
+                                )}
+                            >
+                            </Form>
+                        )}
 
                 </div>
                 <div className="d-flex align-items-center justify-content-start">
@@ -255,7 +260,7 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                         </div>
                     }
                     {//CLARIFICATION REQUEST: Icon to trigger the clarification request workflow and show the form for comment submission
-                    !isParticipant &&
+                        !isParticipant &&
                         <button
                             className={`ms-2 badge rounded-pill ${hasNotification ? 'text-bg-secondary' : 'text-bg-warning'}`}
                             onClick={handleSubmitClarification}

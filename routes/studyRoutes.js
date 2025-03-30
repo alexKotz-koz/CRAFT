@@ -213,6 +213,7 @@ module.exports = (app) => {
     // Get all studies that are associated with the current user
     // API: useFetchStudiesQuery
     // Used in: Home.jsx
+     // *** Note: Uses users email to find participants studies
     app.get('/api/study/my_studies', requireLogin, async (req, res) => {
         let studies;
         switch (req.user.role) {
@@ -355,11 +356,5 @@ module.exports = (app) => {
             console.error("Error fetching tasks: ", JSON.stringify(err));
             res.status(500).send(err);
         }
-    });
-
-    // API: fetchStudyPreface
-    // Used in: 
-    app.get('/api/study/:studyId/preface', requireLogin, async (req, res) => {
-
     });
 };

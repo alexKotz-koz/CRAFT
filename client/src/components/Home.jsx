@@ -4,6 +4,7 @@ import ButtonLink from './tools/ButtonLink';
 import StudyCard from './tools/StudyCard';
 import PrefaceModal from './tools/modals/PrefaceModal';
 import { useFetchUserQuery, useFetchStudiesQuery } from "../store";
+import { Spinner } from 'reactstrap';
 import '../static/custom.css';
 
 const Home = () => {
@@ -33,7 +34,11 @@ const Home = () => {
     }, [userStudies, user]);
 
     if (isLoadingUser || isLoadingStudies) {
-        return <div>Loading...</div>;
+        return (
+            <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+                <Spinner color="primary" />
+            </div>
+        );
     }
 
     if (userError || studiesError) {
@@ -77,7 +82,7 @@ const Home = () => {
     const facilitatorContent = (study) => {
         return (
             <>
-                {facilitatorCompletedStudies({ study })}
+                {/*This code is present in the study dashboard cards and clutters this card facilitatorCompletedStudies({ study })*/}
                 {facilitatorViewDashboard({ link: `/study/dashboard/${study._id}` })}
                 {facilitatorFooter({ study })}
             </>
@@ -109,6 +114,7 @@ const Home = () => {
     }
 
     const showPreface = (currentUser, study) => {
+        console.log("Show Preface: ", currentUser)
         const participant = study.participants.find(p => p.username === currentUser);
         const hasResponded = participant.responded;
         if (hasResponded) {
@@ -119,7 +125,6 @@ const Home = () => {
     };
 
     const showPrefaceModal = (study) => {
-        console.log("toggle", study)
         setStudyName(study.name);
         setStudyPreface(study.preface);
         setStudyId(study._id);
@@ -129,8 +134,8 @@ const Home = () => {
     const renderCompletedStudyCard = (status, study) => {
         const studyId = study._id;
         const currentUser = user.username;
-        
-        if (study.tasks.length > 1) {
+        console.log("here")
+        if (study.tasks.length >= 1) {
             return (
                 <button
                     className="btn btn-success text-decoration-none text-white w-100 mt-auto"
@@ -141,7 +146,7 @@ const Home = () => {
                             } else {
                                 navigate(`/study/response/${studyId}`);
                             }
-                        } 
+                        }
                     }
                 >
                     Open Study
@@ -206,11 +211,11 @@ const Home = () => {
             <h3 className='text-center mb-5'>My Studies</h3>
             {renderContent()}
             {prefaceModalOpen &&
-                <PrefaceModal 
-                    isOpen={prefaceModalOpen} 
-                    toggle={showPrefaceModal} 
-                    studyName={studyName} 
-                    studyId={studyId} 
+                <PrefaceModal
+                    isOpen={prefaceModalOpen}
+                    toggle={showPrefaceModal}
+                    studyName={studyName}
+                    studyId={studyId}
                     preface={studyPreface}
                 />
             }

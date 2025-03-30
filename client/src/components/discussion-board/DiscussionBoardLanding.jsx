@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-
+import { Spinner } from "reactstrap";
 import { useFetchStudyTasksQuery } from "../../store";
 import StudyCard from "../tools/StudyCard";
 
@@ -9,7 +9,11 @@ const DiscussionBoardLanding = () => {
     const { data: tasks, isLoading: isLoadingStudyTasks, error: errorStudyTasks } = useFetchStudyTasksQuery(studyId);
 
     if (isLoadingStudyTasks) {
-        return <div>Loading...</div>;
+        return (
+            <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+                <Spinner color="primary" />
+            </div>
+        );
     }
 
     if (errorStudyTasks) {
@@ -18,15 +22,15 @@ const DiscussionBoardLanding = () => {
 
     const renderTaskContent = (link) => {
 
-        return(
+        return (
             <div className="card-footer w-100">
-            <button
-                className="btn btn-secondary text-decoration-none text-white w-100"
-                onClick={() => navigate(link)}
-            >
-                Open Discussion
-            </button>
-        </div>
+                <button
+                    className="btn btn-secondary text-decoration-none text-white w-100"
+                    onClick={() => navigate(link)}
+                >
+                    Open Discussion
+                </button>
+            </div>
         );
     };
 

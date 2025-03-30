@@ -22,7 +22,6 @@ const StudyMeta = ({ onSubmit, initialValues, setStudyType }) => {
     setStudyType(updatedValues.studyType);
     onSubmit(updatedValues);
   }
-console.log("initialValues: ", initialValues)
   return (
     <div className="bg-body-tertiary border border-tertiary p-2 rounded">
       <h3 className="text-center">Create New Study</h3>

@@ -30,6 +30,7 @@ module.exports = (app) => {
 
     // API: passwordReset
     // Used in: PasswordReset.jsx
+     // *** Note: Uses users email to find and update records
     app.post('/auth/password_reset', async (req, res) => {
         const { email, currentPassword, newPassword } = req.body;
         try {
@@ -176,6 +177,7 @@ module.exports = (app) => {
 
     // API: useLazyCheckUsernameAvailabilityQuery
     // Used in: StudyParticipants.jsx
+    // *** Note: Uses users email to find existing User account
     app.post('/auth/check_user', async (req, res) => {
         const { checkUser } = req.body;
         try {

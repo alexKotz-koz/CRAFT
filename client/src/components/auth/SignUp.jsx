@@ -3,11 +3,24 @@ import { Link, useNavigate } from "react-router-dom";
 import SignUpField from "../form/FormField";
 import FORM_FIELDS from "../form/signupFormFields";
 import { useCreateUserMutation } from "../../store";
+import { Spinner } from "reactstrap";
 
 const SignUp = () => {
     const navigate = useNavigate();
 
     const [createUser, { isLoading, error }] = useCreateUserMutation();
+    
+    if (isLoading){
+        return (
+            <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+            <Spinner color="primary" />
+        </div>
+        );
+    }
+
+    if (error) {
+        return <div>{error?.data}</div>
+    }
 
     const handleFormSubmit = async (values) => {
         try {
