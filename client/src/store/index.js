@@ -40,6 +40,7 @@ export {
   useFetchStudyCommentsQuery,
   useFetchTaskQuery,
   useFetchStudyTasksQuery,
+  useLazyFetchAllStudyResponsesQuery
 } from './apis/studyApi';
 
 export {

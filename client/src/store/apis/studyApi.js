@@ -67,8 +67,16 @@ const studyApi = createApi({
                     return {
                         url: `/study/tasks/${studyId}`,
                         method: 'GET'
-                    }
-                }
+                    };
+                },
+            }),
+            fetchAllStudyResponses: builder.query({
+                query: (studyId) => {
+                    return {
+                        url: `/study/download-responses/${studyId}`,
+                        method: 'GET'
+                    };
+                },
             }),
         };
     }
@@ -82,5 +90,6 @@ export const {
     useFetchStudyCommentsQuery,
     useFetchTaskQuery,
     useFetchStudyTasksQuery,
+    useLazyFetchAllStudyResponsesQuery
 } = studyApi;
 export { studyApi };

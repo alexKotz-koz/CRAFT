@@ -11,7 +11,7 @@ const StudyResponseWizard = ({ user }) => {
     const { data: study, error: errorStudy, isLoading: isLoadingStudy, refetch: refetchStudy } = useFetchStudyQuery(studyId);
     const [respondedStatus, setRespondedStatus] = useState({});
 
-    console.log("StudyResponseWizrd: ",study)
+    console.log("StudyResponseWizrd: ", study)
 
     useEffect(() => {
         if (study && study.tasks) {
@@ -43,7 +43,7 @@ const StudyResponseWizard = ({ user }) => {
     if (!study || !study.tasks) {
         return <div>No study data available</div>;
     }
-    
+
     const taskChunks = study.tasks.reduce((resultArray, item, index) => {
         const chunkIndex = Math.floor(index / 4);
 
@@ -75,7 +75,7 @@ const StudyResponseWizard = ({ user }) => {
                 return (
                     <button
                         className="btn btn-success text-decoration-none text-white mt-auto"
-                        onClick={async () =>{
+                        onClick={async () => {
                             await refetchStudy();
                             navigate(`/study/response/task/${taskId}`)
                         }}
@@ -89,27 +89,34 @@ const StudyResponseWizard = ({ user }) => {
     return (
         <div className="container py-2 px-5 ">
             <h3 className="text-center mb-5">Tasks</h3>
+            <div className="card mb-4">
+                <div className="card-body">
+                    <h5 className="card-title">Study Description</h5>
+                    <p className="card-text">{study.description}</p>
+                </div>
+            </div>
             {taskChunks.map((chunk, chunkIndex) => (
                 <div className="row" key={chunkIndex}>
                     <div className="card-group">
-                        {chunk.map((task, index) => { 
+                        {chunk.map((task, index) => {
                             return (
-                            <div className="col-3" key={index}>
-                                <div className="card p-3 h-100">
-                                    <div className="d-flex justify-content-between align-items-center mb-3">
-                                        <h5 className="card-title">
-                                            {task.name ? task.name : study.name}
-                                        </h5>
+                                <div className="col-3" key={index}>
+                                    <div className="card p-3 h-100">
+                                        <div className="d-flex justify-content-between align-items-center mb-3">
+                                            <h5 className="card-title">
+                                                {task.name ? task.name : study.name}
+                                            </h5>
 
+                                        </div>
+                                        <p className="card-text description">
+                                            {task.instructions}
+                                        </p>
+                                        {renderCompletedTaskCard(respondedStatus[task._id], task._id)}
                                     </div>
-                                    <p className="card-text description">
-                                        {task.instructions}
-                                    </p>
-                                    {renderCompletedTaskCard(respondedStatus[task._id], task._id)}
-                                </div>
 
-                            </div>
-                        )})}
+                                </div>
+                            )
+                        })}
                     </div>
                 </div>
             ))}

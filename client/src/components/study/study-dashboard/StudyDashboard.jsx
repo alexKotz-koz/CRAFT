@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Spinner } from "reactstrap";
-import { useLazyFetchDiscussionQuery, useFetchStudyCommentsQuery, useFetchStudyQuery } from "../../../store";
+import { useLazyFetchDiscussionQuery, useFetchStudyCommentsQuery, useFetchStudyQuery, useLazyFetchAllStudyResponsesQuery } from "../../../store";
 import SimplePieChart from "./SimplePieChart";
 import TimeLinePlot from "./TimeLinePlot";
 import StudyCard from "../../tools/StudyCard";
@@ -13,7 +13,11 @@ const StudyDashboard = () => {
     const { data: study, error: errorStudy, isLoading: isLoadingStudy } = useFetchStudyQuery(studyId);
     const { data: comments, error: errorComments, isLoading: isLoadingComments } = useFetchStudyCommentsQuery(studyId);
     const [fetchTaskDiscussion, { data: taskDiscussion, error: errorTaskDiscussion, isLoading: isLoadingTaskDiscussion }] = useLazyFetchDiscussionQuery();
+    const [fetchAllStudyResponses, { data: allStudyResponses, isLoading: isLoadingAllStudyResponses, error: errorAllStudyResponses }] = useLazyFetchAllStudyResponsesQuery();
+
+
     const [taskDiscussions, setTaskDiscussions] = useState({});
+    
     useEffect(() => {
         if (study && study.tasks) {
             study.tasks.forEach(async (task) => {
@@ -24,7 +28,7 @@ const StudyDashboard = () => {
         }
     }, [study, fetchTaskDiscussion]);
 
-    if (isLoadingStudy || isLoadingComments || isLoadingTaskDiscussion) {
+    if (isLoadingStudy || isLoadingComments || isLoadingTaskDiscussion || isLoadingAllStudyResponses) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
                 <Spinner color="primary" />
@@ -32,8 +36,8 @@ const StudyDashboard = () => {
         );
     }
 
-    if (errorStudy || errorComments || errorTaskDiscussion) {
-        return <div>Error: {errorStudy.data || errorComments.data || errorTaskDiscussion?.data}</div>;
+    if (errorStudy || errorComments || errorTaskDiscussion || errorAllStudyResponses) {
+        return <div>Error: {errorStudy.data || errorComments.data || errorTaskDiscussion?.data || errorAllStudyResponses?.data}</div>;
     }
 
     const { dateCreated, dateModified, description, instructions, name, participants, prompts, responses } = study;
@@ -110,12 +114,25 @@ const StudyDashboard = () => {
                 {renderFooter({ task })}
             </>
         );
-    }
+    };
+    const handleDownload = async (downloadType) => {
+        await fetchAllStudyResponses(studyId);
+        if (!isLoadingAllStudyResponses){
+            console.log(allStudyResponses);
+        }
+    };
 
     return (
         <div className="container-fluid">
             <h3 className="text-center mb-4">Study Dashboard</h3>
-
+            <div className="d-flex justify-content-end mb-3">
+                <button className="btn btn-primary me-2" onClick={() => handleDownload("json")}>
+                    Download Responses (JSON)
+                </button>
+                <button className="btn btn-secondary" onClick={() => handleDownload("csv")}>
+                    Download Responses (CSV)
+                </button>
+            </div>
             <div className="row">
                 <h5 className="text-center mb-4">Task Discussions</h5>
                 {study.tasks.map((task, idx) => {

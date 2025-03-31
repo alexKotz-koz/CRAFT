@@ -357,4 +357,43 @@ module.exports = (app) => {
             res.status(500).send(err);
         }
     });
+
+    // API: fetchAllStudyResponses
+    // Used in: StudyDashboard.jsx
+    app.get('/api/study/download-responses/:studyId', requireLogin, requireFacilitatorPermissions, async (req, res) => {
+        const { studyId } = req.params;
+        try {
+            const studyResponses = await StudyResponse.find({study: studyId})
+            .populate({
+                path: 'responses',
+                populate: [
+                    {
+                        path: 'comments',
+                        model: 'Comment',
+                        populate: { path: 'user', select: 'username avatar firstName lastName role' }
+                    },
+                    {
+                        path: 'votes',
+                        populate: { path: 'voter', select: 'username avatar firstName lastName role' }
+                    },
+                    {
+                        path: 'prompt',
+                        model: 'StudyPrompt'
+                    }
+                ]
+            })
+            .populate({
+                path: '_participant',
+                select: 'username avatar'
+            });
+
+            console.log(studyResponses)
+
+            res.send(studyResponses);
+
+        } catch (err) {
+            console.error("Error fetching study responses: ", JSON.stringify(err));
+            res.status(500).send(err);
+        }
+    })
 };
