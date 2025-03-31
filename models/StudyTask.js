@@ -17,7 +17,7 @@ const StudyTask = mongoose.model('StudyTask', StudyTaskSchema);
 
 const StudyTaskAppReviewSchema = new Schema({
     name: { type: String, required: true },
-    instructions: { type: String, required: true }
+    instructions: { type: String, required: true },
 });
 
 const StudyTaskSurveySchema = new Schema({

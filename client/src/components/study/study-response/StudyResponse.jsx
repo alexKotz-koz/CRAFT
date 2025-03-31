@@ -19,7 +19,6 @@ const StudyResponse = ({ user }) => {
     if (errorTask || responseError) {
         return <div>Error: {responseError?.data.error || errorTask?.data.error}</div>;
     }
-    console.log(task)
     const handleFormSubmit = async (values) => {
         const responses = Object.keys(values).map((key) => ({
             prompt: key,

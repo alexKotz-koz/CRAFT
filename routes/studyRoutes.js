@@ -74,11 +74,12 @@ module.exports = (app) => {
                 for (const task of tasks) {
                     // Create study prompts for the current task
                     const studyPrompts = await createStudyPrompts(task.questions, study._id, req.user.id);
+                    const assignedParticipants = task.assignedParticipants;
 
                     // Create a new StudyTaskAppReview for the current task
                     const studyTask = new StudyTaskAppReview({
                         study: study._id,
-                        participants,
+                        participants: assignedParticipants,
                         prompts: studyPrompts,
                         instructions: task.instructions,
                         name: task.name, // Include the task name
@@ -172,19 +173,23 @@ module.exports = (app) => {
 
                 res.send(studyResponse);
 
-            } else if (taskType === 'app-review'){
+            } else if (taskType === 'app-review') {
 
                 await StudyTaskAppReview.findOneAndUpdate(
-                    {_id: taskId, 'participants.email': req.user.email},
+                    { _id: taskId, 'participants.email': req.user.email },
                     { $set: { 'participants.$.responded': true } }
                 );
 
                 const tasks = await StudyTaskAppReview.find({ study: studyId });
-                const allTasksCompleted = tasks.every(task =>
-                    task.participants.some(participant =>
-                        participant.email === req.user.email && participant.responded === true
+                const allTasksCompleted = tasks
+                    .filter(task =>
+                        task.participants.some(participant => participant.email === req.user.email) // Check if user is a participant
                     )
-                );
+                    .every(task =>
+                        task.participants.some(participant =>
+                            participant.email === req.user.email && participant.responded === true // Check if responded is true
+                        )
+                    );
 
                 if (allTasksCompleted) {
                     // Update the StudyParticipant.responded value to true
@@ -213,7 +218,7 @@ module.exports = (app) => {
     // Get all studies that are associated with the current user
     // API: useFetchStudiesQuery
     // Used in: Home.jsx
-     // *** Note: Uses users email to find participants studies
+    // *** Note: Uses users email to find participants studies
     app.get('/api/study/my_studies', requireLogin, async (req, res) => {
         let studies;
         switch (req.user.role) {
@@ -363,31 +368,29 @@ module.exports = (app) => {
     app.get('/api/study/download-responses/:studyId', requireLogin, requireFacilitatorPermissions, async (req, res) => {
         const { studyId } = req.params;
         try {
-            const studyResponses = await StudyResponse.find({study: studyId})
-            .populate({
-                path: 'responses',
-                populate: [
-                    {
-                        path: 'comments',
-                        model: 'Comment',
-                        populate: { path: 'user', select: 'username avatar firstName lastName role' }
-                    },
-                    {
-                        path: 'votes',
-                        populate: { path: 'voter', select: 'username avatar firstName lastName role' }
-                    },
-                    {
-                        path: 'prompt',
-                        model: 'StudyPrompt'
-                    }
-                ]
-            })
-            .populate({
-                path: '_participant',
-                select: 'username avatar'
-            });
-
-            console.log(studyResponses)
+            const studyResponses = await StudyResponse.find({ study: studyId })
+                .populate({
+                    path: 'responses',
+                    populate: [
+                        {
+                            path: 'comments',
+                            model: 'Comment',
+                            populate: { path: 'user', select: 'username avatar firstName lastName role' }
+                        },
+                        {
+                            path: 'votes',
+                            populate: { path: 'voter', select: 'username avatar firstName lastName role' }
+                        },
+                        {
+                            path: 'prompt',
+                            model: 'StudyPrompt'
+                        }
+                    ]
+                })
+                .populate({
+                    path: '_participant',
+                    select: 'username avatar'
+                });
 
             res.send(studyResponses);
 

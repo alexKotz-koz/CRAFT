@@ -11,7 +11,6 @@ const StudyResponseWizard = ({ user }) => {
     const { data: study, error: errorStudy, isLoading: isLoadingStudy, refetch: refetchStudy } = useFetchStudyQuery(studyId);
     const [respondedStatus, setRespondedStatus] = useState({});
 
-    console.log("StudyResponseWizrd: ", study)
 
     useEffect(() => {
         if (study && study.tasks) {
@@ -44,17 +43,19 @@ const StudyResponseWizard = ({ user }) => {
         return <div>No study data available</div>;
     }
 
-    const taskChunks = study.tasks.reduce((resultArray, item, index) => {
-        const chunkIndex = Math.floor(index / 4);
-
-        if (!resultArray[chunkIndex]) {
-            resultArray[chunkIndex] = [];
-        }
-
-        resultArray[chunkIndex].push(item);
-
-        return resultArray;
-    }, []);
+    const taskChunks = study.tasks
+        .filter(task => task.participants.some(participant => participant.email === user.email)) // Filter tasks
+        .reduce((resultArray, item, index) => {
+            const chunkIndex = Math.floor(index / 4);
+    
+            if (!resultArray[chunkIndex]) {
+                resultArray[chunkIndex] = [];
+            }
+    
+            resultArray[chunkIndex].push(item);
+    
+            return resultArray;
+        }, []);
 
     const renderCompletedTaskCard = (status, taskId) => {
         //console.log("StudyResponseWizard status: ", status)

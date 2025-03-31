@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { Form, Field } from 'react-final-form';
-import { GoPlus, GoTrash, GoChevronDown, GoChevronUp } from 'react-icons/go';
-import { Collapse, Card, CardBody, CardHeader, Button, Modal, ModalHeader, ModalFooter, ModalBody } from 'reactstrap';
-import ContentButtonGroup from './survey/ContentButtonGroup';
-import Papa from 'papaparse';
+import { GoPlus, GoTrash, GoChevronDown, GoChevronUp, GoPersonAdd } from 'react-icons/go';
+import { Collapse, Card, CardBody, CardHeader, Button, Modal, ModalHeader, ModalFooter, ModalBody, ButtonGroup } from 'reactstrap';
 import QuillEditor from '../../../tools/quill-rte/QuillEditor';
 const AppReview = ({ initialValues, handleFormSubmit, onCancel }) => {
 
+    const emailList = initialValues?.emailList;
+
+
 
     //App Review
-    const [taskList, setTaskList] = useState(initialValues || []);
+    const [taskList, setTaskList] = useState(initialValues.taskList || []);
     const [currentTask, setCurrentTask] = useState({ name: '', instructions: '', prompts: [] });
     const [expandedTask, setExpandedTask] = useState(null);
     const [error, setError] = useState("");
@@ -22,35 +23,42 @@ const AppReview = ({ initialValues, handleFormSubmit, onCancel }) => {
     const [showNewQuestion, setShowNewQuestion] = useState(false);
     const [showSubQuestionField, setShowSubQuestionField] = useState(false);
     const [expandedQuestion, setExpandedQuestion] = useState(null);
-    
+    const [showAssignParticipants, setShowAssignParticipants] = useState(false);
+    const [taskParticipants, setTaskParticipants] = useState([]);
+
     const [parentEditorState, setParentEditorState] = useState('');
     const [childEditorStates, setChildEditorStates] = useState([]);
 
     const handleBundleTaskData = (content) => {
-        console.log("handleBundleTaskData",content);
+        console.log("handleBundleTaskData", content);
         handleFormSubmit(content);
     }
 
     const handleAddTask = (values) => {
         console.log("handleAddTask values: ", values)
         console.log("handleAddTask Questions: ", questionList)
-        if (values.name && values.instructions && questionList.length > 0) {
-            const newTask = { ...values, questions: questionList };
-            setTaskList([...taskList, newTask]);
-            setCurrentTask({ name: '', instructions: '', prompts: [] });
-            setError("");
-            setQuestionList([]);
-            setQuestion({ title: '', parentQuestion: '', children: [] });
-            setChildQuestions([]);
-            setShowNewQuestion(!showNewQuestion);
-            setShowSubQuestionField(!showSubQuestionField);
-            setExpandedQuestion(!expandedQuestion);
-            setParentEditorState('');
-            setChildEditorStates([]);
-
-
+        if (taskParticipants.length === 0) {
+            setError("Please assign, at least one participat to this task.");
+            
         } else {
-            setError("You must provide Task Name, Instructions, and at least one Question");
+            if (values.name && values.instructions && questionList.length > 0) {
+                const newTask = { ...values, questions: questionList, assignedParticipants: taskParticipants };
+                setTaskList([...taskList, newTask]);
+                setCurrentTask({ name: '', instructions: '', prompts: [] });
+                setError("");
+                setQuestionList([]);
+                setQuestion({ title: '', parentQuestion: '', children: [] });
+                setChildQuestions([]);
+                setShowNewQuestion(!showNewQuestion);
+                setShowSubQuestionField(!showSubQuestionField);
+                setExpandedQuestion(!expandedQuestion);
+                setParentEditorState('');
+                setChildEditorStates([]);
+                setTaskParticipants([]);
+
+            } else {
+                setError("You must provide Task Name, Instructions, and at least one Question");
+            }
         }
     };
 
@@ -135,6 +143,17 @@ const AppReview = ({ initialValues, handleFormSubmit, onCancel }) => {
             return "btn btn-secondary";
         }
     };
+
+    const onCheckboxBtnClick = (selected) => {
+        const index = taskParticipants.indexOf(selected);
+        if (index < 0) {
+            taskParticipants.push(selected);
+        } else {
+            taskParticipants.splice(index, 1);
+        }
+        setTaskParticipants([...taskParticipants]);
+    };
+
     return (
         <div>
             <div className="bg-body-tertiary border border-tertiary p-2 rounded mt-3 mb-3">
@@ -174,6 +193,13 @@ const AppReview = ({ initialValues, handleFormSubmit, onCancel }) => {
                                 disabled={showNewQuestion}
                             >
                                 <GoPlus /> New Question
+                            </button>}
+                            {!showAssignParticipants && <button
+                                type="button"
+                                className="btn btn-info"
+                                onClick={() => setShowAssignParticipants(!showAssignParticipants)}
+                            >
+                                <GoPersonAdd /> Assign Participants
                             </button>}
                             {showNewQuestion && (
                                 <div>
@@ -219,6 +245,25 @@ const AppReview = ({ initialValues, handleFormSubmit, onCancel }) => {
                                     <button type="button" onClick={handleAddQuestion} className="btn btn-info">
                                         Save Question
                                     </button>
+                                </div>
+                            )}
+                            {showAssignParticipants && (
+                                <div>
+                                    <label>Assign Participants:</label>
+
+                                    {emailList.map((p) => (
+                                        <Button
+                                            key={p.username}
+                                            color="primary"
+                                            outline
+                                            onClick={() => onCheckboxBtnClick(p)}
+                                            active={taskParticipants.includes(p)}
+                                        >
+                                            {p.email}
+                                        </Button>
+                                    ))}
+
+                                    <p>Selected: {JSON.stringify(taskParticipants)}</p>
                                 </div>
                             )}
 
@@ -345,6 +390,17 @@ const AppReview = ({ initialValues, handleFormSubmit, onCancel }) => {
                                                     </li>
                                                 ))}
                                             </ul>
+                                            <p><strong>Assigned Participants:</strong></p>
+                                            <ul>
+                                                {task.assignedParticipants.map((p) => (
+                                                    <li key={p.username} className="list-group-item">
+                                                        {p.email}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <div>
+
+                                            </div>
                                         </CardBody>
                                     </Collapse>
                                 </Card>

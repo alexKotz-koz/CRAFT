@@ -107,8 +107,8 @@ const StudyNewWizard = () => {
         }
     };
     const renderContent = () => {
-        console.log("Current Stage: ", currentStage)
-        console.log("FormValues: ", formValues)
+        //console.log("Current Stage: ", currentStage)
+        //console.log("FormValues: ", formValues)
         switch (currentStage) {
             case 0:
                 return (
@@ -132,7 +132,7 @@ const StudyNewWizard = () => {
                         onCancel={handleBack}
                         onSubmit={handleNext}
                         studyType={studyType}
-                        initialValues={formValues.contentList || []}
+                        initialValues={formValues || []}
                     />
                 );
             case 3:
