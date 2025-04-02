@@ -44,6 +44,15 @@ const authApi = createApi({
                     };
                 },
             }),
+            logoutUser: builder.mutation({
+                invalidatesTags: ['User'],
+                query: () => {
+                    return {
+                        url: '/logout',
+                        method: 'POST',
+                    };
+                },
+            }),
             fetchUsername: builder.query({
                 query: () => {
                     return {
@@ -70,6 +79,15 @@ const authApi = createApi({
                     };
                 },
             }),
+            updateUser: builder.mutation({
+                query: (config) => {
+                    return {
+                        url: '/update_user',
+                        method: 'POST',
+                        body: config
+                    };
+                },
+            }),
         };
     }
 
@@ -80,9 +98,11 @@ export const {
     useFetchUserQuery, 
     useCreateUserMutation,
     useLoginUserMutation,
+    useLogoutUserMutation,
     useFetchUsernameQuery,
     useLazyFetchUsernameQuery,
     usePasswordResetMutation, 
     useLazyCheckUsernameAvailabilityQuery,
+    useUpdateUserMutation,
 } = authApi;
 export { authApi };

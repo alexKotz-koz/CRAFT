@@ -17,8 +17,7 @@ const Home = () => {
     const [studyName, setStudyName] = useState("");
     const [studyId, setStudyId] = useState("");
     const [studyPreface, setStudyPreface] = useState("");
-
-
+    
     // Participant: Upon initial render, get all studies associated with the logged in user && get the status (responded/not responded) for each study
     useEffect(() => {
         if (user && userStudies) {
@@ -30,8 +29,19 @@ const Home = () => {
                 }
             });
             setRespondedStatus(status);
+        
         }
     }, [userStudies, user]);
+
+    // Participant: Upon initial render, check if it is the first time the user is logging into the app, if so send to initialConfiguration form, otherwise ignore and display user studies.
+    useEffect(() => {
+        if (user && user.firstLogin) {
+            console.log("First time logging in")
+            if (user.role === 'participant'){
+                navigate(`/participant-config`);
+            }
+        }
+    }, [user]);
 
     if (isLoadingUser || isLoadingStudies) {
         return (
@@ -134,7 +144,6 @@ const Home = () => {
     const renderCompletedStudyCard = (status, study) => {
         const studyId = study._id;
         const currentUser = user.username;
-        console.log("here")
         if (study.tasks.length >= 1) {
             return (
                 <button

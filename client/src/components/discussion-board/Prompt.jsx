@@ -3,7 +3,7 @@ import { GoChevronDown, GoChevronLeft } from 'react-icons/go';
 import InitialResponse from "./InitialResponse";
 import parse, { domToReact } from 'html-react-parser';
 
-function Prompt({ prompt, responses, notifications, promptIndex, studyId, currentUser, taskId }) {
+function Prompt({ prompts, prompt, responses, notifications, promptIndex, studyId, currentUser, taskId }) {
     const [isExpanded, setIsExpanded] = useState(true);
     const [showFullPrompt, setShowFullPrompt] = useState(false); // State to toggle full prompt visibility
 
@@ -13,7 +13,54 @@ function Prompt({ prompt, responses, notifications, promptIndex, studyId, curren
 
     const parser = new DOMParser();
     const doc = parser.parseFromString(prompt.question, 'text/html');
-    const questionTitle = doc.body.firstChild ? doc.body.firstChild.textContent : '';
+    
+    const isParent = (prompt) => !prompt.id.includes('-childPrompt-');
+    
+    // Function to get the parent question
+    const getParentQuestion = (prompt, prompts) => {
+        if (isParent(prompt)) {
+            return prompt.prompt; // If it's a parent, return its own question
+        }
+    
+        // Extract the parent ID from the child prompt's ID
+        const parentId = prompt.id.split('-childPrompt-')[0];
+    
+        // Find the parent prompt in the prompts array
+        const parentPrompt = prompts.find((p) => p._id === parentId);
+    
+        return parentPrompt ? parentPrompt.prompt : 'Parent question not found'; // Return the parent's question or a fallback
+    };
+    
+    // Function to extract the first line of the HTML content
+    const extractFirstLine = (htmlString) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlString, 'text/html');
+        return doc.body.firstChild ? doc.body.firstChild.textContent.trim() : '';
+    };
+    
+    // Get the title for the current prompt
+    let questionTitle;
+    let fullPrompt;
+    if (!isParent(prompt)) {
+        const parentQuestion = getParentQuestion(prompt, prompts);
+        const parentFirstLine = extractFirstLine(parentQuestion);
+        const childFirstLine = extractFirstLine(prompt.question);
+        questionTitle = `${parentFirstLine} - ${childFirstLine}`; // Combine parent and child questions
+        fullPrompt = (() => {
+            if (!isParent(prompt)) {
+                const parentQuestion = getParentQuestion(prompt, prompts) || ''; // Fallback to an empty string
+                return `${parentQuestion}<br/>${prompt.prompt || ''}`; // Combine parent and child prompts
+            }
+            return prompt.prompt || '';
+        })();
+    } else {
+        questionTitle = doc.body.firstChild ? doc.body.firstChild.textContent : ''
+        fullPrompt = prompt.question
+    }
+    
+    // Combine parent and child prompts for "Show Full Prompt"
+
+
 
     const handleClick = () => {
         setIsExpanded(!isExpanded);
@@ -61,8 +108,8 @@ function Prompt({ prompt, responses, notifications, promptIndex, studyId, curren
         }
     };
 
-    const parsedPrompt = parse(prompt.question, parseOptions);
-
+    const parsedPrompt = parse(fullPrompt, parseOptions);
+    
     const filteredResponses = responses.flatMap(responseObj => {
         return responseObj.responses
             .filter(response => {

@@ -93,6 +93,7 @@ module.exports = (app) => {
                 role,
                 password: hashed,
                 avatar,
+                firstLogin: true
             });
             await newUser.save();
             res.json({ user: newUser });
@@ -123,15 +124,14 @@ module.exports = (app) => {
 
     // API: 
     // Used in:
-    app.get('/auth/logout', requireLogin, (req, res) => {
+    app.post('/auth/logout', requireLogin, (req, res) => {
         req.logout((err) => {
             if (err) {
-                return next(err);
+                return res.status(500).json({ error: "Failed to log out" });
             }
-            res.redirect('/');
+            res.status(200).json({ message: "Logged out successfully" });
         });
     });
-
     // API: fetchUser
     // Used in: DiscussionBoard.jsx, ClarificationModal.jsx, App.jsx, Header.jsx, Home.jsx
     app.get("/auth/current_user", async (req, res) => {
@@ -193,4 +193,26 @@ module.exports = (app) => {
             return res.status(500).send({ error: "Internal server error" });
         }
     });
+
+    // API: updateUser
+    // Used in: ParticipantInitialConfig.jsx
+    app.post('/auth/update_user', requireLogin, async(req, res) => {
+        const {username, jobRole, jobDepartment} = req.body;
+        try {
+            const user = await User.findOneAndUpdate(
+                {username: username},
+                { jobRole, jobDepartment, firstLogin: false },
+                { new: true }
+            );
+            if (!user) {
+                return res.status(404).json({ error: "User not found" });
+            }
+
+            res.json({ message: "User updated successfully", user });
+
+        } catch (err) {
+            console.error("Error updating user account:", err);
+            res.status(422).send(err);
+        }
+    })
 };

@@ -13,7 +13,7 @@ import StudyResponse from "./study/study-response/StudyResponse";
 import DiscussionBoard from "./discussion-board/DiscussionBoard";
 import DiscussionBoardLanding from "./discussion-board/DiscussionBoardLanding";
 import StudyDashboard from "./study/study-dashboard/StudyDashboard";
-
+import ParticipantInitialConfig from "./auth/ParticipantInitialConfig";
 
 import Test from '../components/Test';
 
@@ -41,6 +41,7 @@ const App = () => {
         <Route path='/' element={<Landing />} />
         <Route path='/home' element={<Home />} />
         <Route path='/login' element={<Login />} />
+        <Route path='/participant-config' element={<ParticipantInitialConfig user={user}/>} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/study/:studyId" element={<Study user={user}  />} />
         <Route path='/study/new' element={<StudyNewWizard />} />

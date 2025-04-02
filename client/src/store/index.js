@@ -26,10 +26,12 @@ export {
   useFetchUserQuery, 
   useCreateUserMutation,
   useLoginUserMutation,
+  useLogoutUserMutation,
   useFetchUsernameQuery,
   useLazyFetchUsernameQuery,
   usePasswordResetMutation, 
-  useLazyCheckUsernameAvailabilityQuery
+  useLazyCheckUsernameAvailabilityQuery,
+  useUpdateUserMutation,
 } from './apis/authApi';
 
 export {

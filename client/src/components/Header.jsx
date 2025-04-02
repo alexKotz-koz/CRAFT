@@ -5,6 +5,7 @@ import { GoBell, GoBug } from "react-icons/go";
 import { Spinner } from "reactstrap";
 import HeaderNotificationCard from "./tools/HeaderNotificationCard";
 import ClarificationModal from "./tools/modals/ClarificationModal";
+import { useLogoutUserMutation } from "../store";
 
 const Header = ({ user }) => {
     const navigate = useNavigate();
@@ -12,6 +13,7 @@ const Header = ({ user }) => {
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedStudyResponseId, setSelectedStudyResponseId] = useState("");
     const [notification, setNotification] = useState({});
+    const [logoutUser, { isLoading: isLoadingLogoutUser, error: errorLogoutUser }] = useLogoutUserMutation();
 
     if (isLoading) {
         return (
@@ -24,9 +26,13 @@ const Header = ({ user }) => {
     if (error) {
         return <div>Error: {error?.data.error}</div>;
     }
-
-    const handleLogout = () => {
-        navigate('/');
+    const handleLogout = async () => {
+        try {
+            await logoutUser().unwrap(); // Ensure the logout request is successful
+            navigate('/login'); // Redirect to the login page
+        } catch (error) {
+            console.error("Error during logout:", error);
+        }
     };
     //console.log("Header Data: ", data)
     //console.log("Header -> user:", user)
@@ -127,7 +133,7 @@ const Header = ({ user }) => {
                         <li className="dropdown-item" href="/home">{data.username}</li>
                         <li className="dropdown-item" href="/home">Home</li>
                         <li><hr className="dropdown-divider" /></li>
-                        <li><a className="dropdown-item" href="/auth/logout" onClick={handleLogout}>Logout</a></li>
+                        <li><a className="dropdown-item" onClick={handleLogout}>Logout</a></li>
                     </ul>
                 </li>
             </div>

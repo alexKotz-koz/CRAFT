@@ -19,6 +19,9 @@ const UserSchema = new Schema({
   },
   notifications: [{ type: Schema.Types.ObjectId, ref: 'Notification' }],
   avatar: { type: String },
+  firstLogin: { type: Boolean, required: true, default: true},
+  jobRole: { type: String },
+  jobDepartment: { type: String }
 });
 
 

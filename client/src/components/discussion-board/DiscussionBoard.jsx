@@ -34,7 +34,7 @@ const DiscussionBoard = () => {
             <div className="container">
                 <h3 className="mt-4 mb-5 text-center">Discussion Board - {task.name ? task.name : discussion.study.name}</h3>
                 {prompts.map((prompt, index) => (
-                    <Prompt key={index} prompt={prompt} responses={responses} notifications={notifications} promptIndex={index} studyId={studyId} currentUser={user} taskId={taskId} />
+                    <Prompt key={index} prompts={task.prompts} prompt={prompt} responses={responses} notifications={notifications} promptIndex={index} studyId={studyId} currentUser={user} taskId={taskId} />
                 ))}
             </div>
         );

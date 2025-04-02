@@ -27,7 +27,7 @@ const Survey = ({ initialValues, handleContentSubmit, onCancel }) => {
 
     const [parentEditorState, setParentEditorState] = useState('');
     const [childEditorStates, setChildEditorStates] = useState([]);
-
+    console.log(initialValues)
     useEffect(() => {
         if (initialValues) {
             const { instructions, ...questions } = initialValues;
