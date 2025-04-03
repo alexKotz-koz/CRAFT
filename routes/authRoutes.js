@@ -197,11 +197,11 @@ module.exports = (app) => {
     // API: updateUser
     // Used in: ParticipantInitialConfig.jsx
     app.post('/auth/update_user', requireLogin, async(req, res) => {
-        const {username, jobRole, jobDepartment} = req.body;
+        const {username, jobRole, jobDepartment, jobYears} = req.body;
         try {
             const user = await User.findOneAndUpdate(
                 {username: username},
-                { jobRole, jobDepartment, firstLogin: false },
+                { jobRole, jobDepartment, jobYears, firstLogin: false },
                 { new: true }
             );
             if (!user) {

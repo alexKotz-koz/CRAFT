@@ -126,7 +126,6 @@ const Home = () => {
     }
 
     const showPreface = (currentUser, study) => {
-        console.log("Show Preface: ", currentUser)
         const participant = study.participants.find(p => p.username === currentUser);
         const hasResponded = participant.responded;
         if (hasResponded) {

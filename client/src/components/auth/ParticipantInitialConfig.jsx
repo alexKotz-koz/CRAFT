@@ -47,8 +47,9 @@ const ParticipantInitialConfig = ({ user }) => {
         const passwordResetValues = {email, currentPassword, newPassword}
         const jobRole = values.jobRole;
         const jobDepartment = values.jobDepartment;
+        const jobYears = values.jobYears;
         const username = user.username;
-        const updateUserValues = {username, jobRole, jobDepartment}
+        const updateUserValues = {username, jobRole, jobDepartment, jobYears}
         try {
             updateUser(updateUserValues).unwrap()
             passwordReset(passwordResetValues).unwrap();

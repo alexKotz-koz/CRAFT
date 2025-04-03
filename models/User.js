@@ -21,7 +21,8 @@ const UserSchema = new Schema({
   avatar: { type: String },
   firstLogin: { type: Boolean, required: true, default: true},
   jobRole: { type: String },
-  jobDepartment: { type: String }
+  jobDepartment: { type: String },
+  jobYears: {type: String}
 });
 
 

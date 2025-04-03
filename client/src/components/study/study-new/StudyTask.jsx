@@ -1,7 +1,4 @@
-import { useState, useEffect } from "react";
-import { Form, Field } from "react-final-form";
-import { GoPlus, GoTrash, GoChevronDown, GoChevronUp } from "react-icons/go";
-import { Collapse, Card, CardBody, CardHeader, Button, Modal, ModalHeader, ModalFooter, ModalBody } from 'reactstrap';
+import { useState } from "react";
 import AppReview from "./content/AppReview";
 import Survey from "./content/Survey";
 
