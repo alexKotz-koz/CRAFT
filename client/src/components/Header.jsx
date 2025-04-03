@@ -117,9 +117,12 @@ const Header = ({ user }) => {
                                         );
                                     })}
                                 </ul>
-                                <div className="card-footer d-flex justify-content-center align-items-center w-100">
+                                {/*
+                                  <div className="card-footer d-flex justify-content-center align-items-center w-100">
                                     <button className="btn btn-secondary" onClick={() => navigate('/notifications')}>See All</button>
-                                </div>
+                                </div>  
+                                */}
+                                
                             </div>
                         </li>
                     </ul>

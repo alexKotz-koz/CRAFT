@@ -17,7 +17,7 @@ const StudyDashboard = () => {
 
 
     const [taskDiscussions, setTaskDiscussions] = useState({});
-    
+
     useEffect(() => {
         if (study && study.tasks) {
             study.tasks.forEach(async (task) => {
@@ -116,12 +116,13 @@ const StudyDashboard = () => {
         );
     };
     const handleDownload = async (downloadType) => {
-        await fetchAllStudyResponses(studyId);
-        if (!isLoadingAllStudyResponses){
-            console.log(allStudyResponses);
+        try {
+            const responses = await fetchAllStudyResponses(studyId).unwrap(); 
+            console.log(responses); 
+        } catch (error) {
+            console.error("Error fetching study responses:", error); 
         }
     };
-
     return (
         <div className="container-fluid">
             <h3 className="text-center mb-4">Study Dashboard</h3>
