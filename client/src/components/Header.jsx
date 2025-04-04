@@ -7,6 +7,7 @@ import HeaderNotificationCard from "./tools/HeaderNotificationCard";
 import ClarificationModal from "./tools/modals/ClarificationModal";
 import { useLogoutUserMutation } from "../store";
 
+
 const Header = ({ user }) => {
     const navigate = useNavigate();
     const { data, error, isLoading } = useFetchUserQuery();
@@ -28,8 +29,8 @@ const Header = ({ user }) => {
     }
     const handleLogout = async () => {
         try {
-            await logoutUser().unwrap(); // Ensure the logout request is successful
-            navigate('/login'); // Redirect to the login page
+            await logoutUser().unwrap(); 
+            navigate('/login'); 
         } catch (error) {
             console.error("Error during logout:", error);
         }

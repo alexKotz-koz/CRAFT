@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { GoPersonAdd, GoTrash } from "react-icons/go";
 import { validateEmail } from "../../../utils/validation";
 import { useLazyFetchUsernameQuery, useLazyCheckUsernameAvailabilityQuery } from "../../../store";
-import { Spinner } from "reactstrap";
+import DOMPurify from 'dompurify';
 
 const StudyParticipants = ({ onSubmit, onCancel, initialValues }) => {
     const [email, setEmail] = useState("");
@@ -64,11 +64,15 @@ const StudyParticipants = ({ onSubmit, onCancel, initialValues }) => {
     };
 
     const handleFormSubmit = (values) => {
+        const cleanedValues = Object.keys(values).reduce((acc, key) => {
+            acc[key] = DOMPurify.sanitize(values[key]); // Sanitize each value
+            return acc;
+          }, {});
         if (emailList.length === 0) {
             setInvalidEmail(true);
             return;
         }
-        onSubmit({ ...values, emailList });
+        onSubmit({ ...cleanedValues, emailList });
     };
 
     const handleKeyDown = (e) => {

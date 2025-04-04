@@ -10,7 +10,7 @@ import '../static/custom.css';
 const Home = () => {
     const navigate = useNavigate();
     const { data: user, error: userError, isLoading: isLoadingUser } = useFetchUserQuery();
-    const { data: userStudies, error: studiesError, isLoading: isLoadingStudies } = useFetchStudiesQuery();
+    const { data: userStudies, error: studiesError, isLoading: isLoadingStudies, refetch } = useFetchStudiesQuery();
     const [respondedStatus, setRespondedStatus] = useState({});
 
     const [prefaceModalOpen, setPrefaceModalOpen] = useState(false);
@@ -18,6 +18,12 @@ const Home = () => {
     const [studyId, setStudyId] = useState("");
     const [studyPreface, setStudyPreface] = useState("");
     
+    useEffect(() => {
+        if(user) {
+            refetch();
+        }
+    }, [user?._id, refetch])
+
     // Participant: Upon initial render, get all studies associated with the logged in user && get the status (responded/not responded) for each study
     useEffect(() => {
         if (user && userStudies) {
@@ -36,7 +42,6 @@ const Home = () => {
     // Participant: Upon initial render, check if it is the first time the user is logging into the app, if so send to initialConfiguration form, otherwise ignore and display user studies.
     useEffect(() => {
         if (user && user.firstLogin) {
-            console.log("First time logging in")
             if (user.role === 'participant'){
                 navigate(`/participant-config`);
             }
@@ -44,7 +49,7 @@ const Home = () => {
     }, [user]);
 
     console.log("Home userStudies: ", userStudies)
-
+    console.log("Home user: ", user)
     if (isLoadingUser || isLoadingStudies) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>

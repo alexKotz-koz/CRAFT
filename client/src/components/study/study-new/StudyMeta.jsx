@@ -3,6 +3,7 @@ import { Form, Field } from "react-final-form";
 import PropTypes from 'prop-types';
 import { Tooltip } from 'react-tooltip';
 import { GoQuestion } from 'react-icons/go';
+import DOMPurify from 'dompurify';
 
 const StudyMeta = ({ onSubmit, initialValues, setStudyType }) => {
 
@@ -18,7 +19,13 @@ const StudyMeta = ({ onSubmit, initialValues, setStudyType }) => {
   };
 
   const handleFormSubmit = (values) => {
-    const updatedValues = { ...values};
+    console.log("StudyMeta Values PreSan: ",values);
+    const cleanedValues = Object.keys(values).reduce((acc, key) => {
+        acc[key] = DOMPurify.sanitize(values[key]);
+        return acc;
+      }, {});    
+    console.log("StudyMeta Values PostSan: ", cleanedValues);
+    const updatedValues = { ...cleanedValues};
     setStudyType(updatedValues.studyType);
     onSubmit(updatedValues);
   }
