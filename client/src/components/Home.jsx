@@ -48,8 +48,6 @@ const Home = () => {
         }
     }, [user]);
 
-    console.log("Home userStudies: ", userStudies)
-    console.log("Home user: ", user)
     if (isLoadingUser || isLoadingStudies) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>

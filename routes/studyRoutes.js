@@ -384,12 +384,20 @@ module.exports = (app) => {
                         {
                             path: 'prompt',
                             model: 'StudyPrompt'
+                        },
+                        {
+                            path: 'task',
+                            model: 'StudyTask'
                         }
                     ]
                 })
                 .populate({
                     path: '_participant',
-                    select: 'username avatar'
+                    select: 'username avatar jobRole jobDepartment jobYears email firstName lastName'
+                })
+                .populate({
+                    path: 'task',
+                    model: 'StudyTask'
                 });
 
             res.send(studyResponses);
