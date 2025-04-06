@@ -40,7 +40,9 @@ const Comment = ({ comment, currentUser, studyId, location, taskId, notification
     let votes = comment.votes;
     if (votes.length > 0) {
         votes.forEach((vote) => {
-            if (vote.voter._id === currentUser._id) {
+            const voterId = vote.voter._id || vote.voter;
+        
+            if (voterId === currentUser._id) {
                 hasVotedComment = true;
                 currentUsersVote = vote.vote;
             }

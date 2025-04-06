@@ -61,4 +61,5 @@ export {
   useHideCommentMutation,
   useFetchCommentForClarificationQuery,
   useLazyFindDiscussionQuery,
+  useLazyFetchCompleteDiscussionQuery
 } from './apis/discussionApi';

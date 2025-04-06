@@ -143,6 +143,15 @@ const discussionApi = createApi({
                     };
                 },
             }),
+            fetchCompleteDiscussion: builder.query({
+                query: ({taskId}) => {
+                    console.log("api ", taskId)
+                    return{
+                        url: `/discussion/complete/${taskId}`,
+                        method: 'GET',
+                    };
+                },
+            }),
 
         };
 
@@ -165,5 +174,6 @@ export const {
     useHideCommentMutation,
     useFetchCommentForClarificationQuery,
     useLazyFindDiscussionQuery,
+    useLazyFetchCompleteDiscussionQuery
 } = discussionApi;
 export { discussionApi };

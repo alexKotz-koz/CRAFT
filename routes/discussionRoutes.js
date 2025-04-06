@@ -663,4 +663,159 @@ module.exports = (app) => {
         }
     })
 
+        // GET Complete Task Discussion with all nested subcomments
+    // API: fetchCompleteDiscussion
+    // Used in: StudyDashboard.jsx for downloading full discussion data
+        // GET Complete Task Discussion with all nested subcomments
+    // API: fetchCompleteDiscussion
+    // Used in: StudyDashboard.jsx for downloading full discussion data
+    app.get('/api/discussion/complete/:taskId', requireLogin, async (req, res) => {
+        const { taskId } = req.params;
+        console.log(taskId)
+        // Validate taskId parameter
+        if (!taskId || !mongoose.Types.ObjectId.isValid(taskId)) {
+            return res.status(400).send("Invalid task ID format");
+        }
+        
+        try {
+            // First get the base discussion with basic population
+            const discussion = await Discussion.findOne({ task: taskId })
+                .populate({ path: 'prompts', model: 'StudyPrompt' })
+                .populate({ path: 'study' })
+                .populate({
+                    path: 'initialResponses',
+                    populate: [
+                        {
+                            path: '_participant',
+                            select: 'username avatar firstName lastName'
+                        },
+                        {
+                            path: 'responses.votes',
+                            populate: { path: 'voter', select: 'username avatar' }
+                        }
+                    ]
+                });
+    
+            if (!discussion) {
+                return res.status(404).send("No discussion found for this task");
+            }
+    
+            // Get all top-level comments from all responses
+            const commentIds = [];
+            discussion.initialResponses.forEach(initialResponse => {
+                initialResponse.responses.forEach(response => {
+                    if (response.comments && response.comments.length > 0) {
+                        commentIds.push(...response.comments.map(comment => 
+                            comment._id ? comment._id : comment // Handle both populated and unpopulated comments
+                        ));
+                    }
+                });
+            });
+    
+            // If there are no comments, return the discussion as is
+            if (commentIds.length === 0) {
+                return res.send(discussion);
+            }
+    
+            // Fetch all top-level comments with basic user data
+            const populatedComments = await InitialResponseComment.find({
+                _id: { $in: commentIds }
+            }).populate('user', 'username avatar firstName lastName role')
+              .populate('votes.voter', 'username avatar');
+    
+            // Create a map of comments by ID for easy lookup
+            const commentMap = {};
+            populatedComments.forEach(comment => {
+                commentMap[comment._id.toString()] = {
+                    ...comment.toObject(),
+                    comments: [] // Placeholder for subcomments
+                };
+            });
+    
+            // Recursive function to get all subcomments at any depth
+            async function getAllSubcomments(parentIds) {
+                if (!parentIds || parentIds.length === 0) return {};
+    
+                // Convert all parentIds to strings to ensure proper comparison
+                const parentIdStrings = parentIds.map(id => id.toString());
+    
+                // Get direct subcomments for these parent IDs
+                const subcomments = await SubComment.find({
+                    parentComment: { $in: parentIds }
+                }).populate('user', 'username avatar firstName lastName role')
+                  .populate('votes.voter', 'username avatar');
+    
+                // If no subcomments found, end recursion
+                if (subcomments.length === 0) return {};
+    
+                // Create a map of subcomments organized by parent ID
+                const subcommentsMap = {};
+                const nextLevelParentIds = [];
+    
+                subcomments.forEach(subcomment => {
+                    const parentId = subcomment.parentComment.toString();
+                    if (!subcommentsMap[parentId]) {
+                        subcommentsMap[parentId] = [];
+                    }
+                    
+                    // Add this subcomment to its parent's array
+                    const subcommentObj = {
+                        ...subcomment.toObject(),
+                        comments: [] // Placeholder for its own subcomments
+                    };
+                    subcommentsMap[parentId].push(subcommentObj);
+                    
+                    // Track this subcomment's ID for the next recursive call
+                    nextLevelParentIds.push(subcomment._id);
+                });
+                
+                // Recursively get the next level of subcomments if any
+                if (nextLevelParentIds.length > 0) {
+                    const nextLevelSubcomments = await getAllSubcomments(nextLevelParentIds);
+                    
+                    // Attach next-level subcomments to their parents
+                    Object.keys(nextLevelSubcomments).forEach(parentId => {
+                        // Find the parent subcomment in our current level
+                        for (const currentParentId in subcommentsMap) {
+                            subcommentsMap[currentParentId].forEach(subcomment => {
+                                if (subcomment._id.toString() === parentId) {
+                                    subcomment.comments = nextLevelSubcomments[parentId];
+                                }
+                            });
+                        }
+                    });
+                }
+                
+                return subcommentsMap;
+            }
+    
+            // Execute the recursive function starting with top-level comments
+            const allSubcomments = await getAllSubcomments(commentIds);
+            
+            // Attach subcomments to their parent comments
+            Object.keys(allSubcomments).forEach(parentId => {
+                if (commentMap[parentId]) {
+                    commentMap[parentId].comments = allSubcomments[parentId];
+                }
+            });
+            
+            // Replace comment IDs with the populated comment objects in the response
+            discussion.initialResponses.forEach(initialResponse => {
+                initialResponse.responses.forEach(response => {
+                    if (response.comments && response.comments.length > 0) {
+                        const populatedResponseComments = response.comments.map(commentId => {
+                            const commentIdStr = commentId.toString ? commentId.toString() : commentId;
+                            return commentMap[commentIdStr] || commentId;
+                        });
+                        response.comments = populatedResponseComments;
+                    }
+                });
+            });
+    
+            res.send(discussion);
+        } catch (err) {
+            console.error("Error fetching complete discussion:", err);
+            res.status(422).send({ error: err.message || "Error fetching discussion data" });
+        }
+    });
 };

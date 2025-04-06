@@ -35,8 +35,6 @@ const Header = ({ user }) => {
             console.error("Error during logout:", error);
         }
     };
-    //console.log("Header Data: ", data)
-    //console.log("Header -> user:", user)
 
     const renderClarificationModal = (studyResponseId, notification) => {
         setSelectedStudyResponseId(studyResponseId);
@@ -181,10 +179,8 @@ const Header = ({ user }) => {
                     toggle={renderClarificationModal}
                     selectedStudyResponseId={selectedStudyResponseId}
                     notification={notification}
-
                 />
             }
-
         </nav>
     );
 };

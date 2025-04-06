@@ -124,8 +124,8 @@ const StudyDashboard = () => {
         );
     };
 
-    /********** DOWNLOAD DATA **********/
-    const handleDownload = async (downloadType) => {
+    /********** DOWNLOAD RESPONSES **********/
+    const handleDownloadResponses = async (downloadType) => {
         try {
             const responseData = await fetchAllStudyResponses(studyId).unwrap();
 
@@ -228,6 +228,142 @@ const StudyDashboard = () => {
         URL.revokeObjectURL(a.href);
     };
 
+    /********** DOWNLOAD DISCUSSION ********/
+    const handleDownloadDiscussion = async (downloadType) => {
+        try {
+            if (!taskDiscussions) return;
+    
+            // Process each task discussion
+            const taskIds = Object.keys(taskDiscussions);
+            
+            // For now we'll just use the latest selected task or first task
+            const currentTaskId = taskIds[0];
+            const discussionData = taskDiscussions[currentTaskId];
+            
+            if (!discussionData) return;
+            
+            // Get task name and study name for filename
+            const task = study.tasks.find(t => t._id === currentTaskId);
+            const taskName = task?.name || 'task';
+            const studyName = study.name || 'study';
+            const fileName = `study-${studyName}-task-${taskName}`.replace(/\s+/g, '-');
+            
+            // Format the data according to the required structure
+            const formattedData = {
+                study: study.name,
+                task: {
+                    name: task.name,
+                    prompts: []
+                }
+            };
+            
+            // Process each prompt
+            discussionData.prompts.forEach(promptObj => {
+                const prompt = {
+                    prompt: promptObj.question.replace(/<[^>]*>/g, ''),
+                    responses: []
+                };
+                
+                // Find all responses for this prompt
+                discussionData.initialResponses.forEach(initialResponse => {
+                    initialResponse.responses.forEach(respObj => {
+                        // Match responses to this prompt
+                        if (respObj.prompt === promptObj.id) {
+                            const responseObj = {
+                                user: initialResponse._participant.username,
+                                response: respObj.response,
+                                dateCreated: respObj._dateCreated || initialResponse._dateCreated,
+                                comments: [],
+                                votes: []
+                            };
+                            
+                            // Add comments
+                            if (respObj.comments && respObj.comments.length > 0) {
+                                respObj.comments.forEach(comment => {
+                                    responseObj.comments.push({
+                                        user: comment.user.username,
+                                        comment: comment.content,
+                                        dateCreated: comment.dateCreated
+                                    });
+                                });
+                            }
+                            
+                            // Add votes
+                            if (respObj.votes && respObj.votes.length > 0) {
+                                respObj.votes.forEach(vote => {
+                                    responseObj.votes.push({
+                                        user: vote.voter.username,
+                                        vote: vote.vote,
+                                        dateCreated: vote.dateCreated
+                                    });
+                                });
+                            }
+                            
+                            prompt.responses.push(responseObj);
+                        }
+                    });
+                });
+                
+                formattedData.task.prompts.push(prompt);
+            });
+            
+            // Download in requested format
+            if (downloadType === "json") {
+                const jsonData = JSON.stringify(formattedData, null, 2);
+                downloadFile(jsonData, `${fileName}.json`, 'application/json');
+            }
+            else if (downloadType === "csv") {
+                let csvContent = "study,taskName,prompt,username,response,responseDate,commentUsername,comment,commentDate,voterUsername,vote\n";
+                
+                // Flatten nested structure for CSV
+                formattedData.task.prompts.forEach(prompt => {
+                    const promptText = prompt.prompt;
+                    
+                    prompt.responses.forEach(response => {
+                        const studyName = escapeCsv(formattedData.study);
+                        const taskName = escapeCsv(formattedData.task.name);
+                        const promptCsv = escapeCsv(promptText);
+                        const username = escapeCsv(response.user);
+                        const responseText = escapeCsv(response.response);
+                        const responseDate = escapeCsv(response.dateCreated);
+                        
+                        // If no comments or votes, output just the response row
+                        if (response.comments.length === 0 && response.votes.length === 0) {
+                            csvContent += `${studyName},${taskName},${promptCsv},${username},${responseText},${responseDate},,,,,""\n`;
+                        }
+                        
+                        // Add rows for comments
+                        if (response.comments.length > 0) {
+                            response.comments.forEach(comment => {
+                                csvContent += `${studyName},${taskName},${promptCsv},${username},${responseText},${responseDate},`;
+                                csvContent += `${escapeCsv(comment.user)},${escapeCsv(comment.comment)},${escapeCsv(comment.dateCreated)},,\n`;
+                            });
+                        }
+                        
+                        // Add rows for votes
+                        if (response.votes.length > 0) {
+                            response.votes.forEach(vote => {
+                                csvContent += `${studyName},${taskName},${promptCsv},${username},${responseText},${responseDate},`;
+                                csvContent += `,,,"${escapeCsv(vote.user)}",${vote.vote}\n`;
+                            });
+                        }
+                    });
+                });
+                
+                downloadFile(csvContent, `${fileName}.csv`, 'text/csv');
+            }
+        } catch (error) {
+            console.error("Error downloading discussion data:", error);
+        }
+    };
+    
+    // Helper function to escape CSV values
+    const escapeCsv = (field) => {
+        if (field === null || field === undefined) return '';
+        const str = String(field).replace(/"/g, '""');
+        return str.includes(',') ? `"${str}"` : str;
+    };
+
     return (
         <div className="container-fluid">
             <h3 className="text-center mb-4">Study Dashboard</h3>
@@ -314,11 +450,43 @@ const StudyDashboard = () => {
                     </h2>
                     <div className={`accordion-collapse collapse ${openAccordion === '2' ? 'show' : ''}`}>
                         <div className="accordion-body">
-                            <div className="d-flex justify-content-center gap-3">
-                                <button className="btn btn-primary" onClick={() => handleDownload("json")}>
+                            <div className="d-flex justify-content-center gap-3 mb-3">
+                                <button className="btn btn-primary" onClick={() => handleDownloadResponses("json")}>
                                     Download Responses (JSON)
                                 </button>
-                                <button className="btn btn-secondary" onClick={() => handleDownload("csv")}>
+                                <button className="btn btn-secondary" onClick={() => handleDownloadResponses("csv")}>
+                                    Download Responses (CSV)
+                                </button>
+                            </div>
+                            <div className="d-flex justify-content-center gap-3">
+                                <button className="btn btn-primary" onClick={() => handleDownloadDiscussion("json")}>
+                                    Download Discussion (JSON)
+                                </button>
+                                <button className="btn btn-secondary" onClick={() => handleDownloadDiscussion("csv")}>
+                                    Download Discussion (CSV)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {/* Assign New Participants */}
+                <div className="accordion-item">
+                    <h2 className="accordion-header">
+                        <button
+                            className={`accordion-button ${openAccordion !== '3' && 'collapsed'}`}
+                            type="button"
+                            onClick={() => toggleAccordion('3')}
+                        >
+                            Assign New Participants
+                        </button>
+                    </h2>
+                    <div className={`accordion-collapse collapse ${openAccordion === '3' ? 'show' : ''}`}>
+                        <div className="accordion-body">
+                            <div className="d-flex justify-content-center gap-3">
+                                <button className="btn btn-primary" onClick={() => handleDownloadResponses("json")}>
+                                    Download Responses (JSON)
+                                </button>
+                                <button className="btn btn-secondary" onClick={() => handleDownloadResponses("csv")}>
                                     Download Responses (CSV)
                                 </button>
                             </div>
