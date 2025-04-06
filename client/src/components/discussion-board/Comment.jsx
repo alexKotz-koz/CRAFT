@@ -4,12 +4,14 @@ import { Form, Field } from "react-final-form";
 import { GoArrowUp, GoArrowDown, GoPencil, GoReply } from "react-icons/go";
 import { PiCertificate } from "react-icons/pi";
 import { BiHide } from "react-icons/bi";
-import {Spinner} from "reactstrap";
+import { Spinner } from "reactstrap";
+import ClarifyButton from './clarify/ClarifyButton';
+import ClarifyRequestInput from './clarify/ClarifyRequestInput';
 
 import { useCreateCommentVoteMutation, useCreateSubCommentMutation, useFetchSubCommentsQuery, useUpdateCommentMutation, useHideCommentMutation, useFetchDiscussionQuery } from "../../store";
 import '../../static/discussion-board.css';
 
-const Comment = ({ comment, currentUser, studyId, location, taskId }) => {
+const Comment = ({ comment, currentUser, studyId, location, taskId, notifications }) => {
     const [createVote, { error: errorVote, isLoading: isLoadingVote }] = useCreateCommentVoteMutation();
     const [createSubcomment, { error: errorSubcomment, isLoading: isLoadingSubcomment }] = useCreateSubCommentMutation();
     const [updateComment, { error: errorUpdateComment, isLoading: isLoadingUpdateComment }] = useUpdateCommentMutation();
@@ -19,7 +21,8 @@ const Comment = ({ comment, currentUser, studyId, location, taskId }) => {
     const [showReply, setShowReply] = useState(false);
     const [editComment, setEditComment] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
-    //const [isVisible, setIsVisible] = useState(comment.visible);
+    const [showClarificationComment, setShowClarificationComment] = useState(false);
+
 
     const { data: subcomments, error: errorFetchSubcomments, isLoading: isLoadingFetchSubcomments } = useFetchSubCommentsQuery({ commentId: comment._id });
 
@@ -126,12 +129,20 @@ const Comment = ({ comment, currentUser, studyId, location, taskId }) => {
 
     const handleHideComment = (commentId, state) => {
         hideComment({ commentId, state: !state, taskId });
-        //setIsVisible(!state);
     };
+
 
     const userDisplayName = comment.user.role === 'participant'
         ? comment.user.username
         : `${comment.user.firstName} ${comment.user.lastName}`;
+
+    
+    const hasNotification = notifications?.some((notification) => {
+        if (!notification.initialResponse && notification.comment){
+            return notification.comment._id === comment._id && notification.status === 'clarify-pending-approval';
+        }
+        
+    });
 
     return (
         <div className="card border-left-only">
@@ -187,6 +198,16 @@ const Comment = ({ comment, currentUser, studyId, location, taskId }) => {
                     ) : (
                         <p className="card-text mb-2 bg-secondary">This comment was hidden by the facilitator</p>
                     )}
+                    { // CLARIFICATION REQUEST: Text area and buttons for submitting a clarification request comment
+                        showClarificationComment && (
+                            <ClarifyRequestInput
+                                showClarificationComment={showClarificationComment}
+                                setShowClarificationComment={setShowClarificationComment}
+                                responseId={comment._id} 
+                                studyId={studyId}
+                                location="comment"
+                            />
+                        )}
 
                 </div>
                 <div className="d-flex align-items-center justify-content-start">
@@ -228,10 +249,25 @@ const Comment = ({ comment, currentUser, studyId, location, taskId }) => {
                             className={`ms-2 badge rounded-pill ${comment.visible ? 'text-bg-light' : 'text-bg-info'}`}
                             onClick={() => handleHideComment(comment._id, comment.visible)}
                         >
+                            {comment.visible ? <span>Hide Comment </span> : <span>Unhide Comment </span>}
                             <span>
                                 <BiHide />
                             </span>
                         </button>
+                    }
+                    {//CLARIFICATION REQUEST: Icon to trigger the clarification request workflow and show the form for comment submission
+
+                        (!isParticipant && comment.user.role !== 'facilitator') &&
+                        <ClarifyButton
+                            showClarificationComment={showClarificationComment}
+                            setShowClarificationComment={setShowClarificationComment}
+                            hasNotification={hasNotification}
+                            responseId={comment._id} 
+                            taskId={taskId}
+                            currentUserId={currentUser._id}
+                            username={comment.user.username}
+                            location="comment"
+                        />
                     }
                 </div>
                 {showReply && (
@@ -254,7 +290,7 @@ const Comment = ({ comment, currentUser, studyId, location, taskId }) => {
                 )}
                 {subcomments && subcomments.map((subcomment) => (
 
-                    <Comment key={subcomment._id} comment={subcomment} currentUser={currentUser} studyId={studyId} location="discussion-board" taskId={taskId} />
+                    <Comment key={subcomment._id} comment={subcomment} currentUser={currentUser} studyId={studyId} location="discussion-board" taskId={taskId} notifications={notifications} />
                 ))}
             </div>
         </div>

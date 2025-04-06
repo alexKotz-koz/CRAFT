@@ -39,8 +39,6 @@ const Header = ({ user }) => {
     //console.log("Header -> user:", user)
 
     const renderClarificationModal = (studyResponseId, notification) => {
-        //console.log("renderClarificationModal: ", studyResponseId);
-
         setSelectedStudyResponseId(studyResponseId);
         setNotification(notification);
         setModalOpen(!modalOpen);
@@ -105,13 +103,11 @@ const Header = ({ user }) => {
                                 <h5 className="card-title">Notifications</h5>
                                 <ul className="list-group list-group-flush">
                                     {data.notifications.map((notification, index) => {
-                                        //console.log("Header Notification:", notification)
-                                        //navigate(`/discussion/${notification.task._id}`)
                                         return (
                                             <li
                                                 key={index}
                                                 className={renderNotificationCardStyle(notification)}
-                                                onClick={() => renderClarificationModal(notification.initialResponse, notification)}
+                                                onClick={() => renderClarificationModal(notification.comment ? notification.comment._id: notification.initialResponse, notification)}
                                             >
                                                 <HeaderNotificationCard notification={notification} currentUserIsParticipant={isParticipant} />
                                             </li>

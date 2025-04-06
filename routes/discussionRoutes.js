@@ -256,7 +256,7 @@ module.exports = (app) => {
             await newComment.save();
 
             // Populate the user field in the new comment
-            await newComment.populate('user', 'username');
+            await newComment.populate('user', 'username avatar firstName lastName role');
 
             res.send(newComment);
 
@@ -273,7 +273,7 @@ module.exports = (app) => {
     app.get('/api/discussion/:commentId/subcomment', requireLogin, async (req, res) => {
         const { commentId } = req.params;
         try {
-            const subcomments = await SubComment.find({ parentComment: commentId }).populate('user', 'username avatar role');
+            const subcomments = await SubComment.find({ parentComment: commentId }).populate('user', 'username avatar role firstName lastName');
             res.send(subcomments);
         } catch (err) {
             console.error("Error fetching subcomments:", err);
@@ -287,10 +287,46 @@ module.exports = (app) => {
     app.post('/api/discussion/:postId/notify', requireLogin, async (req, res) => {
         const { postId } = req.params;
         const { postType, notificationType, fromUser, toUser, task } = req.body;
-        
+
         try {
             switch (postType) {
                 case 'comment':
+                    switch (notificationType) {
+                        case 'clarify':
+                            try {
+                                const toUserId = await User.findOne({ username: toUser }).select('_id');
+
+                                if (!toUserId) {
+                                    res.status(400).send("No participant found");
+                                }
+
+                                const notification = new Notification({
+                                    type: notificationType,
+                                    comment: postId, // Use comment instead of initialResponse
+                                    fromUser,
+                                    toUser: toUserId,
+                                    status: 'clarify-pending-approval',
+                                    task: task
+                                });
+
+                                notification.save();
+
+                                await User.findByIdAndUpdate(
+                                    toUserId._id,
+                                    { $push: { notifications: notification._id } },
+                                    { new: true, useFindAndModify: false }
+                                );
+
+                                res.send(notification);
+                            } catch (err) {
+                                console.error("Error creating notification: ", err);
+                                res.status(400).send(err);
+                            }
+                            break;
+                        // Other notification types (if needed)
+                        default:
+                            res.status(400).send("Invalid notification type");
+                    }
                     break;
                 case 'initialResponse':
                     switch (notificationType) {
@@ -481,8 +517,8 @@ module.exports = (app) => {
     // Used in: ClarificationModal.jsx
     app.get('/api/discussion/studyResponse/:studyResponseId', requireLogin, async (req, res) => {
         const { studyResponseId } = req.params;
-        console.log("fetchStudyResponse: studyResponseId = ", studyResponseId);
-    
+        //console.log("fetchStudyResponse: studyResponseId = ", studyResponseId);
+
         try {
             const studyResponse = await StudyResponse.findOne({ 'responses._id': studyResponseId })
                 .populate({
@@ -503,29 +539,29 @@ module.exports = (app) => {
                     path: '_participant',
                     select: 'username avatar'
                 });
-    
+
             if (!studyResponse) {
                 return res.status(404).send("StudyResponse not found");
             }
-    
+
             const matchingResponse = studyResponse.responses.find(response => response._id.toString() === studyResponseId);
             if (!matchingResponse) {
                 return res.status(404).send("Response not found in StudyResponse");
             }
-    
+
             // Check if the prompt ID contains "childPrompt"
             const promptId = matchingResponse.prompt;
             let prompt;
-    
+
             if (typeof promptId === 'string' && promptId.includes('childPrompt')) {
                 // Extract the parent prompt ID and the child index
                 const [parentPromptId, childIndex] = promptId.split('-childPrompt-');
                 const parentPrompt = await mongoose.model('StudyPrompt').findById(parentPromptId);
-    
+
                 if (!parentPrompt || !parentPrompt.childPrompts || !parentPrompt.childPrompts[childIndex]) {
                     return res.status(404).send("Child prompt not found");
                 }
-    
+
                 // Get the correct child prompt
                 prompt = parentPrompt.childPrompts[childIndex];
             } else {
@@ -535,7 +571,7 @@ module.exports = (app) => {
                     return res.status(404).send("Prompt not found");
                 }
             }
-    
+
             const response = {
                 matchingResponse: {
                     ...matchingResponse.toObject(),
@@ -546,7 +582,7 @@ module.exports = (app) => {
                 task: studyResponse.task,
                 dateCreated: studyResponse._dateCreated
             };
-    
+
             res.send(response);
         } catch (err) {
             console.error("Error fetching study response:", err);
@@ -558,20 +594,73 @@ module.exports = (app) => {
     // API: hideComment
     // Used in: Comment.jsx
     app.post('/api/discussion/hide-comment/:commentId', requireLogin, async (req, res) => {
-        const {commentId} = req.params;
-        const {state} = req.body;
+        const { commentId } = req.params;
+        const { state } = req.body;
 
         try {
             const comment = await Comment.findOneAndUpdate(
                 { '_id': commentId },
                 { $set: { 'visible': state } },
                 { new: true } // returns the new comment
-            ) 
-            res.send({comment});       
+            )
+            res.send({ comment });
         } catch (err) {
             console.error("Error deleteing comment: ", err);
             res.status(422).send(err);
         }
     });
+
+
+    // Fetch single comment for clarification request on comment
+    // API: fetchCommentForClarification
+    // Used in: ClarificationModel.jsx
+        // Add this new endpoint
+    // Fetch single comment for clarification request on comment
+    app.get('/api/discussion/comment/:commentId', requireLogin, async (req, res) => {
+        const { commentId } = req.params;
+        
+        try {
+            const comment = await Comment.findById(commentId)
+                .populate('user', 'username avatar firstName lastName role')
+                .populate({
+                    path: 'parentComment',
+                    populate: { path: 'user', select: 'username avatar firstName lastName role' }
+                });
+                
+            if (!comment) {
+                return res.status(404).send("Comment not found");
+            }
+
+            // Find child comments (subcomments) for this comment
+            const childComments = await SubComment.find({ parentComment: commentId })
+                .populate('user', 'username avatar firstName lastName role');
+            
+            // Create a response object with both the comment and its child comments
+            const responseData = {
+                ...comment.toObject(),
+                childComments: childComments
+            };
+            
+            res.send(responseData);
+        } catch (err) {
+            console.error("Error fetching comment:", err);
+            res.status(422).send(err);
+        }
+    });
+
+    app.get('/api/discussion/find-discussion/:taskId', requireLogin, async (req, res) => {
+        const { taskId } = req.params;
+
+        try {
+            const discussion = await Discussion.findOne({ task: taskId });
+            if(!discussion) {
+                return res.status(404).send("No discussion found for that task");
+            }
+            res.send(discussion)
+        } catch (err) {
+            console.error("Error finding discussion from taskId: ", err)
+            res.status(422).send(err)
+        }
+    })
 
 };

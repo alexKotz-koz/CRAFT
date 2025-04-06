@@ -123,6 +123,8 @@ const StudyDashboard = () => {
             </>
         );
     };
+
+    /********** DOWNLOAD DATA **********/
     const handleDownload = async (downloadType) => {
         try {
             const responseData = await fetchAllStudyResponses(studyId).unwrap();
@@ -214,7 +216,7 @@ const StudyDashboard = () => {
             console.error("Error fetching study responses:", error);
         }
     };
-    // Helper function to download a file
+
     const downloadFile = (content, fileName, contentType) => {
         const a = document.createElement('a');
         const file = new Blob([content], { type: contentType });

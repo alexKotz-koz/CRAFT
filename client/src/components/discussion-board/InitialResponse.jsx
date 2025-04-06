@@ -2,14 +2,15 @@ import { useState } from "react";
 import { GoArrowUp, GoArrowDown, GoCommentDiscussion, GoReply, GoLightBulb, GoPencil } from "react-icons/go";
 import { Form, Field } from "react-final-form";
 import { Spinner } from "reactstrap";
-import { useCreateVoteMutation, useCreateCommentMutation, useCreateNotificationMutation, useUpdateCommentMutation, useFetchDiscussionQuery, useUpdateNotificationMutation } from "../../store";
+import { useCreateVoteMutation, useCreateCommentMutation, useUpdateCommentMutation, useFetchDiscussionQuery, useUpdateNotificationMutation } from "../../store";
 import Comment from "./Comment";
 import '../../static/discussion-board.css';
+import ClarifyRequestInput from "./clarify/ClarifyRequestInput";
+import ClarifyButton from "./clarify/ClarifyButton";
 
 const InitialResponse = ({ username, avatar, dateCreated, response, notifications, studyId, promptId, responseId, currentUser, votes, comments, taskId }) => {
     const [createVote, { error: errorVote, isLoading: isLoadingVote }] = useCreateVoteMutation();
     const [createComment, { error: errorComment, isLoading: isLoadingComment }] = useCreateCommentMutation();
-    const [createNotification, { error: errorCreateNotification, isLoading: isLoadingCreateNotification }] = useCreateNotificationMutation();
     const [updateComment, { error: errorUpdateComment, isLoading: isLoadingUpdateComment }] = useUpdateCommentMutation();
     const { refetch: refetchDiscussion } = useFetchDiscussionQuery(taskId);
     const [updateNotification, { error: errorUpdateNotification, isLoading: isLoadingUpdateNotification }] = useUpdateNotificationMutation();
@@ -18,6 +19,7 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
     const [showComments, setShowComments] = useState(true);
     const [showNewComment, setShowNewComment] = useState(false);
     const [editComment, setEditComment] = useState(false);
+    //Used in: Clarification Request form
     const [showClarificationComment, setShowClarificationComment] = useState(false);
     const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
 
@@ -33,7 +35,7 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
         });
     }
 
-    if (isLoadingVote || isLoadingComment || isLoadingCreateNotification || isLoadingUpdateComment || isLoadingUpdateNotification) {
+    if (isLoadingVote || isLoadingComment  || isLoadingUpdateComment || isLoadingUpdateNotification) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
                 <Spinner color="primary" />
@@ -41,8 +43,8 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
         );
     }
 
-    if (errorVote || errorComment || errorCreateNotification || errorUpdateComment || errorUpdateNotification) {
-        return <div>Error: {errorVote?.data || errorComment?.data || errorCreateNotification?.data || errorUpdateComment?.data || errorUpdateNotification?.data}</div>;
+    if (errorVote || errorComment || errorUpdateComment || errorUpdateNotification) {
+        return <div>Error: {errorVote?.data || errorComment?.data || errorUpdateComment?.data || errorUpdateNotification?.data}</div>;
     }
 
     const upVote = () => {
@@ -106,7 +108,9 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
         }
         return 'badge rounded-pill';
     };
-
+    /**NOTIFICATIONS */
+    // Used in: Clarify button
+    
     const hasNotification = notifications.some((notification) => {
         return notification.initialResponse === responseId && notification.status === 'clarify-pending-approval';
     });
@@ -136,35 +140,10 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
 
     };
 
-    // CLARIFICATION REQUEST
-    // Creates new clarification request notification from the facilitator (current user) to the pariticipant
-    // Hides the comment textarea 
-    const handleSubmitClarification = async () => {
-        try {
-            await createNotification({ postId: responseId, postType: 'initialResponse', notificationType: 'clarify', fromUser: currentUser._id, toUser: username, task: taskId });
-        } catch (error) {
-            console.error("Error submitting clarification:", error);
-        }
-        setShowClarificationComment(!showClarificationComment);
-    };
-
-    // CLARIFICATION REQUEST
-    // Creates facilitator comment
-    // Hides the comment textarea
-    const handleSubmitClarificationComment = async (commentContent) => {
-        const comment = commentContent['facilitator-comment'];
-        try {
-            await createComment({ promptId, responseId, content: comment, studyId });
-        } catch (error) {
-            console.error("Error submitting clarification:", error);
-        }
-        setShowClarificationComment(!showClarificationComment);
-    }
-
-
     return (
         <div className='card mb-2 border-left-only'>
             <div className="card-body">
+                {/*Card Header*/}
                 <div className="d-flex justify-content-between align-items-center">
                     <h5 className="card-title">
                         <img src={avatar} alt={`${username}'s avatar`} className="avatar-img-header mr-2" />
@@ -172,9 +151,9 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                     </h5>
                     <small className="text-muted">{new Date(dateCreated).toLocaleDateString()}</small>
                 </div>
+                {/*Edit Comment - Text box and two buttons, Clarification Request form */}
                 <div className="d-inline justify-content-start align-items-start mb-1">
                     {editComment ?
-
                         <Form
                             onSubmit={onSubmitUpdateComment}
                             initialValues={{ 'update-comment': response }}
@@ -197,39 +176,25 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                                 </form>
                             )}
                         >
-
                         </Form>
-
                         : <p className="card-text mb-2">{response}</p>}
 
 
                     { // CLARIFICATION REQUEST: Text area and buttons for submitting a clarification request comment
                         showClarificationComment && (
-                            <Form
-                                onSubmit={handleSubmitClarificationComment}
-                                render={({ handleSubmit }) => (
-                                    <form onSubmit={handleSubmit} className="needs-validation mb-3">
-                                        <Field
-                                            name="facilitator-comment"
-                                            component="textarea"
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="Please specify what part of the response needs clarification..."
-                                        />
-                                        <Field name="facilitator-comment">
-                                            {({ meta }) => meta.error && meta.touched && <span className="text-danger">{meta.error}</span>}
-                                        </Field>
-                                        <div>
-                                            <button type="submit" className="mt-2 btn btn-success">Submit</button>
-                                            <button className="mt-2 ms-2 btn btn-secondary" onClick={() => setShowClarificationComment(!showClarificationComment)}>Cancel</button>
-                                        </div>
-                                    </form>
-                                )}
-                            >
-                            </Form>
-                        )}
+                           <ClarifyRequestInput 
+                                showClarificationComment={showClarificationComment}
+                                setShowClarificationComment={setShowClarificationComment}
+                                promptId={promptId}
+                                responseId={responseId}
+                                studyId={studyId}
+                                location="initialResponse"    
+                            />
+                        )
+                    }
 
                 </div>
+                {/* Voting buttons, Reply button, Discussion button, Clarify button, Edit comment button*/}
                 <div className="d-flex align-items-center justify-content-start">
                     {currentUser.username !== username && (
                         <>
@@ -261,13 +226,16 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
                     }
                     {//CLARIFICATION REQUEST: Icon to trigger the clarification request workflow and show the form for comment submission
                         !isParticipant &&
-                        <button
-                            className={`ms-2 badge rounded-pill ${hasNotification ? 'text-bg-secondary' : 'text-bg-warning'}`}
-                            onClick={handleSubmitClarification}
-                            disabled={hasNotification}
-                        >
-                            {!hasNotification ? 'Clarify' : 'Clairification Pending'} <GoLightBulb />
-                        </button>
+                        <ClarifyButton 
+                            showClarificationComment={showClarificationComment} 
+                            setShowClarificationComment={setShowClarificationComment}
+                            hasNotification={hasNotification}
+                            responseId={responseId}
+                            taskId={taskId}
+                            currentUserId={currentUser._id}
+                            username={username}
+                            location='initialResponse'
+                        />
                     }
                     {(isParticipant && currentUser.username === username) &&
                         <button
@@ -282,10 +250,11 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
 
                     }
                 </div>
+                {/* Comments */}
                 {showComments && (
                     <div className="mt-3">
                         {comments.map((comment, idx) => (
-                            <Comment key={idx} comment={comment} currentUser={currentUser} studyId={studyId} location="discussion-board" taskId={taskId} />
+                            <Comment key={idx} comment={comment} currentUser={currentUser} studyId={studyId} location="discussion-board" taskId={taskId} promptId={promptId} responseId={responseId} notifications={notifications} />
                         ))}
                         {showNewComment && (
                             <form onSubmit={handleCommentSubmit} className="mt-3">

@@ -58,5 +58,7 @@ export {
   useUpdateCommentMutation,
   useUpdateNotificationMutation,
   useFetchStudyResponseQuery,
-  useHideCommentMutation
+  useHideCommentMutation,
+  useFetchCommentForClarificationQuery,
+  useLazyFindDiscussionQuery,
 } from './apis/discussionApi';

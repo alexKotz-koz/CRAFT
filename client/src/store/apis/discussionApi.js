@@ -110,7 +110,6 @@ const discussionApi = createApi({
             }),
             fetchStudyResponse: builder.query({
                 query: ({studyResponseId}) => {
-                    console.log("fetchStudyResponse: ", studyResponseId);
                     return {
                         url: `/discussion/studyResponse/${studyResponseId}`,
                         method: 'GET',
@@ -125,6 +124,22 @@ const discussionApi = createApi({
                         url: `/discussion/hide-comment/${commentId}`,
                         method: 'POST',
                         body: {state},
+                    };
+                },
+            }),
+            fetchCommentForClarification: builder.query({
+                query: ({commentId}) => {
+                    return {
+                        url: `/discussion/comment/${commentId}`,
+                        method: 'GET',
+                    };
+                },
+            }),
+            findDiscussion: builder.query({
+                query: ({taskId}) => {
+                    return{
+                        url: `/discussion/find-discussion/${taskId}`,
+                        method: 'GET',
                     };
                 },
             }),
@@ -148,5 +163,7 @@ export const {
     useUpdateNotificationMutation,
     useFetchStudyResponseQuery,
     useHideCommentMutation,
+    useFetchCommentForClarificationQuery,
+    useLazyFindDiscussionQuery,
 } = discussionApi;
 export { discussionApi };
