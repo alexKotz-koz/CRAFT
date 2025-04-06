@@ -8,7 +8,6 @@ const studyApi = createApi({
     tagTypes: ['Study'],
     endpoints(builder) {
         return {
-            
             createStudy: builder.mutation({
                 invalidatesTags: ['Study'],
                 query: (study) => {
@@ -31,7 +30,7 @@ const studyApi = createApi({
             createStudyResponse: builder.mutation({
                 invalidatesTags: ['Study'],
                 query: (response) => {
-                    return{
+                    return {
                         url: '/study/response',
                         method: 'POST',
                         body: response
@@ -78,18 +77,37 @@ const studyApi = createApi({
                     };
                 },
             }),
+            fetchAllStudies: builder.query({
+                providesTags: ['Study'],
+                query: () => {
+                    return {
+                        url: '/study/fetch-all',
+                        method: 'GET'
+                    };
+                },
+            }),
+            assignParticipant: builder.mutation({
+                query: ({ studyId, userId, taskIds }) => ({
+                    url: `/study/${studyId}/assign-participant`,
+                    method: 'POST',
+                    body: { userId, taskIds }
+                }),
+                invalidatesTags: ['Study']
+            }),
         };
     }
 
 });
-export const { 
-    useCreateStudyMutation, 
+export const {
+    useCreateStudyMutation,
     useFetchStudiesQuery,
-    useCreateStudyResponseMutation, 
+    useCreateStudyResponseMutation,
     useFetchStudyQuery,
     useFetchStudyCommentsQuery,
     useFetchTaskQuery,
     useFetchStudyTasksQuery,
-    useLazyFetchAllStudyResponsesQuery
+    useLazyFetchAllStudyResponsesQuery,
+    useFetchAllStudiesQuery,
+    useAssignParticipantMutation
 } = studyApi;
 export { studyApi };

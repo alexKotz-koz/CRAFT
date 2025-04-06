@@ -5,6 +5,7 @@ import { useLazyFetchDiscussionQuery, useFetchStudyCommentsQuery, useFetchStudyQ
 import SimplePieChart from "./SimplePieChart";
 import TimeLinePlot from "./TimeLinePlot";
 import StudyCard from "../../tools/StudyCard";
+import AssignNewParticipants from "./AssignNewParticipants";
 
 const StudyDashboard = () => {
     const { studyId } = useParams();
@@ -694,12 +695,7 @@ const StudyDashboard = () => {
                     <div className={`accordion-collapse collapse ${openAccordion === '3' ? 'show' : ''}`}>
                         <div className="accordion-body">
                             <div className="d-flex justify-content-center gap-3">
-                                <button className="btn btn-primary" onClick={() => handleDownloadResponses("json")}>
-                                    Download Responses (JSON)
-                                </button>
-                                <button className="btn btn-secondary" onClick={() => handleDownloadResponses("csv")}>
-                                    Download Responses (CSV)
-                                </button>
+                                {openAccordion === '3' && <AssignNewParticipants studyId={studyId} />}
                             </div>
                         </div>
                     </div>

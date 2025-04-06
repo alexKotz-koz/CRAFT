@@ -43,7 +43,9 @@ export {
   useFetchStudyCommentsQuery,
   useFetchTaskQuery,
   useFetchStudyTasksQuery,
-  useLazyFetchAllStudyResponsesQuery
+  useLazyFetchAllStudyResponsesQuery,
+  useFetchAllStudiesQuery,
+  useAssignParticipantMutation
 } from './apis/studyApi';
 
 export {

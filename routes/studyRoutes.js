@@ -19,6 +19,19 @@ Current implementation of StudyTask includes two discriminators. All routes curr
 
 
 module.exports = (app) => {
+    app.get('/api/study/fetch-all', requireLogin, requireFacilitatorPermissions, async (req, res) => {
+        try {
+            const allStudies = await Study.find({})
+                .populate({
+                    path: 'tasks',
+                    model: 'StudyTask'
+                });
+            res.send(allStudies);
+        } catch (err) {
+            console.error("Error fetching all studies: ", err);
+            res.status(500).send(err);
+        }
+    });
     // Create a new study
     // API: useCreateStudyMutation
     // Used in: StudyNewWizard.jsx
@@ -406,5 +419,106 @@ module.exports = (app) => {
             console.error("Error fetching study responses: ", JSON.stringify(err));
             res.status(500).send(err);
         }
-    })
+    });
+    // Add this route to your existing module.exports function:
+
+    // Assign participant to study and tasks
+    app.post('/api/study/:studyId/assign-participant', requireLogin, requireFacilitatorPermissions, async (req, res) => {
+        try {
+            const { studyId } = req.params;
+            const { userId, taskIds } = req.body;
+
+            if (!studyId || !userId || !taskIds || !taskIds.length) {
+                return res.status(400).send("Missing required parameters");
+            }
+
+            // Get user details
+            const user = await mongoose.model('User').findById(userId);
+            if (!user) {
+                return res.status(404).send("User not found");
+            }
+
+            // Add user to study participants if not already added
+            const study = await Study.findById(studyId);
+            if (!study) {
+                return res.status(404).send("Study not found");
+            }
+
+            // Check if user is already a participant
+            const isParticipant = study.participants.some(participant => {
+                if (typeof participant === 'object' && participant._id) {
+                    return participant._id.toString() === userId;
+                } else {
+                    return participant.toString() === userId;
+                }
+            });
+
+            // If not already a participant, add to study
+            if (!isParticipant) {
+                await Study.findByIdAndUpdate(
+                    studyId,
+                    {
+                        $push: {
+                            participants: {
+                                user: userId,
+                                email: user.email,
+                                username: user.username,
+                                responded: false
+                            }
+                        }
+                    },
+                    { new: true }
+                );
+            }
+
+            // Add user to each task's participants
+            for (const taskId of taskIds) {
+                // Need to determine task type (survey or app-review)
+                let task = await StudyTask.findById(taskId);
+
+                if (!task) {
+                    task = await StudyTaskSurvey.findById(taskId);
+                    if (!task) {
+                        task = await StudyTaskAppReview.findById(taskId);
+                    }
+                }
+
+                if (task) {
+                    // Check if user is already a participant in the task
+                    const isTaskParticipant = task.participants.some(participant => {
+                        if (typeof participant === 'object' && participant._id) {
+                            return participant._id.toString() === userId;
+                        } else {
+                            return participant.toString() === userId;
+                        }
+                    });
+
+                    // If not already a task participant, add to task
+                    if (!isTaskParticipant) {
+                        const modelToUse = task.taskType === 'survey' ? StudyTaskSurvey : StudyTaskAppReview;
+                        await modelToUse.findByIdAndUpdate(
+                            taskId,
+                            {
+                                $push: {
+                                    participants: {
+                                        user: userId,
+                                        email: user.email,
+                                        username: user.username,
+                                        responded: false
+                                    }
+                                }
+                            },
+                            { new: true }
+                        );
+                    }
+                }
+            }
+
+            res.send({ message: "Participant assigned successfully" });
+        } catch (err) {
+            console.error("Error assigning participant:", err);
+            res.status(500).send(err);
+        }
+    });
+
 };
