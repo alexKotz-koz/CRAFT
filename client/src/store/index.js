@@ -32,6 +32,7 @@ export {
   usePasswordResetMutation, 
   useLazyCheckUsernameAvailabilityQuery,
   useUpdateUserMutation,
+  useLazyGetUserByIdQuery
 } from './apis/authApi';
 
 export {

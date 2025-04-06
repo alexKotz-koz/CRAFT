@@ -88,6 +88,14 @@ const authApi = createApi({
                     };
                 },
             }),
+            getUserById: builder.query({
+                query: ({ userId }) => {
+                    return{
+                        url: `/user/${userId}`,
+                        method: 'GET'
+                    };
+                },
+            }),
         };
     }
 
@@ -104,5 +112,6 @@ export const {
     usePasswordResetMutation, 
     useLazyCheckUsernameAvailabilityQuery,
     useUpdateUserMutation,
+    useLazyGetUserByIdQuery,
 } = authApi;
 export { authApi };

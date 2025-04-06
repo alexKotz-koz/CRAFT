@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Spinner, Accordion, AccordionItem, AccordionHeader, AccordionBody } from "reactstrap";
-import { useLazyFetchDiscussionQuery, useFetchStudyCommentsQuery, useFetchStudyQuery, useLazyFetchAllStudyResponsesQuery } from "../../../store";
+import { useLazyFetchDiscussionQuery, useFetchStudyCommentsQuery, useFetchStudyQuery, useLazyFetchAllStudyResponsesQuery, useLazyFetchCompleteDiscussionQuery, useLazyGetUserByIdQuery } from "../../../store";
 import SimplePieChart from "./SimplePieChart";
 import TimeLinePlot from "./TimeLinePlot";
 import StudyCard from "../../tools/StudyCard";
@@ -16,7 +16,8 @@ const StudyDashboard = () => {
     const { data: comments, error: errorComments, isLoading: isLoadingComments } = useFetchStudyCommentsQuery(studyId);
     const [fetchTaskDiscussion, { data: taskDiscussion, error: errorTaskDiscussion, isLoading: isLoadingTaskDiscussion }] = useLazyFetchDiscussionQuery();
     const [fetchAllStudyResponses, { data: allStudyResponses, isLoading: isLoadingAllStudyResponses, error: errorAllStudyResponses }] = useLazyFetchAllStudyResponsesQuery();
-
+    const [fetchCompleteDiscussion, {error: errorCompleteDiscussion, isLoading: isLoadingCompleteDiscussion}] = useLazyFetchCompleteDiscussionQuery();
+    const [getUsernameById, {error: errorGetUsername, isLoading: isLoadingGetUsername}] = useLazyGetUserByIdQuery();
     const [taskDiscussions, setTaskDiscussions] = useState({});
 
     const toggleAccordion = (id) => {
@@ -37,7 +38,7 @@ const StudyDashboard = () => {
         }
     }, [study, fetchTaskDiscussion]);
 
-    if (isLoadingStudy || isLoadingComments || isLoadingTaskDiscussion || isLoadingAllStudyResponses) {
+    if (isLoadingStudy || isLoadingComments || isLoadingTaskDiscussion || isLoadingAllStudyResponses || isLoadingCompleteDiscussion) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
                 <Spinner color="primary" />
@@ -231,16 +232,19 @@ const StudyDashboard = () => {
     /********** DOWNLOAD DISCUSSION ********/
     const handleDownloadDiscussion = async (downloadType) => {
         try {
-            if (!taskDiscussions) return;
-    
             // Process each task discussion
             const taskIds = Object.keys(taskDiscussions);
-            
             // For now we'll just use the latest selected task or first task
             const currentTaskId = taskIds[0];
-            const discussionData = taskDiscussions[currentTaskId];
+            if (!currentTaskId) return;
             
-            if (!discussionData) return;
+            // Use the complete discussion endpoint to get all nested comments
+            const completeData = await fetchCompleteDiscussion({ taskId: currentTaskId }).unwrap();
+            
+            if (!completeData) {
+                console.error("No complete discussion data found");
+                return;
+            }
             
             // Get task name and study name for filename
             const task = study.tasks.find(t => t._id === currentTaskId);
@@ -257,16 +261,165 @@ const StudyDashboard = () => {
                 }
             };
             
-            // Process each prompt
-            discussionData.prompts.forEach(promptObj => {
+            // Fetch all comment data first since we're only getting IDs
+            const allCommentIds = [];
+            for (const initialResponse of completeData.initialResponses) {
+                for (const respObj of initialResponse.responses) {
+                    if (respObj.comments && respObj.comments.length > 0) {
+                        // Check if comments are IDs or objects
+                        const commentIds = respObj.comments.map(comment => 
+                            typeof comment === 'string' ? comment : 
+                            (comment._id ? comment._id.toString() : null)
+                        ).filter(id => id !== null);
+                        
+                        allCommentIds.push(...commentIds);
+                    }
+                }
+            }
+            
+            // Create a map of comment details for easy lookup
+            const commentDetailsMap = {};
+            
+            // If we have comments as IDs, fetch them first
+            if (allCommentIds.length > 0) {
+                for (const commentId of allCommentIds) {
+                    try {
+                        // We need to fetch each comment individually
+                        const commentResponse = await fetch(`/api/discussion/comment/${commentId}`);
+                        if (commentResponse.ok) {
+                            const commentData = await commentResponse.json();
+                            commentDetailsMap[commentId] = {
+                                user: {
+                                    username: commentData.user?.username || "Unknown User",
+                                },
+                                content: commentData.content || "No content",
+                                dateCreated: commentData.dateCreated || new Date().toISOString(),
+                                // Store subcomments if any
+                                comments: commentData.childComments || [],
+                                // Include votes
+                                votes: commentData.votes || []
+                            };
+                        } else {
+                            console.warn(`Failed to fetch comment data for ID: ${commentId}`);
+                            // Create placeholder data
+                            commentDetailsMap[commentId] = {
+                                user: { username: "Unknown User" },
+                                content: "Comment data unavailable",
+                                dateCreated: new Date().toISOString(),
+                                comments: [],
+                                votes: []
+                            };
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching comment ${commentId}:`, error);
+                        // Create placeholder data
+                        commentDetailsMap[commentId] = {
+                            user: { username: "Error User" },
+                            content: "Error retrieving comment",
+                            dateCreated: new Date().toISOString(),
+                            comments: [],
+                            votes: []
+                        };
+                    }
+                }
+            }
+            
+            // Helper function to extract voter username from different vote structures
+            async function extractVoterUsername(vote) {
+                // Case 1: vote has voter as object with username
+                if (vote.voter && typeof vote.voter === 'object' && vote.voter.username) {
+                    return vote.voter.username;
+                }
+                
+                // Case 2: vote has voter as string (username directly)
+                if (vote.voter && typeof vote.voter === 'string') {
+                    const userFound = await getUsernameById({ userId: vote.voter }).unwrap();
+                    return userFound.username;
+                }
+                
+                // Fallback
+                return "Unknown Voter";
+            }
+            
+            // Helper function to process subcomments recursively
+            async function processSubComments(comments, targetArray) {
+                if (!comments || !comments.length) return;
+                
+                for (const comment of comments) {
+                    // Check if comment is an ID or an object
+                    if (!comment.user && typeof comment === 'string') {
+                        // If it's just an ID and we have it in our map
+                        const commentData = commentDetailsMap[comment];
+                        if (commentData) {
+                            const subComment = {
+                                user: commentData.user.username,
+                                comment: commentData.content,
+                                dateCreated: commentData.dateCreated,
+                                subcomments: [],
+                                votes: []
+                            };
+                            
+                            // Add votes for this subcomment - properly extract voter username
+                            if (commentData.votes && commentData.votes.length > 0) {
+                                for (const vote of commentData.votes) {
+                                    const voterUsername = await extractVoterUsername(vote);
+                                    subComment.votes.push({
+                                        user: voterUsername,
+                                        vote: vote.vote,
+                                        dateCreated: vote.dateCreated || new Date().toISOString()
+                                    });
+                                }
+                            }
+                            
+                            // Process child comments if any
+                            if (commentData.comments && commentData.comments.length > 0) {
+                                await processSubComments(commentData.comments, subComment.subcomments);
+                            }
+                            
+                            targetArray.push(subComment);
+                        }
+                    } else {
+                        // It's a populated object
+                        const subComment = {
+                            user: comment.user?.username || "Unknown",
+                            comment: comment.content,
+                            dateCreated: comment.dateCreated,
+                            subcomments: [],
+                            votes: []
+                        };
+                        
+                        // Add votes for this subcomment - properly extract voter username
+                        if (comment.votes && comment.votes.length > 0) {
+                            for (const vote of comment.votes) {
+                                const voterUsername = await extractVoterUsername(vote);
+                                subComment.votes.push({
+                                    user: voterUsername,
+                                    vote: vote.vote,
+                                    dateCreated: vote.dateCreated || new Date().toISOString()
+                                });
+                            }
+                        }
+                        
+                        // Recursive call for nested comments
+                        if (comment.comments && comment.comments.length > 0) {
+                            await processSubComments(comment.comments, subComment.subcomments);
+                        }
+                        
+                        targetArray.push(subComment);
+                    }
+                }
+            }
+            
+            // Process each prompt - converted to for...of for async support
+            for (const promptObj of completeData.prompts) {
                 const prompt = {
                     prompt: promptObj.question.replace(/<[^>]*>/g, ''),
                     responses: []
                 };
                 
-                // Find all responses for this prompt
-                discussionData.initialResponses.forEach(initialResponse => {
-                    initialResponse.responses.forEach(respObj => {
+                // Find all responses for this prompt - converted to for...of for async support
+                for (const initialResponse of completeData.initialResponses) {
+                    for (const respObj of initialResponse.responses) {
                         // Match responses to this prompt
                         if (respObj.prompt === promptObj.id) {
                             const responseObj = {
@@ -277,35 +430,73 @@ const StudyDashboard = () => {
                                 votes: []
                             };
                             
-                            // Add comments
+                            // Add comments with recursive subcomment processing
                             if (respObj.comments && respObj.comments.length > 0) {
-                                respObj.comments.forEach(comment => {
-                                    responseObj.comments.push({
-                                        user: comment.user.username,
-                                        comment: comment.content,
-                                        dateCreated: comment.dateCreated
-                                    });
-                                });
+                                // Process each comment and its nested subcomments
+                                for (const commentRef of respObj.comments) {
+                                    // Get the comment ID
+                                    const commentId = typeof commentRef === 'string' ? commentRef : 
+                                        (commentRef._id ? commentRef._id.toString() : null);
+                                    
+                                    if (!commentId) continue;
+                                    
+                                    // Get comment details from our map or use the comment object if it's already populated
+                                    const comment = typeof commentRef === 'object' && commentRef.user ? 
+                                        commentRef : commentDetailsMap[commentId];
+                                    
+                                    if (comment) {
+                                        const commentObj = {
+                                            user: comment.user.username,
+                                            comment: comment.content,
+                                            dateCreated: comment.dateCreated,
+                                            subcomments: [],
+                                            votes: []
+                                        };
+                                        
+                                        // Add votes for this comment - properly extract voter username
+                                        if (comment.votes && comment.votes.length > 0) {
+                                            for (const vote of comment.votes) {
+                                                // Extract voter info based on structure
+                                                const voterUsername = await extractVoterUsername(vote);
+                                                commentObj.votes.push({
+                                                    user: voterUsername,
+                                                    vote: vote.vote,
+                                                    dateCreated: vote.dateCreated || new Date().toISOString()
+                                                });
+                                            }
+                                        }
+                                        
+                                        // Process nested comments if they exist
+                                        if (comment.comments && comment.comments.length > 0) {
+                                            // If comments are already nested objects
+                                            await processSubComments(comment.comments, commentObj.subcomments);
+                                        }
+                                        
+                                        responseObj.comments.push(commentObj);
+                                    }
+                                }
                             }
                             
-                            // Add votes
+                            // Add votes - properly extract voter username
                             if (respObj.votes && respObj.votes.length > 0) {
-                                respObj.votes.forEach(vote => {
+                                for (const vote of respObj.votes) {
+                                    // Extract voter info based on structure
+                                    const voterUsername = await extractVoterUsername(vote);
                                     responseObj.votes.push({
-                                        user: vote.voter.username,
+                                        user: voterUsername,
                                         vote: vote.vote,
-                                        dateCreated: vote.dateCreated
+                                        dateCreated: vote.dateCreated || new Date().toISOString()
                                     });
-                                });
+                                }
                             }
                             
                             prompt.responses.push(responseObj);
                         }
-                    });
-                });
+                    }
+                }
                 
                 formattedData.task.prompts.push(prompt);
-            });
+            }
             
             // Download in requested format
             if (downloadType === "json") {
@@ -313,9 +504,16 @@ const StudyDashboard = () => {
                 downloadFile(jsonData, `${fileName}.json`, 'application/json');
             }
             else if (downloadType === "csv") {
-                let csvContent = "study,taskName,prompt,username,response,responseDate,commentUsername,comment,commentDate,voterUsername,vote\n";
+                let csvContent = "study,taskName,prompt,username,response,responseDate,commentUsername,comment,commentDate,replyLevel,replyToUsername,voteUsername,voteValue\n";
                 
-                // Flatten nested structure for CSV
+                // Helper function for CSV escaping
+                const escapeCsv = (field) => {
+                    if (field === null || field === undefined) return '';
+                    const str = String(field).replace(/"/g, '""');
+                    return str.includes(',') ? `"${str}"` : str;
+                };
+                
+                // Flatten nested structure for CSV using recursive approach
                 formattedData.task.prompts.forEach(prompt => {
                     const promptText = prompt.prompt;
                     
@@ -329,23 +527,42 @@ const StudyDashboard = () => {
                         
                         // If no comments or votes, output just the response row
                         if (response.comments.length === 0 && response.votes.length === 0) {
-                            csvContent += `${studyName},${taskName},${promptCsv},${username},${responseText},${responseDate},,,,,""\n`;
+                            csvContent += `${studyName},${taskName},${promptCsv},${username},${responseText},${responseDate},,,,,,\n`;
                         }
                         
-                        // Add rows for comments
-                        if (response.comments.length > 0) {
-                            response.comments.forEach(comment => {
-                                csvContent += `${studyName},${taskName},${promptCsv},${username},${responseText},${responseDate},`;
-                                csvContent += `${escapeCsv(comment.user)},${escapeCsv(comment.comment)},${escapeCsv(comment.dateCreated)},,\n`;
-                            });
-                        }
-                        
-                        // Add rows for votes
+                        // Add rows for response votes
                         if (response.votes.length > 0) {
                             response.votes.forEach(vote => {
                                 csvContent += `${studyName},${taskName},${promptCsv},${username},${responseText},${responseDate},`;
-                                csvContent += `,,,"${escapeCsv(vote.user)}",${vote.vote}\n`;
+                                csvContent += `${escapeCsv(username)},"Vote on response",${escapeCsv(responseDate)},-1,,${escapeCsv(vote.user)},${vote.vote}\n`;
                             });
+                        }
+                        
+                        // Process comments with nested structure
+                        if (response.comments.length > 0) {
+                            // Recursively add comments, their votes, and their subcomments
+                            const flattenCommentsAndVotes = (comments, level, parentUser) => {
+                                comments.forEach(comment => {
+                                    // For each comment, add a row
+                                    csvContent += `${studyName},${taskName},${promptCsv},${username},${responseText},${responseDate},`;
+                                    csvContent += `${escapeCsv(comment.user)},${escapeCsv(comment.comment)},${escapeCsv(comment.dateCreated)},${level},${level > 0 ? escapeCsv(parentUser) : ''},${escapeCsv('')},${escapeCsv('')}\n`;
+                                    
+                                    // Add rows for comment votes
+                                    if (comment.votes && comment.votes.length > 0) {
+                                        comment.votes.forEach(vote => {
+                                            csvContent += `${studyName},${taskName},${promptCsv},${username},${responseText},${responseDate},`;
+                                            csvContent += `${escapeCsv(comment.user)},"${escapeCsv(comment.comment.substring(0, 20))}...",${escapeCsv(comment.dateCreated)},${level},${level > 0 ? escapeCsv(parentUser) : ''},${escapeCsv(vote.user)},${vote.vote}\n`;
+                                        });
+                                    }
+                                    
+                                    // If there are subcomments, process them as well
+                                    if (comment.subcomments && comment.subcomments.length > 0) {
+                                        flattenCommentsAndVotes(comment.subcomments, level + 1, comment.user);
+                                    }
+                                });
+                            };
+                            
+                            flattenCommentsAndVotes(response.comments, 0, '');
                         }
                     });
                 });
@@ -354,16 +571,10 @@ const StudyDashboard = () => {
             }
         } catch (error) {
             console.error("Error downloading discussion data:", error);
+            alert("Failed to download discussion data. See console for details.");
         }
     };
     
-    // Helper function to escape CSV values
-    const escapeCsv = (field) => {
-        if (field === null || field === undefined) return '';
-        const str = String(field).replace(/"/g, '""');
-        return str.includes(',') ? `"${str}"` : str;
-    };
-
     return (
         <div className="container-fluid">
             <h3 className="text-center mb-4">Study Dashboard</h3>
