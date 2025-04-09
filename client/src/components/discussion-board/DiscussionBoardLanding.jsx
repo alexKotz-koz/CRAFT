@@ -2,8 +2,17 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Spinner } from "reactstrap";
 import { useFetchStudyTasksQuery } from "../../store";
 import StudyCard from "../tools/StudyCard";
+import { useEffect } from "react";
+import ReactGA from 'react-ga4';
 
 const DiscussionBoardLanding = () => {
+    useEffect(() => {
+        ReactGA.send({
+            hitType: "pageview",
+            page: "/discussion/landing/:studyId",
+            title: "Discussion Board Wizard - CRAFT",
+        });
+    }, []);
     const navigate = useNavigate();
     const { studyId } = useParams();
     const { data: tasks, isLoading: isLoadingStudyTasks, error: errorStudyTasks } = useFetchStudyTasksQuery(studyId);

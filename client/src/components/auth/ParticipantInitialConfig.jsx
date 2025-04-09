@@ -1,12 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Form, Field } from "react-final-form";
 import FormField from "../form/FormField";
 import FORM_FIELDS from "../form/userUpdateFormFields";
 import { useNavigate } from "react-router-dom";
 import { useLogoutUserMutation, usePasswordResetMutation, useUpdateUserMutation } from "../../store";
 import { Spinner } from "reactstrap";
+import ReactGA from "react-ga4";
+
 
 const ParticipantInitialConfig = ({ user }) => {
+    
+    useEffect(() => {
+        ReactGA.send({
+            hitType: "pageview",
+            page: "/participant-config",
+            title: "Participant Config - CRAFT",
+        });
+    }, []);
+    
     const navigate = useNavigate();
 
     const [jobRole, setJobRole] = useState("");

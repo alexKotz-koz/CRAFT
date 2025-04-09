@@ -1,6 +1,16 @@
+import { useEffect } from 'react';
+import ReactGA from 'react-ga4';
 import ButtonLink from './tools/ButtonLink';
 
 const Landing = () => {
+
+    useEffect(() => {
+        ReactGA.send({
+            hitType: "pageview",
+            page: "/",
+            title: "Landing - CRAFT",
+        });
+    }, []);
 
     return (
         <div className="px-4 py-5  text-center">

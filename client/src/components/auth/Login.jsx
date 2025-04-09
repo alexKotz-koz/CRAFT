@@ -10,7 +10,19 @@ import { Spinner } from 'reactstrap';
 
 import ButtonLink from '../tools/ButtonLink';
 
+import { useEffect } from 'react';
+import ReactGA from 'react-ga4';
+
 const Login = () => {
+
+    useEffect(() => {
+        ReactGA.send({
+            hitType: "pageview",
+            page: "/login",
+            title: "Login - CRAFT",
+        });
+    }, []);
+
     const navigate = useNavigate();
 
     const [loginUser, { isLoading: isLoadingLogin, error: errorLogin }] = useLoginUserMutation();

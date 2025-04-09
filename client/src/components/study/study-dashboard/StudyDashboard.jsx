@@ -6,8 +6,18 @@ import SimplePieChart from "./SimplePieChart";
 import TimeLinePlot from "./TimeLinePlot";
 import StudyCard from "../../tools/StudyCard";
 import AssignNewParticipants from "./AssignNewParticipants";
+import ReactGA from 'react-ga4';
 
 const StudyDashboard = () => {
+
+    useEffect(() => {
+        ReactGA.send({
+            hitType: "pageview",
+            page: "/study/dashboard/:studyId",
+            title: "Study Dashboard - CRAFT",
+        });
+    }, []);
+
     const { studyId } = useParams();
     const navigate = useNavigate();
 

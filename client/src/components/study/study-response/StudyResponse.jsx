@@ -3,8 +3,20 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useCreateStudyResponseMutation, useFetchTaskQuery, useFetchStudyQuery } from "../../../store";
 import { Form, Field } from "react-final-form";
 import parse, { domToReact } from 'html-react-parser';
+import { useEffect } from 'react';
+import ReactGA from 'react-ga4';
+
 
 const StudyResponse = ({ user }) => {
+
+    useEffect(() => {
+        ReactGA.send({
+            hitType: "pageview",
+            page: "/study/response/task/:taskId",
+            title: "Study Response - CRAFT",
+        });
+    }, []);
+    
     const navigate = useNavigate();
     const { taskId } = useParams();
     const { data: task, error: errorTask, isLoading: isLoadingTask } = useFetchTaskQuery(taskId);

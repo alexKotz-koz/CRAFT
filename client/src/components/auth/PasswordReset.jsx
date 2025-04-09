@@ -6,22 +6,35 @@ import FORM_FIELDS from '../form/passwordResetFormFields';
 
 import { usePasswordResetMutation } from '../../store';
 
+import { useEffect } from 'react';
+import ReactGA from 'react-ga4';
+
+
 const PasswordReset = () => {
+
+    useEffect(() => {
+        ReactGA.send({
+            hitType: "pageview",
+            page: "/password_reset",
+            title: "Password Reset - CRAFT",
+        });
+    }, []);
+
     const navigate = useNavigate();
 
     const [passwordReset, { isLoading, error }] = usePasswordResetMutation();
     const handleFormSubmit = async (values) => {
-      try {
-        await passwordReset(values).unwrap();
-        navigate('/login');
-      } catch (error) {
-        console.error("handleFormSubmit", error);
-      }
+        try {
+            await passwordReset(values).unwrap();
+            navigate('/login');
+        } catch (error) {
+            console.error("handleFormSubmit", error);
+        }
     };
 
     const validate = (values) => {
         const errors = {};
-        if (values.newPassword === values.currentPassword){
+        if (values.newPassword === values.currentPassword) {
             errors.newPassword = "New password cannot be the same as your old password";
         }
         if (values.newPassword !== values.confirmPassword) {
@@ -29,41 +42,41 @@ const PasswordReset = () => {
         }
         return errors;
     };
-  
+
     return (
-      <div>
-        <Form
-          onSubmit={handleFormSubmit}
-          validate={validate}
-          render={({ handleSubmit, submitError }) => (
-            <form onSubmit={handleSubmit}>
-              {FORM_FIELDS.map(({ label, name, type, options, required }) => (
-                <Field
-                  key={name}
-                  name={name}
-                  type={type}
-                  options={options}
-                  required={required}
-                >
-                  {({ input, meta }) => (
-                    <FormField
-                      input={input}
-                      label={label}
-                      type={type}
-                      options={options}
-                      meta={meta}
-                      required={required}
-                    />
-                  )}
-                </Field>
-              ))}
-              {submitError && <div className='alert alert-danger'>{submitError}</div>}
-              {error && <div className='alert alert-danger'>{error.data.error}</div>}
-              <button className="btn btn-primary" type="submit" disabled={isLoading}>Reset Password</button>
-            </form>
-          )}
-        />
-      </div>
+        <div>
+            <Form
+                onSubmit={handleFormSubmit}
+                validate={validate}
+                render={({ handleSubmit, submitError }) => (
+                    <form onSubmit={handleSubmit}>
+                        {FORM_FIELDS.map(({ label, name, type, options, required }) => (
+                            <Field
+                                key={name}
+                                name={name}
+                                type={type}
+                                options={options}
+                                required={required}
+                            >
+                                {({ input, meta }) => (
+                                    <FormField
+                                        input={input}
+                                        label={label}
+                                        type={type}
+                                        options={options}
+                                        meta={meta}
+                                        required={required}
+                                    />
+                                )}
+                            </Field>
+                        ))}
+                        {submitError && <div className='alert alert-danger'>{submitError}</div>}
+                        {error && <div className='alert alert-danger'>{error.data.error}</div>}
+                        <button className="btn btn-primary" type="submit" disabled={isLoading}>Reset Password</button>
+                    </form>
+                )}
+            />
+        </div>
     );
 };
 

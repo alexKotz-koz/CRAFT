@@ -4,17 +4,29 @@ import SignUpField from "../form/FormField";
 import FORM_FIELDS from "../form/signupFormFields";
 import { useCreateUserMutation } from "../../store";
 import { Spinner } from "reactstrap";
+import { useEffect } from "react";
+import ReactGA from 'react-ga4';
+
 
 const SignUp = () => {
+
+    useEffect(() => {
+        ReactGA.send({
+            hitType: "pageview",
+            page: "/signup",
+            title: "Sign Up - CRAFT",
+        });
+    }, []);
+
     const navigate = useNavigate();
 
     const [createUser, { isLoading, error }] = useCreateUserMutation();
-    
-    if (isLoading){
+
+    if (isLoading) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-            <Spinner color="primary" />
-        </div>
+                <Spinner color="primary" />
+            </div>
         );
     }
 
@@ -24,7 +36,7 @@ const SignUp = () => {
 
     const handleFormSubmit = async (values) => {
         try {
-            values = {...values, username: ''};
+            values = { ...values, username: '' };
             await createUser(values).unwrap(); //handle the promise returned by the mutation
             navigate('/login');
         } catch (error) {

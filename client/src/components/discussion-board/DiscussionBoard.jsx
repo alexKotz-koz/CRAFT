@@ -2,8 +2,20 @@ import { useFetchDiscussionQuery, useFetchTaskQuery, useFetchTaskNotificationsQu
 import { useParams } from "react-router-dom";
 import Prompt from "./Prompt";
 import { Spinner } from "reactstrap";
+import { useEffect } from "react";
+import ReactGA from 'react-ga4';
+
 
 const DiscussionBoard = () => {
+
+    useEffect(() => {
+        ReactGA.send({
+            hitType: "pageview",
+            page: "/discussion/:taskId",
+            title: "Discussion Board - CRAFT",
+        });
+    }, []);
+    
     const { taskId } = useParams();
     const { data: discussion, error: errorDiscussion, isLoading: isLoadingDiscussion } = useFetchDiscussionQuery(taskId);
     const { data: task, error: errorTask, isLoading: isLoadingTask } = useFetchTaskQuery(taskId);

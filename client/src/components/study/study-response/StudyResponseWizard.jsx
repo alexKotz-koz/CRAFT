@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import { useFetchStudyQuery } from "../../../store";
 import { Collapse, Card, CardBody, CardHeader, Button } from 'reactstrap';
-
+import ReactGA from 'react-ga4';
 
 
 const StudyResponseWizard = ({ user }) => {
@@ -11,6 +11,14 @@ const StudyResponseWizard = ({ user }) => {
     const { data: study, error: errorStudy, isLoading: isLoadingStudy, refetch: refetchStudy } = useFetchStudyQuery(studyId);
     const [respondedStatus, setRespondedStatus] = useState({});
 
+    useEffect(() => {
+        ReactGA.send({
+            hitType: "pageview",
+            page: "/study/response/:studyId",
+            title: "Study Response Wizard - CRAFT",
+        });
+    }, []);
+    
 
     useEffect(() => {
         if (study && study.tasks) {

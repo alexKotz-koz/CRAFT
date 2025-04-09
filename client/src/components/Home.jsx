@@ -23,7 +23,7 @@ const Home = () => {
         ReactGA.send({
             hitType: "pageview",
             page: "/home",
-            title: "Home",
+            title: "Home - CRAFT",
         });
     }, []);
 
