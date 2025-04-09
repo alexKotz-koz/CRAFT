@@ -15,7 +15,9 @@ import DiscussionBoardLanding from "./discussion-board/DiscussionBoardLanding";
 import StudyDashboard from "./study/study-dashboard/StudyDashboard";
 import ParticipantInitialConfig from "./auth/ParticipantInitialConfig";
 
-import Test from '../components/Test';
+import ReactGA from 'react-ga4';
+
+const TRACKING_ID = "G-5SG34LECRC"
 
 
 import { useFetchUserQuery } from '../store';
@@ -29,7 +31,9 @@ import '../static/custom.css';
 
 const App = () => {
 
-  const { data: user } = useFetchUserQuery();
+    ReactGA.initialize(TRACKING_ID);
+
+    const { data: user } = useFetchUserQuery();
 
 
   return (
@@ -51,7 +55,6 @@ const App = () => {
         <Route path='/password_reset' element={<PasswordReset />} />
         <Route path='/discussion/:taskId' element={<DiscussionBoard />} />
         <Route path='/discussion/landing/:studyId' element={<DiscussionBoardLanding />} />
-        <Route path='/test' element={<Test />} />
       </Routes>
       </BrowserRouter>
     </div>

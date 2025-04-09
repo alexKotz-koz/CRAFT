@@ -6,6 +6,7 @@ import PrefaceModal from './tools/modals/PrefaceModal';
 import { useFetchUserQuery, useFetchStudiesQuery } from "../store";
 import { Spinner } from 'reactstrap';
 import '../static/custom.css';
+import ReactGA from 'react-ga4';
 
 const Home = () => {
     const navigate = useNavigate();
@@ -17,6 +18,15 @@ const Home = () => {
     const [studyName, setStudyName] = useState("");
     const [studyId, setStudyId] = useState("");
     const [studyPreface, setStudyPreface] = useState("");
+
+    useEffect(() => {
+        ReactGA.send({
+            hitType: "pageview",
+            page: "/home",
+            title: "Home",
+        });
+    }, []);
+
     
     useEffect(() => {
         if(user) {
