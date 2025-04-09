@@ -7,6 +7,7 @@ import Comment from "./Comment";
 import '../../static/discussion-board.css';
 import ClarifyRequestInput from "./clarify/ClarifyRequestInput";
 import ClarifyButton from "./clarify/ClarifyButton";
+import ReactGA from 'react-ga4';
 
 const InitialResponse = ({ username, avatar, dateCreated, response, notifications, studyId, promptId, responseId, currentUser, votes, comments, taskId }) => {
     const [createVote, { error: errorVote, isLoading: isLoadingVote }] = useCreateVoteMutation();
@@ -137,7 +138,11 @@ const InitialResponse = ({ username, avatar, dateCreated, response, notification
         updateComment({ commentId: responseId, update, task: taskId });
         setEditComment(false);
         refetchDiscussion();
-
+        ReactGA.event({
+            category: 'Edited Comment',
+            action: 'Initial Response Edited',
+            label: 'Initial Response Edit Submitted'
+        });
     };
 
     return (

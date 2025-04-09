@@ -1,5 +1,7 @@
 import { useCreateNotificationMutation } from "../../../store";
 import { GoLightBulb } from "react-icons/go";
+import ReactGA from 'react-ga4';
+
 
 const ClarifyButton = ({ showClarificationComment, setShowClarificationComment, hasNotification, responseId, taskId, currentUserId, username, location }) => {
   
@@ -13,6 +15,11 @@ const ClarifyButton = ({ showClarificationComment, setShowClarificationComment, 
 
     const handleSubmitClarification = async () => {
         try {
+            ReactGA.event({
+                category: 'Clarification',
+                action: 'Clarification Button Click',
+                label: 'Facilitator Clarification Request'
+            });
             await createNotification({ 
                 postId: responseId, 
                 postType, 

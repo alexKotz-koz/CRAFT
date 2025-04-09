@@ -11,6 +11,8 @@ import ClarifyRequestInput from './clarify/ClarifyRequestInput';
 import { useCreateCommentVoteMutation, useCreateSubCommentMutation, useFetchSubCommentsQuery, useUpdateCommentMutation, useHideCommentMutation, useFetchDiscussionQuery } from "../../store";
 import '../../static/discussion-board.css';
 
+import ReactGA from 'react-ga4';
+
 const Comment = ({ comment, currentUser, studyId, location, taskId, notifications }) => {
     const [createVote, { error: errorVote, isLoading: isLoadingVote }] = useCreateCommentVoteMutation();
     const [createSubcomment, { error: errorSubcomment, isLoading: isLoadingSubcomment }] = useCreateSubCommentMutation();
@@ -41,7 +43,7 @@ const Comment = ({ comment, currentUser, studyId, location, taskId, notification
     if (votes.length > 0) {
         votes.forEach((vote) => {
             const voterId = vote.voter._id || vote.voter;
-        
+
             if (voterId === currentUser._id) {
                 hasVotedComment = true;
                 currentUsersVote = vote.vote;
@@ -127,6 +129,11 @@ const Comment = ({ comment, currentUser, studyId, location, taskId, notification
         };
         updateComment({ commentId: comment._id, update });
         setEditComment(false);
+        ReactGA.event({
+            category: 'Edited Comment',
+            action: 'Comment Edited',
+            label: 'Comment Edit Submitted'
+        })
     };
 
     const handleHideComment = (commentId, state) => {
@@ -138,12 +145,12 @@ const Comment = ({ comment, currentUser, studyId, location, taskId, notification
         ? comment.user.username
         : `${comment.user.firstName} ${comment.user.lastName}`;
 
-    
+
     const hasNotification = notifications?.some((notification) => {
-        if (!notification.initialResponse && notification.comment){
+        if (!notification.initialResponse && notification.comment) {
             return notification.comment._id === comment._id && notification.status === 'clarify-pending-approval';
         }
-        
+
     });
 
     return (
@@ -205,7 +212,7 @@ const Comment = ({ comment, currentUser, studyId, location, taskId, notification
                             <ClarifyRequestInput
                                 showClarificationComment={showClarificationComment}
                                 setShowClarificationComment={setShowClarificationComment}
-                                responseId={comment._id} 
+                                responseId={comment._id}
                                 studyId={studyId}
                                 location="comment"
                             />
@@ -246,7 +253,7 @@ const Comment = ({ comment, currentUser, studyId, location, taskId, notification
                             <span>Edit</span>
                         </button>
                     }
-                    {(!isParticipant && showOptions )&&
+                    {(!isParticipant && showOptions) &&
                         <button
                             className={`ms-2 badge rounded-pill ${comment.visible ? 'text-bg-light' : 'text-bg-info'}`}
                             onClick={() => handleHideComment(comment._id, comment.visible)}
@@ -264,7 +271,7 @@ const Comment = ({ comment, currentUser, studyId, location, taskId, notification
                             showClarificationComment={showClarificationComment}
                             setShowClarificationComment={setShowClarificationComment}
                             hasNotification={hasNotification}
-                            responseId={comment._id} 
+                            responseId={comment._id}
                             taskId={taskId}
                             currentUserId={currentUser._id}
                             username={comment.user.username}

@@ -4,6 +4,7 @@ import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Spinner } from 'rea
 import { useFetchStudyResponseQuery, useFetchUserQuery, useCreateCommentMutation, useUpdateNotificationMutation, useCreateNotificationMutation, useFetchCommentForClarificationQuery, useCreateSubCommentMutation, useLazyFindDiscussionQuery } from '../../../store';
 import Comment from '../../discussion-board/Comment';
 import { Form, Field } from "react-final-form";
+import ReactGA from 'react-ga4';
 
 const ClarificationModal = ({ isOpen, toggle, selectedStudyResponseId, notification }) => {
 
@@ -75,6 +76,13 @@ const ClarificationModal = ({ isOpen, toggle, selectedStudyResponseId, notificat
     const isParticipant = currentUser.role !== 'facilitator' && currentUser.role !== 'admin';
 
     const handleSubmitClarificationComment = async (commentContent) => {
+
+        ReactGA.event({
+            category: 'Clarification',
+            action: 'Clarification Form Submit',
+            label: 'Participant Responded to Clarification Request'
+        })
+
         const comment = commentContent['update-comment'];
 
         try {

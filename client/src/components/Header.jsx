@@ -6,7 +6,7 @@ import { Spinner } from "reactstrap";
 import HeaderNotificationCard from "./tools/HeaderNotificationCard";
 import ClarificationModal from "./tools/modals/ClarificationModal";
 import { useLogoutUserMutation } from "../store";
-
+import ReactGA from 'react-ga4';
 
 const Header = ({ user }) => {
     const navigate = useNavigate();
@@ -106,6 +106,10 @@ const Header = ({ user }) => {
                                 <h5 className="card-title">Notifications</h5>
                                 <ul className="list-group list-group-flush">
                                     {data.notifications.length > 0 ? data.notifications.map((notification, index) => {
+                                        ReactGA.event({
+                                            category: 'Notifications',
+                                            action: 'Notifications Viewed'
+                                        });
                                         return (
                                             <li
                                                 key={index}
