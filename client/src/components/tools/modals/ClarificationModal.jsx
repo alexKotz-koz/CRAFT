@@ -10,7 +10,7 @@ const ClarificationModal = ({ isOpen, toggle, selectedStudyResponseId, notificat
 
     const isCommentNotification = notification && notification.comment;
     const navigate = useNavigate();
-    //console.log("isCommentNotification",notification)
+  
 
     const { data: studyResponse, isLoading: isLoadingStudyResponse, error: errorStudyResponse } =
         !isCommentNotification ?
@@ -25,7 +25,7 @@ const ClarificationModal = ({ isOpen, toggle, selectedStudyResponseId, notificat
     const [updateNotification, { error: errorUpdateNotification, isLoading: isLoadingUpdateNotification }] = useUpdateNotificationMutation();
     const [createNotification, { error: errorCreateNotification, isLoading: isLoadingCreateNotification }] = useCreateNotificationMutation();
 
-    const [showFullPrompt, setShowFullPrompt] = useState(false); // State to toggle full prompt visibility
+    const [showFullPrompt, setShowFullPrompt] = useState(false); 
 
     if (isLoadingStudyResponse || isLoadingUser || isLoadingComment || isLoadingUpdateNotification || isLoadingCreateNotification) {
         return (
@@ -39,10 +39,11 @@ const ClarificationModal = ({ isOpen, toggle, selectedStudyResponseId, notificat
         return <div>Error: {errorStudyResponse?.data || errorUser?.data || errorComment?.data || errorUpdateNotification?.data || errorCreateNotification?.data}</div>;
     }
 
+    // Helper functions to turn the prompt from html to text on the Modal Header
     const parseTextContent = (html) => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
-        return doc.body.textContent || ''; // Extract plain text content
+        return doc.body.textContent || ''; 
     };
 
     const parseFirstElementText = (html) => {
@@ -51,7 +52,6 @@ const ClarificationModal = ({ isOpen, toggle, selectedStudyResponseId, notificat
         return doc.body.firstChild ? doc.body.firstChild.textContent : '';
     };
 
-    // We only process these variables if it's an initial response notification
     let studyId, taskId, dataPrompt, fullPrompt, shortPrompt, response, comments;
     let username, avatar, promptId, responseId, dateCreated;
 

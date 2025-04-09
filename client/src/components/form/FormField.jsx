@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import DOMPurify from 'dompurify';
+import '../../static/custom.css';
 
 const formatDropDownString = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -35,11 +36,11 @@ const FormField = ({ input, label, type, options, meta: { error, touched }, requ
                         className="form-control"
                         required={required}
                         onChange={handleSelectChange}
-                        value={isOtherSelected ? 'Other' : input.value} // Ensure the select retains its value
+                        value={isOtherSelected ? 'Other' : input.value} 
                     >
-                        <option value="" disabled hidden>Select an option...</option>
+                        <option  value="" disabled hidden>Select an option...</option>
                         {options.map((option) => (
-                            <option key={option} value={option}>{formatDropDownString(option)}</option>
+                            <option key={option} className='form-field-option' value={option}>{formatDropDownString(option)}</option>
                         ))}
                     </select>
                     {isOtherSelected && (
@@ -47,7 +48,7 @@ const FormField = ({ input, label, type, options, meta: { error, touched }, requ
                             type="text"
                             className="form-control mt-2"
                             placeholder="Please specify"
-                            value={otherValue} // Bind the "Other" input to its state
+                            value={otherValue}
                             onChange={handleOtherInputChange}
                         />
                     )}

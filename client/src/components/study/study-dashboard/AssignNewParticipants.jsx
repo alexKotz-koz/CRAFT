@@ -157,7 +157,7 @@ const AssignNewParticipants = () => {
                 <h4>All Users</h4>
             </div>
             <div className="row">
-                <Table>
+                <Table responsive>
                     <thead>
                         <tr>
                             <th>#</th>

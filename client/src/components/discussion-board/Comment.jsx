@@ -198,7 +198,7 @@ const Comment = ({ comment, currentUser, studyId, location, taskId, notification
                             <p className="card-text mb-2">{originalComment}</p>
                         )
                     ) : (
-                        <p className="card-text mb-2 bg-secondary">This comment was hidden by the facilitator</p>
+                        <p className="card-text mb-2 d-block bg-info-subtle border rounded p-2">This comment was hidden by the facilitator</p>
                     )}
                     { // CLARIFICATION REQUEST: Text area and buttons for submitting a clarification request comment
                         showClarificationComment && (
@@ -246,7 +246,7 @@ const Comment = ({ comment, currentUser, studyId, location, taskId, notification
                             <span>Edit</span>
                         </button>
                     }
-                    {!isParticipant &&
+                    {(!isParticipant && showOptions )&&
                         <button
                             className={`ms-2 badge rounded-pill ${comment.visible ? 'text-bg-light' : 'text-bg-info'}`}
                             onClick={() => handleHideComment(comment._id, comment.visible)}
@@ -259,7 +259,7 @@ const Comment = ({ comment, currentUser, studyId, location, taskId, notification
                     }
                     {//CLARIFICATION REQUEST: Icon to trigger the clarification request workflow and show the form for comment submission
 
-                        (!isParticipant && comment.user.role !== 'facilitator') &&
+                        (!isParticipant && comment.user.role !== 'facilitator' && showOptions) &&
                         <ClarifyButton
                             showClarificationComment={showClarificationComment}
                             setShowClarificationComment={setShowClarificationComment}

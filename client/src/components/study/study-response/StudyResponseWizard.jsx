@@ -88,39 +88,34 @@ const StudyResponseWizard = ({ user }) => {
     };
 
     return (
-        <div className="container py-2 px-5 ">
-            <h3 className="text-center mb-5">Tasks</h3>
+        <div className="container py-2 px-3 px-md-5">
+            <h3 className="text-center mb-3 mb-md-5">Tasks</h3>
             <div className="card mb-4">
                 <div className="card-body">
                     <h5 className="card-title">Study Description</h5>
                     <p className="card-text">{study.description}</p>
                 </div>
             </div>
-            {taskChunks.map((chunk, chunkIndex) => (
-                <div className="row" key={chunkIndex}>
-                    <div className="card-group">
-                        {chunk.map((task, index) => {
-                            return (
-                                <div className="col-3" key={index}>
-                                    <div className="card p-3 h-100">
-                                        <div className="d-flex justify-content-between align-items-center mb-3">
-                                            <h5 className="card-title">
-                                                {task.name ? task.name : study.name}
-                                            </h5>
-
-                                        </div>
-                                        <p className="card-text description">
-                                            {task.instructions}
-                                        </p>
-                                        {renderCompletedTaskCard(respondedStatus[task._id], task._id)}
-                                    </div>
-
+            
+            <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+                {study.tasks
+                    .filter(task => task.participants.some(participant => participant.email === user.email))
+                    .map((task, index) => (
+                        <div className="col mb-3" key={index}>
+                            <div className="card p-3 h-100 d-flex flex-column">
+                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 className="card-title">
+                                        {task.name ? task.name : study.name}
+                                    </h5>
                                 </div>
-                            )
-                        })}
-                    </div>
-                </div>
-            ))}
+                                <p className="card-text description flex-grow-1">
+                                    {task.instructions}
+                                </p>
+                                {renderCompletedTaskCard(respondedStatus[task._id], task._id)}
+                            </div>
+                        </div>
+                    ))}
+            </div>
         </div>
     );
 };

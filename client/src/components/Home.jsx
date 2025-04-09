@@ -66,15 +66,7 @@ const Home = () => {
 
 
     // FACILITATOR ///////////////////////////////////////////////////////////////////////////////////////////
-
-    const facilitatorCompletedStudies = ({ study }) => {
-        return (
-            <p className="card-text">
-                Participants Responded: {study.participants.filter(p => p.responded).length} / {study.participants.length}
-            </p>
-        );
-    };
-
+    
     const facilitatorViewDashboard = ({ link }) => {
         return (
             <div className="mt-auto">

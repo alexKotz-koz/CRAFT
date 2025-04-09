@@ -15,6 +15,7 @@ const Header = ({ user }) => {
     const [selectedStudyResponseId, setSelectedStudyResponseId] = useState("");
     const [notification, setNotification] = useState({});
     const [logoutUser, { isLoading: isLoadingLogoutUser, error: errorLogoutUser }] = useLogoutUserMutation();
+    const [isNavbarCollapsed, setIsNavbarCollapsed] = useState(true);
 
     if (isLoading) {
         return (
@@ -29,11 +30,15 @@ const Header = ({ user }) => {
     }
     const handleLogout = async () => {
         try {
-            await logoutUser().unwrap(); 
-            navigate('/login'); 
+            await logoutUser().unwrap();
+            navigate('/login');
         } catch (error) {
             console.error("Error during logout:", error);
         }
+    };
+
+    const toggleNavbar = () => {
+        setIsNavbarCollapsed(!isNavbarCollapsed);
     };
 
     const renderClarificationModal = (studyResponseId, notification) => {
@@ -95,29 +100,31 @@ const Header = ({ user }) => {
                             )
                         }
                     </div>
-                    <ul className="dropdown-menu dropdown-menu-end p-0 notification-dropdown">
+                    <ul className="dropdown-menu dropdown-menu-end p-0 notification-dropdown position-absolute">
                         <li className='card notification-card'>
                             <div className="card-body">
                                 <h5 className="card-title">Notifications</h5>
                                 <ul className="list-group list-group-flush">
-                                    {data.notifications.map((notification, index) => {
+                                    {data.notifications.length > 0 ? data.notifications.map((notification, index) => {
                                         return (
                                             <li
                                                 key={index}
-                                                className={renderNotificationCardStyle(notification)}
-                                                onClick={() => renderClarificationModal(notification.comment ? notification.comment._id: notification.initialResponse, notification)}
+                                                className={`${renderNotificationCardStyle(notification)} py-2`}
+                                                onClick={() => renderClarificationModal(notification.comment ? notification.comment._id : notification.initialResponse, notification)}
                                             >
                                                 <HeaderNotificationCard notification={notification} currentUserIsParticipant={isParticipant} />
                                             </li>
                                         );
-                                    })}
+                                    }) : (
+                                        <li className="list-group-item py-2">No notifications</li>
+                                    )}
                                 </ul>
                                 {/*
                                   <div className="card-footer d-flex justify-content-center align-items-center w-100">
                                     <button className="btn btn-secondary" onClick={() => navigate('/notifications')}>See All</button>
                                 </div>  
                                 */}
-                                
+
                             </div>
                         </li>
                     </ul>
@@ -142,10 +149,10 @@ const Header = ({ user }) => {
         return (
             <>
                 <li className="nav-item">
-                    <Link to="/login" className="nav-link active">Login</Link>
+                    <Link to="/login" className="nav-link active py-2 px-3">Login</Link>
                 </li>
                 <li className="nav-item">
-                    <Link to="/signup" className="nav-link active">Sign Up</Link>
+                    <Link to="/signup" className="nav-link active py-2 px-3">Sign Up</Link>
                 </li>
             </>
         );

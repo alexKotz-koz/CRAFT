@@ -3,7 +3,7 @@ const SimplePieChart = ({ data, title }) => {
     const COLORS = ['#0088FE', '#FF8042'];
 
     return (
-        <div className="col-4">
+        <div className="col-12 col-md-4">
             <h5 className="text-center">{title}</h5>
             <PieChart width={400} height={400}>
                 <Pie
@@ -21,8 +21,8 @@ const SimplePieChart = ({ data, title }) => {
                     ))}
                 </Pie>
                 <Tooltip />
-                <Legend />
-            </PieChart>
+                <Legend layout="horizontal" verticalAlign="bottom" align="center" />
+                </PieChart>
         </div>
     );
 }
