@@ -463,49 +463,7 @@ module.exports = (app) => {
                 }
             }
 
-            //console.log("newComment: ", response);
-            // update the participant side notification
-            let notification;
-            if (notificationId && mongoose.Types.ObjectId.isValid(notificationId)) {
-                notification = await Notification.findOneAndUpdate(
-                    { '_id': notificationId },
-                    { $set: { 'status': 'clarification-submitted' } },
-                    { new: true }
-                );
-                toUser = notification.toUser;
-                fromUser = notification.fromUser;
-
-                if (!notification) {
-                    return res.status(404).send({ error: 'Notification not found' });
-                }
-
-                await notification.save();
-            }
-            //console.log("notification associated with comment update: ", notification)
-
-            //create a new notification to facilitator, to review updated comment
-            let facilitatorNotification;
-
-            if (type === 'initialResponse') {
-                facilitatorNotification = new Notification({
-                    type: 'clarify',
-                    initialResponse: commentId,
-                    fromUser: toUser,
-                    toUser: fromUser,
-                    status: 'clarify-pending-approval',
-                    task: task
-                });
-                await facilitatorNotification.save();
-                await User.findByIdAndUpdate(
-                    fromUser._id,
-                    { $push: { notifications: facilitatorNotification._id } },
-                    { new: true, useFindAndModify: false }
-                );
-            }
-
-            //console.log("Facilitator Notification: ", facilitatorNotification);
-
-            res.send({ response, notification });
+            res.send({ response });
         } catch (err) {
             console.error("Error updating comment: ", err);
             res.status(422).send(err);
