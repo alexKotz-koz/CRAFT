@@ -621,15 +621,11 @@ module.exports = (app) => {
         }
     })
 
-        // GET Complete Task Discussion with all nested subcomments
-    // API: fetchCompleteDiscussion
-    // Used in: StudyDashboard.jsx for downloading full discussion data
-        // GET Complete Task Discussion with all nested subcomments
+    // GET Complete Task Discussion with all nested subcomments
     // API: fetchCompleteDiscussion
     // Used in: StudyDashboard.jsx for downloading full discussion data
     app.get('/api/discussion/complete/:taskId', requireLogin, async (req, res) => {
         const { taskId } = req.params;
-        console.log(taskId)
         // Validate taskId parameter
         if (!taskId || !mongoose.Types.ObjectId.isValid(taskId)) {
             return res.status(400).send("Invalid task ID format");
