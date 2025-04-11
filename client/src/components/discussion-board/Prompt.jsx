@@ -124,7 +124,7 @@ function Prompt({ prompts, prompt, responses, notifications, promptIndex, studyI
 
     return (
         filteredResponses.length > 0 && (
-        <div className="card bg-body-tertiary border border-tertiary p-2 rounded">
+        <div className="card bg-body-tertiary border border-tertiary p-2 rounded mb-3">
             <div className="card-body" onClick={handleClick}>
                 <div className="d-flex align-items-center">
                     {/* Card Title */}

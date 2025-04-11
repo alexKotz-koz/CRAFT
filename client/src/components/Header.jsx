@@ -73,14 +73,15 @@ const Header = ({ user }) => {
 
         return (
             <div className="d-flex align-items-center justify-content-center">
-                <li className="nav-item ms-3 me-3">
+                <li className="nav-item mx-3">
                     <a
                         href="https://forms.gle/3E1bLCKU7Teom9Ve9"
                         target="_blank"
-                        rel="noopener noreferrer" //https://stackoverflow.com/questions/50709625/link-with-target-blank-and-rel-noopener-noreferrer-still-vulnerable
-                        style={{ fontSize: "1.15rem" }}
+                        rel="noopener noreferrer"
+                        className="btn btn-light btn-sm border border-dark rounded-pill d-flex align-items-center gap-2 px-3"
                     >
-                        <GoBug className="text-dark" />
+                        <span>Report Issue</span>
+                        <GoBug />
                     </a>
                 </li>
                 {(data?.role === "facilitator" || data?.role === "admin") && (
@@ -139,8 +140,8 @@ const Header = ({ user }) => {
                         {data.avatar ? <img src={data.avatar} alt={`${data.username}'s avatar`} className="avatar-img-header mr-2" /> : data.username}
                     </a>
                     <ul className="dropdown-menu dropdown-menu-end">
-                        <li className="dropdown-item" href="/home">{data.username}</li>
-                        <li className="dropdown-item" href="/home">Home</li>
+                        <li><a className="dropdown-item disabled">{data.username}</a></li>
+                        <li><a className="dropdown-item" href="/home">Home</a></li>
                         <li><hr className="dropdown-divider" /></li>
                         <li><a className="dropdown-item" onClick={handleLogout}>Logout</a></li>
                     </ul>
