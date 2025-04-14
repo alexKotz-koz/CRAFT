@@ -107,8 +107,6 @@ const StudyNewWizard = () => {
         }
     };
     const renderContent = () => {
-        //console.log("Current Stage: ", currentStage)
-        console.log("FormValues: ", formValues)
         switch (currentStage) {
             case 0:
                 return (

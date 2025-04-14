@@ -266,7 +266,7 @@ const StudyDashboard = () => {
                     
                     // Skip tasks with no responses
                     if (!completeData || !completeData.initialResponses || completeData.initialResponses.length === 0) {
-                        console.log(`Task ${taskId} has no responses, skipping`);
+                        //console.log(`Task ${taskId} has no responses, skipping`);
                         continue;
                     }
                     

@@ -69,7 +69,6 @@ const discussionApi = createApi({
             createNotification: builder.mutation({
                 invalidatesTags: ['notification', 'User'],
                 query: ({ postId, postType, notificationType, fromUser, toUser, task }) => {
-                    //console.log("Api: ", postId, postType, fromUser, toUser, task)
                     return {
                         url: `/discussion/${postId}/notify`,
                         method: 'POST',
@@ -80,7 +79,6 @@ const discussionApi = createApi({
             fetchTaskNotifications: builder.query({
                 providesTags: ['notification'],
                     query: ({ taskId }) => {
-                        //console.log("API taskId", taskId)
                         return {
                             url: `/discussion/notifications/${taskId}`,
                             method: 'GET'
@@ -145,7 +143,6 @@ const discussionApi = createApi({
             }),
             fetchCompleteDiscussion: builder.query({
                 query: ({taskId}) => {
-                    console.log("api ", taskId)
                     return{
                         url: `/discussion/complete/${taskId}`,
                         method: 'GET',

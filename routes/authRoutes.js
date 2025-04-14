@@ -21,7 +21,6 @@ module.exports = (app) => {
 
         do {
             username = generateUsername();
-            //console.log("/auth/generate_username: ", username);
             existingUser = await User.findOne({ username });
         } while (existingUser);
 

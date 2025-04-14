@@ -1,6 +1,6 @@
 function generateAvatar(username) {
     const initials = username.split('-').map(name => name[0]).join('');
-    console.log("initials: ", initials)
+    
     const canvas = require('canvas');
     const { createCanvas } = canvas;
     const canvasElement = createCanvas(100, 100);

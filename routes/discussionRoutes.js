@@ -57,7 +57,6 @@ module.exports = (app) => {
         const { promptId, responseId } = req.params;
         const { voteType } = req.body;
         const userId = req.user._id;
-        //console.log("Prompt, Response", promptId, responseId)
         try {
             const studyResponse = await StudyResponse.findOne({ 'responses._id': responseId });
             if (!studyResponse) {
@@ -70,32 +69,26 @@ module.exports = (app) => {
             }
 
             const userVote = response.votes.find(vote => vote.voter.toString() === userId.toString());
-            //console.log("USer vote: ", userVote
+       
 
             // ToDo: Refactor to switch statement
             if (userVote) {
                 if (voteType === 'upvote') {
                     if (userVote.vote === 1) {
-                        //console.log("User is attempting to revert an upvote");
                         userVote.vote = 0;
                     } else if (userVote.vote === -1) {
-                        //console.log("User is attempting to switch an upvote for a downvote");
                         userVote.vote = 1;
                     } else if (userVote.vote === 0) {
-                        //console.log("User is attempting to switch a nuetral vote (from previous action) to an upvote");
                         userVote.vote = 1;
                     } else {
                         return res.status(400).send("Invalid vote operation");
                     }
                 } else if (voteType === 'downvote') {
                     if (userVote.vote === -1) {
-                        //console.log("User is attempting to revert a downvote");
                         userVote.vote = 0;
                     } else if (userVote.vote === 1) {
-                        //console.log("user is attempting to switch an upvote for a downvote");
                         userVote.vote = -1;
                     } else if (userVote.vote === 0) {
-                        //console.log("User is attempting to switch a nuetral vote (from previous action) to a downvote");
                         userVote.vote = -1;
                     }
                     else {
@@ -105,12 +98,9 @@ module.exports = (app) => {
                     return res.status(400).send("Invalid vote type");
                 }
             } else {
-                //console.log("no user vote exists")
                 if (voteType === 'upvote') {
-                    //console.log("User is trying to submit an initial upvote")
                     response.votes.push({ voter: userId, vote: 1 });
                 } else if (voteType === 'downvote') {
-                    //console.log("user is trying to submit an initial downvote")
                     response.votes.push({ voter: userId, vote: -1 });
                 } else {
                     return res.status(400).send("Invalid vote type");
@@ -364,13 +354,10 @@ module.exports = (app) => {
 
                             break;
                         case 'upvote':
-                            console.log("IR notification Type: ", notificationType)
                             break;
                         case 'downvote':
-                            console.log("IR notification Type: ", notificationType)
                             break;
                         case 'comment':
-                            console.log("IR notification Type: ", notificationType)
                             break;
                         default:
                             res.status(400).send("Invalid notification type");
@@ -435,7 +422,6 @@ module.exports = (app) => {
         let response;
         let fromUser;
         let toUser;
-        //console.log("Update Comment Route -> task: ", task);
         try {
             // update the response
             if (type === 'initialResponse') {
@@ -475,7 +461,6 @@ module.exports = (app) => {
     // Used in: ClarificationModal.jsx
     app.get('/api/discussion/studyResponse/:studyResponseId', requireLogin, async (req, res) => {
         const { studyResponseId } = req.params;
-        //console.log("fetchStudyResponse: studyResponseId = ", studyResponseId);
 
         try {
             const studyResponse = await StudyResponse.findOne({ 'responses._id': studyResponseId })

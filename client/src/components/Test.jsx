@@ -4,7 +4,6 @@ import 'react-quill/dist/quill.snow.css';
 const Test = () => {
 
     const [editorHtml, setEditorHtml] = useState('');
-    console.log(editorHtml)
     const handleChange = (html) => {
         setEditorHtml(html);
     };

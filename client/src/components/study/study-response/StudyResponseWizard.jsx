@@ -66,8 +66,7 @@ const StudyResponseWizard = ({ user }) => {
         }, []);
 
     const renderCompletedTaskCard = (status, taskId) => {
-        //console.log("StudyResponseWizard status: ", status)
-        //console.log("StudyResponseWizard taskID: ", taskId)
+
         switch (status) {
             case true:
                 return (

@@ -19,12 +19,12 @@ const StudyMeta = ({ onSubmit, initialValues, setStudyType }) => {
   };
 
   const handleFormSubmit = (values) => {
-    console.log("StudyMeta Values PreSan: ",values);
+    
     const cleanedValues = Object.keys(values).reduce((acc, key) => {
         acc[key] = DOMPurify.sanitize(values[key]);
         return acc;
       }, {});    
-    console.log("StudyMeta Values PostSan: ", cleanedValues);
+    
     const updatedValues = { ...cleanedValues};
     setStudyType(updatedValues.studyType);
     onSubmit(updatedValues);

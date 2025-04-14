@@ -30,16 +30,13 @@ const AppReview = ({ initialValues, handleFormSubmit, onCancel }) => {
     const [childEditorStates, setChildEditorStates] = useState([]);
 
     const handleBundleTaskData = (content) => {
-        console.log("handleBundleTaskData", content);
         handleFormSubmit(content);
     }
 
     const handleAddTask = (values) => {
-        console.log("handleAddTask values: ", values)
-        console.log("handleAddTask Questions: ", questionList)
         if (taskParticipants.length === 0) {
             setError("Please assign, at least one participat to this task.");
-            
+
         } else {
             if (values.name && values.instructions && questionList.length > 0) {
                 const newTask = { ...values, questions: questionList, assignedParticipants: taskParticipants };
@@ -130,9 +127,9 @@ const AppReview = ({ initialValues, handleFormSubmit, onCancel }) => {
     };
 
     const handleBackNav = ({ taskList }) => {
-        console.log(taskList)
+
         if (taskList.length <= 0) {
-            console.log("here")
+
             toggleModal();
         }
     };

@@ -35,9 +35,6 @@ const Login = () => {
         );
     }
 
-    // Login errors are handled by the Form, do not manually specify custom error handler
-
-
     const handleFormSubmit = async (values) => {
         try {
             await loginUser(values).unwrap();

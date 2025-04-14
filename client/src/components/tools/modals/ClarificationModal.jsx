@@ -137,10 +137,10 @@ const ClarificationModal = ({ isOpen, toggle, selectedStudyResponseId, notificat
         try {
             await updateNotification({ notificationId, newStatus: 'read' });
             refetch();
-            console.log("hnrn: task", notification.task._id)
+            
             if (notification && notification.task) {
                 const discussion = await findDiscussion({ taskId: notification.task._id }).unwrap();
-                console.log("discussion: ", discussion)
+                
                 if(discussion && discussion.task){
                     navigate(`/discussion/${discussion.task}`);
                 } else {

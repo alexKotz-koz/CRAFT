@@ -8,9 +8,6 @@ const Study = ({ user }) => {
     if (isLoadingStudy) return <div className="text-center mt-5">Loading...</div>;
     if (errorStudy) return <div className="alert alert-danger mt-5">Error: {errorStudy.message}</div>;
 
-    console.log("user: ", user);
-    console.log("Study: ", study);
-
     return (
         <div className="container mt-5">
             <h1 className="mb-4">{study.name}</h1>
