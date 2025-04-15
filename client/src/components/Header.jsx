@@ -142,6 +142,16 @@ const Header = ({ user }) => {
                     <ul className="dropdown-menu dropdown-menu-end">
                         <li><a className="dropdown-item disabled">{data.username}</a></li>
                         <li><a className="dropdown-item" href="/home">Home</a></li>
+                        <li >
+                            {user.role === 'admin' && (
+                                <Link 
+                                    to={'/admin/password-reset'} 
+                                    className="dropdown-item"
+                                >
+                                    User Password Reset
+                                </Link>
+                            )}
+                        </li>
                         <li><hr className="dropdown-divider" /></li>
                         <li><a className="dropdown-item" onClick={handleLogout}>Logout</a></li>
                     </ul>
@@ -184,6 +194,7 @@ const Header = ({ user }) => {
                 <div className="collapse navbar-collapse" id="navbarNav">
                     <ul className="navbar-nav ms-auto">{renderContent()}</ul>
                 </div>
+
             </div>
             {modalOpen &&
                 <ClarificationModal

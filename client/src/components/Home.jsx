@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ButtonLink from './tools/ButtonLink';
 import StudyCard from './tools/StudyCard';
 import PrefaceModal from './tools/modals/PrefaceModal';
-import { useFetchUserQuery, useFetchStudiesQuery } from "../store";
+import { useFetchUserQuery, useFetchStudiesQuery, useFetchAllStudiesQuery } from "../store";
 import { Spinner } from 'reactstrap';
 import '../static/custom.css';
 import ReactGA from 'react-ga4';
@@ -11,7 +11,31 @@ import ReactGA from 'react-ga4';
 const Home = () => {
     const navigate = useNavigate();
     const { data: user, error: userError, isLoading: isLoadingUser } = useFetchUserQuery();
-    const { data: userStudies, error: studiesError, isLoading: isLoadingStudies, refetch } = useFetchStudiesQuery();
+    // Only proceed with queries once we have user data
+    const isAdmin = user?.role === 'admin';
+
+    // Skip the regular studies query if user is admin
+    const {
+        data: regularStudies,
+        error: regularStudiesError,
+        isLoading: isLoadingRegularStudies,
+        refetch: refetchRegularStudies
+    } = useFetchStudiesQuery(undefined, { skip: !user || isAdmin });
+
+    // Skip the all studies query if user is not admin
+    const {
+        data: allStudies,
+        error: allStudiesError,
+        isLoading: isLoadingAllStudies,
+        refetch: refetchAllStudies
+    } = useFetchAllStudiesQuery(undefined, { skip: !user || !isAdmin });
+
+    // Combine the results based on user role
+    const userStudies = isAdmin ? allStudies : regularStudies;
+    const studiesError = isAdmin ? allStudiesError : regularStudiesError;
+    const isLoadingStudies = isAdmin ? isLoadingAllStudies : isLoadingRegularStudies;
+    const refetch = isAdmin ? refetchAllStudies : refetchRegularStudies;
+
     const [respondedStatus, setRespondedStatus] = useState({});
 
     const [prefaceModalOpen, setPrefaceModalOpen] = useState(false);
@@ -27,9 +51,9 @@ const Home = () => {
         });
     }, []);
 
-    
+
     useEffect(() => {
-        if(user) {
+        if (user) {
             refetch();
         }
     }, [user?._id, refetch])
@@ -45,14 +69,14 @@ const Home = () => {
                 }
             });
             setRespondedStatus(status);
-        
+
         }
     }, [userStudies, user]);
 
     // Participant: Upon initial render, check if it is the first time the user is logging into the app, if so send to initialConfiguration form, otherwise ignore and display user studies.
     useEffect(() => {
         if (user && user.firstLogin) {
-            if (user.role === 'participant'){
+            if (user.role === 'participant') {
                 navigate(`/participant-config`);
             }
         }
@@ -76,7 +100,7 @@ const Home = () => {
 
 
     // FACILITATOR ///////////////////////////////////////////////////////////////////////////////////////////
-    
+
     const facilitatorViewDashboard = ({ link }) => {
         return (
             <div className="mt-auto">
@@ -99,7 +123,7 @@ const Home = () => {
     const facilitatorContent = (study) => {
         return (
             <>
-                {/*This code is present in the study dashboard cards and clutters this card facilitatorCompletedStudies({ study })*/}
+                {/*This code is present in the study dashboard cards and clutters this card: facilitatorCompletedStudies({ study })*/}
                 {facilitatorViewDashboard({ link: `/study/dashboard/${study._id}` })}
                 {facilitatorFooter({ study })}
             </>
@@ -212,6 +236,7 @@ const Home = () => {
     };
     const renderContent = () => {
         switch (user.role) {
+            case 'admin':
             case 'facilitator':
                 return renderFacilitator();
             case 'participant':

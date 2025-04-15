@@ -9,7 +9,6 @@ const Comment = mongoose.model('Comment');
 const requireLogin = require('../middlewares/requireLogin');
 const requireFacilitatorPermissions = require('../middlewares/requireFacilitatorPermissions');
 const { createStudyDirectory, saveMediaFiles, createStudyPrompts, extractStudyPromptsRaw, createStudyTask, fetchStudyPrompts } = require('./studyNewUtils');
-const { forEach } = require('lodash');
 
 /* TODO:
 
@@ -19,7 +18,8 @@ Current implementation of StudyTask includes two discriminators. All routes curr
 
 
 module.exports = (app) => {
-    app.get('/api/study/fetch-all', requireLogin, requireFacilitatorPermissions, async (req, res) => {
+    // Gets all studies in the database
+    app.get('/api/study/fetch-all', requireLogin, async (req, res) => {
         try {
             const allStudies = await Study.find({})
                 .populate({
@@ -420,7 +420,6 @@ module.exports = (app) => {
             res.status(500).send(err);
         }
     });
-    // Add this route to your existing module.exports function:
 
     // Assign participant to study and tasks
     app.post('/api/study/:studyId/assign-participant', requireLogin, requireFacilitatorPermissions, async (req, res) => {

@@ -17,7 +17,7 @@ const AssignNewParticipants = () => {
     // Debug the first study and its participants
     useEffect(() => {
         if (allUsers) {
-            const filteredUsers = allUsers.filter(user => user.role !== 'facilitator');
+            const filteredUsers = allUsers.filter(user => user.role === 'participant');
             setParticipants(filteredUsers);
         }
     }, [allUsers]);

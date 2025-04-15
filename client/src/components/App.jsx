@@ -17,14 +17,21 @@ import ParticipantInitialConfig from "./auth/ParticipantInitialConfig";
 
 import ReactGA from 'react-ga4';
 
-const TRACKING_ID = "G-5SG34LECRC"
+//Prod
+//const TRACKING_ID = "G-ZLWS6D2W1K"
 
+//Demo
+//const TRACKING_ID = "G-5SG34LECRC"
+
+//Dev
+const TRACKING_ID = "G-7SV9ZZKV16"
 
 import { useFetchUserQuery } from '../store';
 
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../static/custom.css';
+import AdminPasswordReset from "./auth/AdminPasswordReset";
 
 
 
@@ -55,6 +62,7 @@ const App = () => {
         <Route path='/password_reset' element={<PasswordReset />} />
         <Route path='/discussion/:taskId' element={<DiscussionBoard />} />
         <Route path='/discussion/landing/:studyId' element={<DiscussionBoardLanding />} />
+        <Route path='/admin/password-reset' element= {<AdminPasswordReset />} />
       </Routes>
       </BrowserRouter>
     </div>
