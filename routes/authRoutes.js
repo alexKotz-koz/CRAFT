@@ -27,6 +27,32 @@ module.exports = (app) => {
         res.json({ username });
     });
 
+    app.post('/auth/sudo/password_reset', requireFacilitatorPermissions, async (req, res) => {
+        const { username, newPassword } = req.body;
+
+        try {
+            const user = await User.findOne({ username });
+            if (!user) {
+                return res.status(404).json({ error: "User not found" });
+            }
+
+            const salt = await bcrypt.genSalt(10);
+            const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+
+            user.password = hashedNewPassword;
+            await user.save();
+
+            res.json({ error: "Password updated successfully" });
+
+
+        } catch (err) {
+            console.error("Error updating user password: ", err)
+            res.status(500).send('Internal Server Error', error);
+        }
+
+    });
+
+
     // API: passwordReset
     // Used in: PasswordReset.jsx
      // *** Note: Uses users email to find and update records

@@ -61,6 +61,15 @@ const authApi = createApi({
                     };
                 },
             }),
+            sudoPasswordReset: builder.mutation({
+                query: (values) => {
+                    return {
+                        url: '/sudo/password_reset',
+                        method: 'POST',
+                        body: values,
+                    };
+                },
+            }),
             passwordReset: builder.mutation({
                 query: (values) => {
                     return{
@@ -110,6 +119,7 @@ export const {
     useFetchUsernameQuery,
     useLazyFetchUsernameQuery,
     usePasswordResetMutation, 
+    useSudoPasswordResetMutation,
     useLazyCheckUsernameAvailabilityQuery,
     useUpdateUserMutation,
     useLazyGetUserByIdQuery,

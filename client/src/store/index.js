@@ -30,6 +30,7 @@ export {
   useFetchUsernameQuery,
   useLazyFetchUsernameQuery,
   usePasswordResetMutation, 
+  useSudoPasswordResetMutation,
   useLazyCheckUsernameAvailabilityQuery,
   useUpdateUserMutation,
   useLazyGetUserByIdQuery
