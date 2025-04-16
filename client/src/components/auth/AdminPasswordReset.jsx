@@ -5,12 +5,12 @@ import FORM_FIELDS from '../form/sudoPasswordResetFormFields';
 import { useSudoPasswordResetMutation } from '../../store';
 
 const AdminPasswordReset = () => {
-    
-    const navigate = useNavigate();
-    const [passwordReset, {isLoading, error}] = useSudoPasswordResetMutation();
 
-    const handleFormSubmit = async(values) => {
-        try{
+    const navigate = useNavigate();
+    const [passwordReset, { isLoading, error }] = useSudoPasswordResetMutation();
+
+    const handleFormSubmit = async (values) => {
+        try {
             await passwordReset(values).unwrap();
             navigate('/home');
             alert(`Password has been reset for ${values.username}`);
@@ -28,7 +28,7 @@ const AdminPasswordReset = () => {
 
 
     return (
-<div>
+        <div>
             <Form
                 onSubmit={handleFormSubmit}
                 validate={validate}

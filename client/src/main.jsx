@@ -3,8 +3,6 @@ import { Provider } from "react-redux";
 import { store } from "./store";
 
 import App from "./components/App";
-/*import axios from "axios";
-window.axios = axios;*/
 
 const el = document.getElementById("root");
 const root = ReactDOM.createRoot(el);
