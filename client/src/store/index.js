@@ -3,18 +3,21 @@ import { setupListeners } from "@reduxjs/toolkit/query";
 import { authApi } from "./apis/authApi";
 import { studyApi } from "./apis/studyApi";
 import { discussionApi } from "./apis/discussionApi";
+import { llmREApi } from "./apis/llmREApi";
 
 export const store = configureStore({
   reducer: {
     [authApi.reducerPath]: authApi.reducer,
     [studyApi.reducerPath]: studyApi.reducer,
     [discussionApi.reducerPath]: discussionApi.reducer,
+    [llmREApi.reducerPath]: llmREApi.reducer,
   },
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware()
       .concat(authApi.middleware)
       .concat(studyApi.middleware)
-      .concat(discussionApi.middleware);
+      .concat(discussionApi.middleware)
+      .concat(llmREApi.middleware);
   }
 });
 
@@ -67,3 +70,9 @@ export {
   useLazyFindDiscussionQuery,
   useLazyFetchCompleteDiscussionQuery
 } from './apis/discussionApi';
+
+export {
+    useCreateEvaluationMutation,
+    useFetchAllEvaluationsQuery,
+    useFetchEvaluationQuery
+} from './apis/llmREApi';

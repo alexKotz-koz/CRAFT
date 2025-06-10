@@ -14,7 +14,6 @@ const RubricItemSchema = new Schema({
     checkboxLabels: [{type: String}],
     radioLabels: [{type: String}],
     reason: { type: String },
-    _dateCreated: { type: Date, default: Date.now }
 });
 // Helper model for SectionsLLMResponseEvaluation
 const LLMOutputSectionsSchema = new Schema({
@@ -26,6 +25,8 @@ const LLMOutputSectionsSchema = new Schema({
 // Base LLM Response Evaluation Schema
 const BaseLLMResponseEvaluationSchema = new Schema({
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    title: {type: String, required: true},
+    instructions: {type: String, required: true},
     rubricInstructions: { type: String },
     rubricItems: [RubricItemSchema],
 }, { discriminatorKey: 'kind', timestamps: true });

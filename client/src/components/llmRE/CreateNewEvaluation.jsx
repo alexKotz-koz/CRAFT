@@ -2,11 +2,18 @@ import { Form, Field } from "react-final-form";
 import DOMPurify from 'dompurify';
 import { useState } from "react";
 import { GoTrash } from "react-icons/go";
+import { useNavigate } from "react-router-dom";
+import { useCreateEvaluationMutation } from "../../store";
 
 const LLMRECreate = () => {
 
+    const navigate = useNavigate();
+
+    const [createEvalution, { isLoading, error }] = useCreateEvaluationMutation();
+
     const [formErrorLLMOutput, setFormErrorLLMOutput] = useState("");
     const [formErrorRubric, setFormErrorRubric] = useState("");
+    const [formErrorSubmission, setFormErrorSubmission] = useState("");
     const [sections, setSections] = useState([]);
     const [rubricItems, setRubricItems] = useState([]);
 
@@ -21,28 +28,34 @@ const LLMRECreate = () => {
         }, {});
     };
 
-    const submitError = () => {
-
-    };
-
-    const handleFormSubmit = (values) => {
+    const handleFormSubmit = async (values) => {
         let evaluation = {};
 
         if (sections.length === 0 && !values.isFullTranscript) {
             setFormErrorLLMOutput("At least one AI generated response is required, please add a section or a full transcript");
-        } 
+        }
 
-        if (rubricItems.length === 0){
+        if (rubricItems.length === 0) {
             setFormErrorRubric("At least on rubric item is required, please add a rubric item");
         }
 
         if (sections.length > 0 && rubricItems.length > 0) {
-            evaluation = { "title": values.title, "instructions": values.instructions, "llmOutput": sections, "rubric": rubricItems };
+            evaluation = { "title": values.title, "instructions": values.instructions, "llmOutput": sections, "rubricItems": rubricItems };
         } else if (values.isFullTranscript && rubricItems.length > 0) {
-            evaluation = { "title": values.title, "instructions": values.instructions, "llmOutput": values.llmOutput, "rubric": rubricItems };
+            evaluation = { "title": values.title, "instructions": values.instructions, "llmOutput": values.llmOutput, "rubricItems": rubricItems };
         }
-        console.log(evaluation)
+
+        try {
+            await createEvalution(evaluation).unwrap();
+            navigate('/home');
+        } catch (err) {
+            console.error("CreateNewEvaluation: Error creating evaluation", err);
+            setFormErrorSubmission(err);
+        }
+
+
     };
+
     // Add a new section
     const handleAddSection = (e) => {
         e.preventDefault();
@@ -154,7 +167,7 @@ const LLMRECreate = () => {
                                         component="input"
                                         type="text"
                                         className="form-control"
-                                        placeholder="Enter title for evaluation task (e.g. Expert Review of LLM Responses for xyz task)"
+                                        placeholder="Enter title for evaluation task"
                                         required
                                     />
                                     <Field name="title">

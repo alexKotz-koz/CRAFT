@@ -16,7 +16,7 @@ import StudyDashboard from "./study/study-dashboard/StudyDashboard";
 import ParticipantInitialConfig from "./auth/ParticipantInitialConfig";
 import LLMRELanding from "./llmRE/Landing";
 import LLMRECreate from './llmRE/CreateNewEvaluation';
-
+import LLMResponseEvaluation from "./llmRE/LLMResponseEvaluation";
 import ReactGA from 'react-ga4';
 
 //Prod
@@ -34,6 +34,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../static/custom.css';
 import AdminPasswordReset from "./auth/AdminPasswordReset";
+
 
 
 
@@ -74,6 +75,7 @@ const App = () => {
             />
         } />
         <Route path='/llm-response-evaluation/create' element={<LLMRECreate />} />
+        <Route path="/llm-response-evaluation/:evaluationId" element={<LLMResponseEvaluation />} />
       </Routes>
       </BrowserRouter>
     </div>
