@@ -21,12 +21,10 @@ const BaseCommentSchema = new Schema({
 // Create the base model
 const Comment = mongoose.model('Comment', BaseCommentSchema);
 
-// Initial Response Comment Schema
 const InitialResponseCommentSchema = new Schema({
     response: { type: Schema.Types.ObjectId, ref: 'Response', required: true }
 });
 
-// Subcomment Schema
 const SubCommentSchema = new Schema({
     parentComment: { type: Schema.Types.ObjectId, ref: 'Comment', required: true }
 });

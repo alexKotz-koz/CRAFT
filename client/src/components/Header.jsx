@@ -73,7 +73,7 @@ const Header = ({ user }) => {
 
         return (
             <div className="d-flex align-items-center justify-content-center">
-                <li className="nav-item mx-3">
+                <li className="nav-item mx-2">
                     <a
                         href="https://forms.gle/3E1bLCKU7Teom9Ve9"
                         target="_blank"
@@ -85,11 +85,24 @@ const Header = ({ user }) => {
                     </a>
                 </li>
                 {(data?.role === "facilitator" || data?.role === "admin") && (
-                    <li className="nav-item">
-                        <Link to="/study/new" className="nav-link active">New Study</Link>
+                    <li className="nav-item mx-2">
+                        <Link
+                            to="/study/new"
+                            className="btn btn-light btn-sm border border-dark rounded-pill d-flex align-items-center gap-2 px-3"
+                        >
+                            New Study
+                        </Link>
                     </li>
                 )}
-                <li className="nav-item dropdown">
+                <li className="nav-item mx-2">
+                    <Link
+                        to="/llm-response-evaluation"
+                            className="btn btn-light btn-sm border border-dark rounded-pill d-flex align-items-center gap-2 px-3"
+                    >
+                        LLM Response Evaluation
+                    </Link>
+                </li>
+                <li className="nav-item dropdown mx-2">
                     <div className="position-relative notification-icon" data-bs-toggle="dropdown" aria-expanded="false">
                         <GoBell className="text-dark" />
                         { // if the user has unread notifications show the red notification bubble ontop of the bell
@@ -102,7 +115,7 @@ const Header = ({ user }) => {
                         }
                     </div>
                     <ul className="dropdown-menu dropdown-menu-end p-0 notification-dropdown position-absolute">
-                        <li className='card notification-card'>
+                        <li className='card notification-card mx-2'>
                             <div className="card-body">
                                 <h5 className="card-title">Notifications</h5>
                                 <ul className="list-group list-group-flush">
@@ -144,8 +157,8 @@ const Header = ({ user }) => {
                         <li><a className="dropdown-item" href="/home">Home</a></li>
                         <li >
                             {user.role === 'admin' && (
-                                <Link 
-                                    to={'/admin/password-reset'} 
+                                <Link
+                                    to={'/admin/password-reset'}
                                     className="dropdown-item"
                                 >
                                     User Password Reset

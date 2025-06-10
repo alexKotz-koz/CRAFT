@@ -14,6 +14,8 @@ import DiscussionBoard from "./discussion-board/DiscussionBoard";
 import DiscussionBoardLanding from "./discussion-board/DiscussionBoardLanding";
 import StudyDashboard from "./study/study-dashboard/StudyDashboard";
 import ParticipantInitialConfig from "./auth/ParticipantInitialConfig";
+import LLMRELanding from "./llmRE/Landing";
+import LLMRECreate from './llmRE/CreateNewEvaluation';
 
 import ReactGA from 'react-ga4';
 
@@ -63,6 +65,15 @@ const App = () => {
         <Route path='/discussion/:taskId' element={<DiscussionBoard />} />
         <Route path='/discussion/landing/:studyId' element={<DiscussionBoardLanding />} />
         <Route path='/admin/password-reset' element= {<AdminPasswordReset />} />
+        <Route path='/llm-response-evaluation' element={
+            <LLMRELanding 
+                currentUserRole={user?.role}
+                currentUserFirst={user?.firstName}
+                currentUserLast={user?.lastName}
+                currentUserUsername={user?.username}
+            />
+        } />
+        <Route path='/llm-response-evaluation/create' element={<LLMRECreate />} />
       </Routes>
       </BrowserRouter>
     </div>
