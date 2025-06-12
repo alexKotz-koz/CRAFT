@@ -52,7 +52,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
 
     const getRoleBadgeColor = (role) => {
         switch (role) {
-            case 'facilitator': return 'primary';
+            case 'facilitator': return 'danger';
             case 'participant': return 'success';
             case 'admin': return 'warning';
             default: return 'secondary';

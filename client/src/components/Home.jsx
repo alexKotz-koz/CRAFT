@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import StudyCard from './tools/StudyCard';
 import PrefaceModal from './tools/modals/PrefaceModal';
 import { useFetchUserQuery, useFetchStudiesQuery, useFetchAllStudiesQuery } from "../store";
-import { Spinner } from 'reactstrap';
+import { Spinner, Badge } from "reactstrap";
 import '../static/custom.css';
 import ReactGA from 'react-ga4';
 
@@ -97,6 +97,45 @@ const Home = () => {
         return <div>No user data available</div>;
     }
 
+    // Helpers //////////////////////////////////////////////////////////////////////////////////////////////
+    const getRoleDisplayName = (role) => {
+        switch (role) {
+            case 'facilitator': return 'Facilitator';
+            case 'participant': return 'Participant';
+            case 'admin': return 'Administrator';
+            default: return 'User';
+        }
+    };
+
+    const getRoleBadgeColor = (role) => {
+        switch (role) {
+            case 'facilitator': return 'danger';
+            case 'participant': return 'success';
+            case 'admin': return 'warning';
+            default: return 'secondary';
+        }
+    };
+
+
+    const renderWelcomeHeader = () => (
+        <div className="bg-light border-bottom mb-4">
+            <div className="container py-4">
+                <div className="row align-items-center">
+                    <div className="col-md-8">
+                        <h1 className="display-6 mb-2">My Studies</h1>
+                        <p className="lead text-muted mb-0">
+                            Welcome back, {user.firstName} {user.lastName}
+                        </p>
+                    </div>
+                    <div className="col-md-4 text-md-end">
+                        <Badge color={getRoleBadgeColor(user.role)} pill className="fs-6 px-3 py-2">
+                            {getRoleDisplayName(user.role)}
+                        </Badge>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 
     // FACILITATOR ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -247,7 +286,7 @@ const Home = () => {
 
     return (
         <div className="container py-2 px-5 text-start">
-            <h3 className='text-center mb-5'>My Studies</h3>
+            {renderWelcomeHeader()}
             {renderContent()}
             {prefaceModalOpen &&
                 <PrefaceModal
