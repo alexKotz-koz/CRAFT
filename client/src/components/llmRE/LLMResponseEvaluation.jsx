@@ -306,7 +306,8 @@ const LLMResponseEvaluation = () => {
                                 {evaluation?.instructions}
                             </p>
                         </div>
-                        <div className="row">
+                        {/* Desktop Header Row - Hidden on mobile */}
+                        <div className="row d-none d-md-flex">
                             <div className="col-4 fw-bold border text-center">AI Output</div>
                             <div className="col-4 fw-bold border text-center">Rubric Selection</div>
                             <div className="col-4 fw-bold border text-center">Free Text</div>
@@ -316,27 +317,25 @@ const LLMResponseEvaluation = () => {
                             <div className="col-4 border d-flex align-items-center" style={{ minHeight: 120 }}>
                                 {evaluation?.llmOutput}
                             </div>
-                            {/* Rubric Selection */}
-                            <div className="col-4 border">
+                            <div className="col-8 border">
                                 {evaluation?.rubricItems.map((rubricItem, rubricIdx) => (
-                                    <div key={rubricItem.itemId || rubricIdx} className="mb-3">
-                                        <div className="fw-semibold">{rubricItem.title}</div>
-                                        <div className="mb-1">{rubricItem.caption}</div>
-                                        {renderRubricField("full", rubricItem)}
-                                    </div>
-                                ))}
-                            </div>
-                            {/* Free Text */}
-                            <div className="col-4 border">
-                                {evaluation.rubricItems.map((rubricItem, rubricIdx) => (
-                                    <div key={rubricItem.itemId || rubricIdx} className="mb-3">
-                                        <Field
-                                            name={`full_feedback_${rubricItem.itemId}`}
-                                            component="textarea"
-                                            className="form-control mb-2"
-                                            placeholder={rubricItem.reason || "Enter feedback..."}
-                                            rows={2}
-                                        />
+                                    <div key={rubricItem.itemId || rubricIdx} className="row mb-3 align-items-center">
+                                        {/* Rubric Selection */}
+                                        <div className="col-6">
+                                            <div className="fw-semibold">{rubricItem.title}</div>
+                                            <div className="mb-1">{rubricItem.caption}</div>
+                                            {renderRubricField("full", rubricItem)}
+                                        </div>
+                                        {/* Free Text */}
+                                        <div className="col-6">
+                                            <Field
+                                                name={`full_feedback_${rubricItem.itemId}`}
+                                                component="textarea"
+                                                className="form-control mb-2"
+                                                placeholder={rubricItem.reason || "Enter feedback..."}
+                                                rows={4}
+                                            />
+                                        </div>
                                     </div>
                                 ))}
                             </div>
