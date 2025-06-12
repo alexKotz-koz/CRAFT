@@ -15,7 +15,8 @@ const ExistingEvaluationsTable = ({ existingEvaluations }) => {
 
     return (
         <div>
-            <table className="table table-striped">
+            {/* Desktop Table */}
+            <table className="table table-striped d-none d-md-table">
                 <thead>
                     <tr>
                         <th scope="col">#</th>
@@ -47,6 +48,27 @@ const ExistingEvaluationsTable = ({ existingEvaluations }) => {
                     )}
                 </tbody>
             </table>
+            {/* Mobile Cards */}
+            <div className="d-block d-md-none">
+                {existingEvaluations && existingEvaluations.length > 0 ? (
+                    existingEvaluations.map((evalItem, idx) => (
+                        <div className="card mb-3" key={evalItem._id}>
+                            <div className="card-body">
+                                <h5 className="card-title mb-2">
+                                    <Link to={`/llm-response-evaluation/${evalItem._id}`} className="text-decoration-none text-primary">
+                                        {evalItem.title}
+                                    </Link>
+                                </h5>
+                                <p className="card-text mb-1"><strong>Type:</strong> {handleFormatType(evalItem.kind)}</p>
+                                <p className="card-text mb-1"><strong>Rubric Items:</strong> {evalItem.rubricItems ? evalItem.rubricItems.length : 0}</p>
+                                <p className="card-text mb-1"><strong>Date:</strong> {new Date(evalItem.createdAt).toLocaleString()}</p>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="text-center text-muted">No evaluations found.</div>
+                )}
+            </div>
         </div>
     );
 };

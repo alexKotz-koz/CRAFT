@@ -223,24 +223,29 @@ const LLMResponseEvaluation = () => {
             render={({ handleSubmit }) => (
                 <form onSubmit={handleSubmit}>
                     <div className="container">
-                        <div className="row">
+                        <div className="row mb-3">
                             <h3 className="text-center">{evaluation?.title}</h3>
                         </div>
-                        <div className="row">
+                        <div className="row mb-3">
                             <p className="card bg-body-tertiary border border-tertiary p-2 rounded">
                                 {evaluation?.instructions}
                             </p>
                         </div>
-                        <div className="row">
-                            <div className="col-4 fw-bold border rounded text-center">AI Output</div>
-                            <div className="col-4 fw-bold border text-center">Rubric Selection</div>
-                            <div className="col-4 fw-bold border text-center">Free Text</div>
+                        {/* Desktop Header Row */}
+                        <div className="row d-none d-md-flex mb-2">
+                            <div className="col-md-4 fw-bold border text-center">AI Output</div>
+                            <div className="col-md-4 fw-bold border text-center">Rubric Selection</div>
+                            <div className="col-md-4 fw-bold border text-center">Free Text</div>
                         </div>
                         {evaluation?.llmOutput.map((section, sectionIdx) => (
-                            <div className="row" key={section.sectionId || sectionIdx}>
+                            <div className="row mb-3" key={section.sectionId || sectionIdx}>
+                                {/* Mobile Headers */}
+                                <div className="d-block d-md-none mb-2">
+                                    <div className="fw-bold">AI Output</div>
+                                </div>
                                 {/* AI Output */}
                                 <div
-                                    className="col-4 border d-flex align-items-center"
+                                    className="col-12 col-md-4 border d-flex align-items-center mb-2 mb-md-0"
                                     style={{
                                         minHeight: 120,
                                         overflowWrap: "break-word",
@@ -251,21 +256,21 @@ const LLMResponseEvaluation = () => {
                                     {section.llmOutput}
                                 </div>
                                 {/* Rubric Items and Free Text, aligned */}
-                                <div className="col-8 border">
+                                <div className="col-12 col-md-8 border">
                                     {evaluation.rubricItems.map((rubricItem, rubricIdx) => (
                                         <div key={rubricItem.itemId || rubricIdx} className="row mb-3 align-items-center">
                                             {/* Rubric Selection */}
-                                            <div className="col-6">
+                                            <div className="col-12 col-md-6 mb-2 mb-md-0">
                                                 <div className="fw-semibold">{rubricItem.title}</div>
                                                 <div className="mb-1">{rubricItem.caption}</div>
                                                 {renderRubricField(section.sectionId, rubricItem)}
                                             </div>
                                             {/* Free Text */}
-                                            <div className="col-6">
+                                            <div className="col-12 col-md-6">
                                                 <Field
                                                     name={`section_${section.sectionId}_feedback_${rubricItem.itemId}`}
                                                     component="textarea"
-                                                    className="form-control mb-2"
+                                                    className="form-control mb-2 w-100"
                                                     placeholder={rubricItem.reason || "Enter feedback..."}
                                                     rows={2}
                                                 />
@@ -281,7 +286,7 @@ const LLMResponseEvaluation = () => {
                             </div>
                         ) : (<div></div>)}
                         <div className="d-flex justify-content-end mt-3">
-                            <button type="submit" className="btn btn-success ms-2 me-2">
+                            <button type="submit" className="btn btn-success ms-2 me-2 w-100 w-md-auto">
                                 Submit
                             </button>
                         </div>
@@ -298,40 +303,44 @@ const LLMResponseEvaluation = () => {
             render={({ handleSubmit }) => (
                 <form onSubmit={handleSubmit}>
                     <div className="container">
-                        <div className="row">
+                        <div className="row mb-3">
                             <h3 className="text-center">{evaluation?.title}</h3>
                         </div>
-                        <div className="row">
+                        <div className="row mb-3">
                             <p className="card bg-body-tertiary border border-tertiary p-2 rounded">
                                 {evaluation?.instructions}
                             </p>
                         </div>
                         {/* Desktop Header Row - Hidden on mobile */}
-                        <div className="row d-none d-md-flex">
+                        <div className="row d-none d-md-flex mb-2">
                             <div className="col-4 fw-bold border text-center">AI Output</div>
                             <div className="col-4 fw-bold border text-center">Rubric Selection</div>
                             <div className="col-4 fw-bold border text-center">Free Text</div>
                         </div>
-                        <div className="row">
+                        <div className="row mb-3">
+                            {/* Mobile Headers */}
+                            <div className="d-block d-md-none mb-2">
+                                <div className="fw-bold">AI Output</div>
+                            </div>
                             {/* AI Output */}
-                            <div className="col-4 border d-flex align-items-center" style={{ minHeight: 120 }}>
+                            <div className="col-12 col-md-4 border d-flex align-items-center mb-2 mb-md-0" style={{ minHeight: 120 }}>
                                 {evaluation?.llmOutput}
                             </div>
-                            <div className="col-8 border">
+                            <div className="col-12 col-md-8 border">
                                 {evaluation?.rubricItems.map((rubricItem, rubricIdx) => (
                                     <div key={rubricItem.itemId || rubricIdx} className="row mb-3 align-items-center">
                                         {/* Rubric Selection */}
-                                        <div className="col-6">
+                                        <div className="col-12 col-md-6 mb-2 mb-md-0">
                                             <div className="fw-semibold">{rubricItem.title}</div>
                                             <div className="mb-1">{rubricItem.caption}</div>
                                             {renderRubricField("full", rubricItem)}
                                         </div>
                                         {/* Free Text */}
-                                        <div className="col-6">
+                                        <div className="col-12 col-md-6">
                                             <Field
                                                 name={`full_feedback_${rubricItem.itemId}`}
                                                 component="textarea"
-                                                className="form-control mb-2"
+                                                className="form-control mb-2 w-100"
                                                 placeholder={rubricItem.reason || "Enter feedback..."}
                                                 rows={4}
                                             />
@@ -346,7 +355,7 @@ const LLMResponseEvaluation = () => {
                             </div>
                         ) : (<div></div>)}
                         <div className="d-flex justify-content-end mt-3">
-                            <button type="submit" className="btn btn-success ms-2 me-2">
+                            <button type="submit" className="btn btn-success ms-2 me-2 mb-2 w-100 w-md-auto">
                                 Submit
                             </button>
                         </div>
