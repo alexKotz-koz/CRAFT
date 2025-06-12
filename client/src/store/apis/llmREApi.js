@@ -6,8 +6,8 @@ const llmREApi = createApi({
         baseUrl: '/api'
     }),
     //tagTypes: ['User', 'Notification'], 
-    endpoints(builder){
-        return{
+    endpoints(builder) {
+        return {
             createEvaluation: builder.mutation({
                 query: (values) => {
                     return {
@@ -19,7 +19,7 @@ const llmREApi = createApi({
             }),
             fetchAllEvaluations: builder.query({
                 query: () => {
-                    return { 
+                    return {
                         url: '/llm-response-evaluation/all',
                         method: 'GET',
                     };
@@ -28,18 +28,35 @@ const llmREApi = createApi({
             fetchEvaluation: builder.query({
                 query: ({ evaluationId }) => {
                     return {
-                        url: `/api/llm-response-evaluation/${evaluationId}`
+                        url: `/llm-response-evaluation/${evaluationId}`
                     }
                 }
-            })
+            }),
+            createEvaluationResponse: builder.mutation({
+                query: ({ evaluationId, ...body }) => {
+                    return {
+                        url: `/llm-response-evaluation/${evaluationId}/response`,
+                        method: 'POST',
+                        body,
+                    };
+                },
+            }),
+            fetchUserEvaluationResponse: builder.query({
+                query: ({ evaluationId }) => ({
+                    url: `/llm-response-evaluation/${evaluationId}/response/me`,
+                    method: 'GET',
+                }),
+            }),
         };
     }
 
 });
 
-export const { 
+export const {
     useCreateEvaluationMutation,
     useFetchAllEvaluationsQuery,
     useFetchEvaluationQuery,
+    useCreateEvaluationResponseMutation,
+    useFetchUserEvaluationResponseQuery,
 } = llmREApi;
 export { llmREApi };

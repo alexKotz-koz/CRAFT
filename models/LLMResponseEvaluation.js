@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
+const StudyParticipantSchema = require('./StudyParticipant');
 
 // Helper model for LLMResponseEvaluation
 const RubricItemSchema = new Schema({
@@ -29,6 +30,8 @@ const BaseLLMResponseEvaluationSchema = new Schema({
     instructions: {type: String, required: true},
     rubricInstructions: { type: String },
     rubricItems: [RubricItemSchema],
+    /////Remove this for future use cases/////
+    participants: { type: [StudyParticipantSchema], required: true },
 }, { discriminatorKey: 'kind', timestamps: true });
 
 // Create the base model

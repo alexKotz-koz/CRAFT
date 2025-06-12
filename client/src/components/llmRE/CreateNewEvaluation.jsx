@@ -1,9 +1,10 @@
 import { Form, Field } from "react-final-form";
 import DOMPurify from 'dompurify';
+import { Spinner } from "reactstrap";
 import { useState } from "react";
 import { GoTrash } from "react-icons/go";
 import { useNavigate } from "react-router-dom";
-import { useCreateEvaluationMutation } from "../../store";
+import { useCreateEvaluationMutation, useFetchAllUsersQuery } from "../../store";
 
 const LLMRECreate = () => {
 
@@ -11,11 +12,33 @@ const LLMRECreate = () => {
 
     const [createEvalution, { isLoading, error }] = useCreateEvaluationMutation();
 
+    //REMOVE: For reuse
+    const { data: allUsers, isLoading: isLoadingAllUsers, error: errorAllUsers } = useFetchAllUsersQuery();
+
     const [formErrorLLMOutput, setFormErrorLLMOutput] = useState("");
     const [formErrorRubric, setFormErrorRubric] = useState("");
     const [formErrorSubmission, setFormErrorSubmission] = useState("");
     const [sections, setSections] = useState([]);
     const [rubricItems, setRubricItems] = useState([]);
+
+    if (isLoading || isLoadingAllUsers) {
+        return (
+            <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+                <Spinner color="primary" />
+            </div>
+        );
+    }
+    if (error || errorAllUsers) {
+        return (
+            <div className="border border-danger rounded text-danger px-2 mt-2">
+                {error}
+            </div>
+        )
+    }
+
+    //REMOVE: For reuse
+    // Extract participants from all users in the system
+    const participants = allUsers ? allUsers.filter(user => user.role === "participant") : [];
 
 
     const validate = (values) => {
@@ -30,6 +53,8 @@ const LLMRECreate = () => {
 
     const handleFormSubmit = async (values) => {
         let evaluation = {};
+        let selectedParticipants = [];
+        console.log(values);
 
         if (sections.length === 0 && !values.isFullTranscript) {
             setFormErrorLLMOutput("At least one AI generated response is required, please add a section or a full transcript");
@@ -39,10 +64,23 @@ const LLMRECreate = () => {
             setFormErrorRubric("At least on rubric item is required, please add a rubric item");
         }
 
+        //REMOVE: For reuse
+        if (values.participants.length <= 0) {
+            setFormErrorSubmission("At least one participant is required, please add at least one participant to this evaluation task")
+        } else {
+            values.participants.map((id, index) => {
+                const participantObj = participants.find(user => user._id === id);
+                if (participantObj) {
+                    selectedParticipants.push(participantObj);
+                }
+            })
+        }
+
+        //REMOVE: For reuse (Specfically remove the "participants" item from the evaluation object)
         if (sections.length > 0 && rubricItems.length > 0) {
-            evaluation = { "title": values.title, "instructions": values.instructions, "llmOutput": sections, "rubricItems": rubricItems };
+            evaluation = { "title": values.title, "instructions": values.instructions, "llmOutput": sections, "rubricItems": rubricItems, "participants": selectedParticipants };
         } else if (values.isFullTranscript && rubricItems.length > 0) {
-            evaluation = { "title": values.title, "instructions": values.instructions, "llmOutput": values.llmOutput, "rubricItems": rubricItems };
+            evaluation = { "title": values.title, "instructions": values.instructions, "llmOutput": values.llmOutput, "rubricItems": rubricItems, "participants": selectedParticipants };
         }
 
         try {
@@ -89,7 +127,7 @@ const LLMRECreate = () => {
                 caption: "",
                 objectType: "radio",
                 checkboxLabels: [""],
-                radioLabels: [""],
+                radioLabels: ["", ""],
                 reason: ""
             }
         ]);
@@ -155,13 +193,18 @@ const LLMRECreate = () => {
                 onSubmit={handleFormSubmit}
                 initialValues={{}}
                 validate={validate}
+                onKeyDown={e => {
+                    if (e.key === "Enter" ){
+                        e.preventDefault();
+                    }
+                }}
                 render={({ handleSubmit, submitError }) => (
                     <form onSubmit={handleSubmit}>
                         {/* Title Card */}
                         <div className="row my-3">
                             <div className="card bg-body-tertiary border border-tertiary p-2 rounded">
                                 <div className="mb-3">
-                                    <label className="form-label">Evaluation Title</label>
+                                    <label className="form-label fw-bold">Evaluation Title</label>
                                     <Field
                                         name="title"
                                         component="input"
@@ -180,7 +223,7 @@ const LLMRECreate = () => {
                         <div className="row my-3">
                             <div className="card bg-body-tertiary border border-tertiary p-2 rounded">
                                 <div className="mb-3">
-                                    <label className="form-label">Evaluation Instructions</label>
+                                    <label className="form-label fw-bold">Evaluation Instructions</label>
                                     <Field
                                         name="instructions"
                                         component="textarea"
@@ -198,7 +241,7 @@ const LLMRECreate = () => {
                         <div className="row my-3">
                             <div className="card bg-body-tertiary border border-tertiary p-2 rounded">
                                 <div className="mb-3">
-                                    <label className="form-label">Full LLM Transcript or Sections of a Transcript?</label>
+                                    <label className="form-label fw-bold">Full LLM Transcript or Sections of a Transcript?</label>
                                     <Field name="isFullTranscript" type="checkbox">
                                         {({ input, meta }) => (
                                             <>
@@ -226,6 +269,7 @@ const LLMRECreate = () => {
                                                             component="textarea"
                                                             className="form-control"
                                                             placeholder="Paste the full transcript here"
+                                                            rows={7}
                                                         />
                                                     </div>
                                                 ) : (
@@ -233,7 +277,7 @@ const LLMRECreate = () => {
                                                         <label>Sections</label>
                                                         <div>
                                                             <button
-                                                                className="btn btn-info ms-2 me-2"
+                                                                className="btn btn-info mx-2 my-2"
                                                                 onClick={handleAddSection}
                                                                 type="button"
                                                             >
@@ -281,14 +325,9 @@ const LLMRECreate = () => {
                         <div className="row my-3">
                             <div className="card bg-body-tertiary border border-tertiary p-2 rounded">
                                 <div className="mb-3">
-                                    <label className="form-label">Evaluation Rubric Items</label>
-                                    <button
-                                        className="btn btn-info btn-sm ms-2"
-                                        onClick={handleAddRubricItem}
-                                        type="button"
-                                    >
-                                        Add Rubric Item
-                                    </button>
+                                    <label className="form-label fw-bold">Evaluation Rubric Items</label>
+                                    <br />
+
                                     {rubricItems.map((item, idx) => (
                                         <div key={item.itemId} className="my-3 p-2 border rounded bg-body-secondary">
                                             <div className="d-flex justify-content-between align-items-center">
@@ -375,6 +414,13 @@ const LLMRECreate = () => {
                                             </div>
                                         </div>
                                     ))}
+                                    <button
+                                        className="btn btn-info btn-sm ms-2"
+                                        onClick={handleAddRubricItem}
+                                        type="button"
+                                    >
+                                        Add Rubric Item
+                                    </button>
                                     {formErrorRubric ? (
                                         <div className="border border-danger rounded text-danger px-2 mt-2">
                                             {formErrorRubric}
@@ -383,38 +429,62 @@ const LLMRECreate = () => {
                                 </div>
                             </div>
                         </div>
+                        {/*
+                            //REMOVE: For reuse
+                            Participants Selection Card 
+                        */}
+                        <div className="row my-3">
+                            <div className="card bg-body-tertiary border border-tertiary p-2 rounded">
+                                <div className="mb-3">
+                                    <label className="form-label fw-bold">Assign Participants</label>
+                                    {participants.length === 0 ? (
+                                        <div className="text-muted">No participants available.</div>
+                                    ) : (
+                                        <Field name="participants">
+                                            {({ input }) => (
+                                                <div>
+                                                    {participants.map((user) => (
+                                                        <div key={user._id} className="form-check">
+                                                            <input
+                                                                className="form-check-input"
+                                                                type="checkbox"
+                                                                id={`participant_${user._id}`}
+                                                                value={user._id}
+                                                                checked={Array.isArray(input.value) && input.value.includes(user._id)}
+                                                                onChange={e => {
+                                                                    let newValue = Array.isArray(input.value) ? [...input.value] : [];
+                                                                    if (e.target.checked) {
+                                                                        if (!newValue.includes(user._id)) {
+                                                                            newValue.push(user._id);
+                                                                        }
+                                                                    } else {
+                                                                        newValue = newValue.filter(id => id !== user._id);
+                                                                    }
+                                                                    input.onChange(newValue);
+                                                                }}
+                                                            />
+                                                            <label className="form-check-label" htmlFor={`participant_${user._id}`}>
+                                                                {user.username || user.email || user._id}
+                                                            </label>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </Field>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
 
-
-                        <div className="d-flex justify-content-end mt-3">
+                        <div className="d-flex justify-content-end mt-3 mb-3">
                             <button type="submit" className="btn btn-success ms-2 me-2">
                                 Create Evaluation
                             </button>
                         </div>
-
-
                     </form>
                 )}
 
             />
-
-            {/**Row for a card for the selection of Full Transcript or Sections of a Transcript
-             * Full: one feild to copy over the entire transcript
-             *      - llmOutput: String
-             * Sections: Ability to add as many sections as possible each with:
-             *     - sectionId: Number
-             *     - llmOutput: String
-             */}
-
-            {/**Row for a card for Rubric Items: 
-             * itemId: #
-             * title: String
-             * caption: String
-             * objectType: radio, checkbox, switch, range
-             * checkboxLabels: [Strings]
-             * radioLabels: [Strings]
-             * reason: String
-            */}
-
 
         </div>
     )

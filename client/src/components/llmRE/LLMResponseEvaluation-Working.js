@@ -108,7 +108,6 @@ const LLMResponseEvaluation = () => {
         const initialValues = {};
         response.responses.forEach(section => {
             section.rubricResponses.forEach(rubric => {
-                console.log(rubric)
                 const sectionId = section.sectionId;
                 const itemId = rubric.itemId;
                 if (rubric.selectedRadioOption !== undefined) {
@@ -116,7 +115,7 @@ const LLMResponseEvaluation = () => {
                 }
                 if (rubric.selectedCheckboxOptions && rubric.selectedCheckboxOptions.length > 0) {
                     rubric.selectedCheckboxOptions.forEach(idx => {
-                        
+                        // If you store label, you may need to map label to index
                         initialValues[`section_${sectionId}_rubric_${itemId}_type_checkbox_checkbox_${idx}`] = true;
                     });
                 }
@@ -127,7 +126,7 @@ const LLMResponseEvaluation = () => {
                     initialValues[`section_${sectionId}_rubric_${itemId}_type_range`] = rubric.selectedRangeOption;
                 }
                 if (rubric.feedback !== undefined) {
-                    initialValues[`${sectionId}_feedback_${itemId}`] = rubric.feedback;
+                    initialValues[`section_${sectionId}_feedback_${itemId}`] = rubric.feedback;
                 }
             });
         });
@@ -135,13 +134,14 @@ const LLMResponseEvaluation = () => {
     };
 
     const reformatValuesForResponse = (values) => {
+        // Structure: { [sectionId]: { rubricResponses: [ ... ] } }
         const sectionMap = {};
 
         Object.entries(values).forEach(([key, value]) => {
             // Match rubric fields: section_{sectionId}_rubric_{itemId}_type_{type}
-            let rubricMatch = key.match(/^section_([a-zA-Z0-9]+)_rubric_(\d+)_type_([a-zA-Z]+)(?:_checkbox_(\d+))?$/);
-            // Match feedback fields: {sectionId}_feedback_{itemId} OR full_feedback_{itemId}
-            let feedbackMatch = key.match(/^([a-zA-Z0-9]+)_feedback_(\d+)$/);
+            let rubricMatch = key.match(/^section_(\d+)_rubric_(\d+)_type_([a-zA-Z]+)(?:_checkbox_(\d+))?$/);
+            // Match feedback fields: section_{sectionId}_feedback_{itemId}
+            let feedbackMatch = key.match(/^section_(\d+)_feedback_(\d+)$/);
 
             if (rubricMatch) {
                 const [, sectionId, itemId, type, checkboxIdx] = rubricMatch;
@@ -151,8 +151,10 @@ const LLMResponseEvaluation = () => {
                 if (type === "radio") {
                     sectionMap[sectionId][itemId].selectedRadioOption = value;
                 } else if (type === "checkbox") {
+                    // Collect all checked options in an array
                     sectionMap[sectionId][itemId].selectedCheckboxOptions = sectionMap[sectionId][itemId].selectedCheckboxOptions || [];
                     if (value) {
+                        // You may want to store the label instead of index, but here we store index
                         sectionMap[sectionId][itemId].selectedCheckboxOptions.push(Number(checkboxIdx));
                     }
                 } else if (type === "switch") {
@@ -170,7 +172,7 @@ const LLMResponseEvaluation = () => {
 
         // Convert to array format expected by the model
         const responses = Object.entries(sectionMap).map(([sectionId, rubricObj]) => ({
-            sectionId: isNaN(Number(sectionId)) ? sectionId : Number(sectionId),
+            sectionId: Number(sectionId),
             rubricResponses: Object.entries(rubricObj).map(([itemId, resp]) => ({
                 itemId: Number(itemId),
                 selectedRadioOption: resp.selectedRadioOption,
@@ -183,7 +185,6 @@ const LLMResponseEvaluation = () => {
 
         return responses;
     };
-
 
     const handleSubmit = async (values) => {
         let submission = {
