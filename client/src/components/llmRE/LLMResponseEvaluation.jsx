@@ -106,6 +106,7 @@ const LLMResponseEvaluation = () => {
     const mapResponseToInitialValues = (response) => {
         if (!response || !response.responses) return {};
         const initialValues = {};
+        console.log(response)
         response.responses.forEach(section => {
             section.rubricResponses.forEach(rubric => {
                 console.log(rubric)
@@ -116,7 +117,7 @@ const LLMResponseEvaluation = () => {
                 }
                 if (rubric.selectedCheckboxOptions && rubric.selectedCheckboxOptions.length > 0) {
                     rubric.selectedCheckboxOptions.forEach(idx => {
-                        
+
                         initialValues[`section_${sectionId}_rubric_${itemId}_type_checkbox_checkbox_${idx}`] = true;
                     });
                 }
@@ -126,9 +127,16 @@ const LLMResponseEvaluation = () => {
                 if (rubric.selectedRangeOption !== undefined) {
                     initialValues[`section_${sectionId}_rubric_${itemId}_type_range`] = rubric.selectedRangeOption;
                 }
-                if (rubric.feedback !== undefined) {
-                    initialValues[`${sectionId}_feedback_${itemId}`] = rubric.feedback;
+                if (sectionId === "full") {
+                    if (rubric.feedback !== undefined) {
+                        initialValues[`${sectionId}_feedback_${itemId}`] = rubric.feedback;
+                    }
+                } else {
+                    if (rubric.feedback !== undefined) {
+                        initialValues[`section_${sectionId}_feedback_${itemId}`] = rubric.feedback;
+                    }
                 }
+
             });
         });
         return initialValues;
@@ -141,7 +149,8 @@ const LLMResponseEvaluation = () => {
             // Match rubric fields: section_{sectionId}_rubric_{itemId}_type_{type}
             let rubricMatch = key.match(/^section_([a-zA-Z0-9]+)_rubric_(\d+)_type_([a-zA-Z]+)(?:_checkbox_(\d+))?$/);
             // Match feedback fields: {sectionId}_feedback_{itemId} OR full_feedback_{itemId}
-            let feedbackMatch = key.match(/^([a-zA-Z0-9]+)_feedback_(\d+)$/);
+            let fullFeedbackMatch = key.match(/^([a-zA-Z0-9]+)_feedback_(\d+)$/);
+            let sectionFeedbackMatch = key.match(/^section_([a-zA-Z0-9]+)_feedback_(\d+)$/);
 
             if (rubricMatch) {
                 const [, sectionId, itemId, type, checkboxIdx] = rubricMatch;
@@ -160,8 +169,13 @@ const LLMResponseEvaluation = () => {
                 } else if (type === "range") {
                     sectionMap[sectionId][itemId].selectedRangeOption = value;
                 }
-            } else if (feedbackMatch) {
-                const [, sectionId, itemId] = feedbackMatch;
+            } else if (fullFeedbackMatch) {
+                const [, sectionId, itemId] = fullFeedbackMatch;
+                sectionMap[sectionId] = sectionMap[sectionId] || {};
+                sectionMap[sectionId][itemId] = sectionMap[sectionId][itemId] || {};
+                sectionMap[sectionId][itemId].feedback = value;
+            } else if (sectionFeedbackMatch) {
+                const [, sectionId, itemId] = sectionFeedbackMatch;
                 sectionMap[sectionId] = sectionMap[sectionId] || {};
                 sectionMap[sectionId][itemId] = sectionMap[sectionId][itemId] || {};
                 sectionMap[sectionId][itemId].feedback = value;
@@ -186,6 +200,7 @@ const LLMResponseEvaluation = () => {
 
 
     const handleSubmit = async (values) => {
+        //console.log(values)
         let submission = {
             evaluationId,
             responses: reformatValuesForResponse(values)
