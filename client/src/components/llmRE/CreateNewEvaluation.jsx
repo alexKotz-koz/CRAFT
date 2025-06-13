@@ -17,7 +17,11 @@ import {
     handleAddHumanMessage,
     handleRemoveHumanMessage,
     handleAddRubricItem,
-    handleRubricItemChange
+    handleRubricItemChange,
+    handleAddSectionHumanMessage,
+    handleRemoveSectionHumanMessage,
+    handleAddSectionLLMMessage,
+    handleRemoveSectionLLMMessage,
 } from "./createNewEvaluationHelpers";
 const LLMRECreate = () => {
 
@@ -33,11 +37,17 @@ const LLMRECreate = () => {
     const [formErrorSubmission, setFormErrorSubmission] = useState("");
     const [sections, setSections] = useState([]);
     const [rubricItems, setRubricItems] = useState([]);
+    
     const [humanMessages, setHumanMessages] = useState([]);
     const [llmMessages, setLLMMessages] = useState([]);
     const humanMessageIdRef = useRef(0);
     const llmMessageIdRef = useRef(0);
 
+    const [sectionHumanMessages, setSectionHumanMessages] = useState({}); // { [sectionId]: [messages] }
+    const [sectionLLMMessages, setSectionLLMMessages] = useState({});
+    const [sectionHumanMessageIdRef, setSectionHumanMessageIdRef] = useState({});
+    const [sectionLLMMessageIdRef, setSectionLLMMessageIdRef] = useState({});
+   
     if (isLoading || isLoadingAllUsers) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
@@ -75,7 +85,7 @@ const LLMRECreate = () => {
         if (values.participants.length <= 0) {
             setFormErrorSubmission("At least one participant is required, please add at least one participant to this evaluation task")
         } else {
-            values.participants.map((id, index) => {
+            values.participants.map((id) => {
                 const participantObj = participants.find(user => user._id === id);
                 if (participantObj) {
                     selectedParticipants.push(participantObj);
@@ -105,14 +115,55 @@ const LLMRECreate = () => {
                 kind,
                 content
             }));
+        } else if (!values.isFullTranscript) {
+            //1. Collect all section message fields
+            const sectionMessages = Object.entries(values)
+                .filter(([key]) =>
+                    key.startsWith("section_") &&
+                    (key.includes("_human_message_") || key.includes("_llm_message"))
+                )
+                .map(([key, content]) => {
+                    // key: section_{sectionId}_x_message_{chatId}
+                    const parts = key.split("_");
+                    const sectionId = Number(parts[1]);
+                    const kind = parts[2];
+                    const chatId = Number(parts[4]);
+                    return { sectionId, kind, chatId, content };
+                });
+
+            //2. Group by sectionId
+            const sectionsMap = {};
+            sectionMessages.forEach(msg => {
+                if (!sectionsMap[msg.sectionId]){
+                    sectionsMap[msg.sectionId] = [];
+                }
+                sectionsMap[msg.sectionId].push({
+                    chatId: msg.chatId,
+                    kind: msg.kind,
+                    content: msg.content
+                });
+            });
+
+            //3. Build sections array, sorted by chatId
+            const sectionsArr = Object.entries(sectionsMap).map(([sectionId, transcript]) => ({
+                sectionId: Number(sectionId),
+                transcript: transcript.sort((a,b) => a.chatId - b.chatId)
+            }));
+
+            evaluation = {
+                title: values.title,
+                instructions: values.instructions,
+                sections: sectionsArr,
+                rubricItems,
+                participants: selectedParticipants,
+                isFullTranscript: false
+            };  
         }
 
 
         // Format data based on transcript type (Full or Sections)
         //REMOVE: For reuse (Specfically remove the "participants" item from the evaluation object)
-        if (sections.length > 0 && rubricItems.length > 0) {
-            evaluation = { "title": values.title, "instructions": values.instructions, "llmOutput": sections, "rubricItems": rubricItems, "participants": selectedParticipants };
-        } else if (values.isFullTranscript && rubricItems.length > 0) {
+        if (values.isFullTranscript && rubricItems.length > 0) {
             evaluation = { "title": values.title, "instructions": values.instructions, "transcript": transcript, "rubricItems": rubricItems, "participants": selectedParticipants, "isFullTranscript": values.isFullTranscript };
         }
 
@@ -136,7 +187,7 @@ const LLMRECreate = () => {
 
             <Form
                 onSubmit={handleFormSubmit}
-                initialValues={{}}
+                initialValues={{ isFullTranscript: false }}
                 validate={validate}
                 onKeyDown={e => {
                     if (e.key === "Enter") {
@@ -223,11 +274,11 @@ const LLMRECreate = () => {
                                                 )}
                                                 {/* Conditional rendering based on switch */}
                                                 {input.value === true || input.value === "true" ? (
-                                                    // Full Transcript: show one textarea
                                                     <div className="mt-3 container-fluid border border-solid rounded">
                                                         <div className="row text-center w-100">
                                                             <label>LLM Transcript</label>
                                                         </div>
+                                                        {/** Full Transcript Buttons */}
                                                         <div className="row ">
                                                             <div className="col-6 text-center">
                                                                 <button
@@ -247,6 +298,7 @@ const LLMRECreate = () => {
                                                             </div>
 
                                                         </div>
+                                                        {/** Full Transcript TextAreas */}
                                                         <div className="row">
                                                             <div className="col-6 border border-solid">
                                                                 {humanMessages.map((message) => (
@@ -300,15 +352,125 @@ const LLMRECreate = () => {
                                                                     </div>
                                                                 ))}
                                                             </div>
-
                                                         </div>
-
-                                                        {/*  */}
                                                     </div>
                                                 ) : (
                                                     <div className="card bg-body-secondary mt-3">
-                                                        <label>Sections</label>
+                                                        <label>Sections of a Transcript</label>
+
+                                                        {/* Sections */}
+                                                        {sections.map((section, idx) => (
+                                                            <div key={section.sectionId} className="my-2 pb-2">
+                                                                <div className="card d-flex align-items-start gap-2">
+                                                                    <div className="mt-3 container-fluid">
+                                                                        <div className="row text-center w-100">
+                                                                            <label className="fw-bold">Section {idx + 1} LLM Transcript</label>
+                                                                        </div>
+                                                                        {/** Sections Buttons */}
+                                                                        <div className="row ">
+                                                                            <div className="col-6 text-center">
+                                                                                <button
+                                                                                    className="btn btn-info mx-2 my-2 w-35"
+                                                                                    onClick={e => handleAddSectionHumanMessage(
+                                                                                        e, 
+                                                                                        section.sectionId, 
+                                                                                        setSectionHumanMessages,
+                                                                                        sectionHumanMessageIdRef,
+                                                                                        setSectionHumanMessageIdRef
+                                                                                    )}
+
+                                                                                >
+                                                                                    <GoPlus /> Add Human Message
+                                                                                </button>
+                                                                            </div>
+                                                                            <div className="col-6 text-center">
+                                                                                <button
+                                                                                    className="btn btn-warning mx-2 my-2 w-35"
+                                                                                    onClick={e => handleAddSectionLLMMessage(
+                                                                                        e, 
+                                                                                        section.sectionId, 
+                                                                                        setSectionLLMMessages,
+                                                                                        sectionLLMMessageIdRef,
+                                                                                        setSectionLLMMessageIdRef
+                                                                                    )}
+
+                                                                                >
+                                                                                    <GoPlus /> Add LLM Message
+                                                                                </button>
+                                                                            </div>
+
+                                                                        </div>
+                                                                        {/** Sections Transcript TextAreas */}
+                                                                        <div className="row">
+                                                                            <div className="col-6">
+                                                                                {(sectionHumanMessages[section.sectionId] || []).map((message, idx) => (
+                                                                                    <div key={message.chatId} className="d-flex align-items-center gap-2 mb-2">
+                                                                                        <div className="flex-grow-1">
+                                                                                            <label>Human Message {idx}</label>
+                                                                                            <Field name={`section_${section.sectionId}_human_message_${message.chatId}`}>
+                                                                                                {({ input }) => (
+                                                                                                    <textarea
+                                                                                                        {...input}
+                                                                                                        className="form-control"
+                                                                                                        rows={3}
+                                                                                                    />
+                                                                                                )}
+                                                                                            </Field>
+                                                                                        </div>
+                                                                                        <button
+                                                                                            className="btn btn-danger btn-sm mt-1"
+                                                                                            type="button"
+                                                                                            onClick={() => handleRemoveSectionHumanMessage(section.sectionId, message.chatId, setSectionHumanMessages)}
+                                                                                            aria-label="Remove human message"
+                                                                                        >
+                                                                                            <GoTrash />
+                                                                                        </button>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                            <div className="col-6 ">
+                                                                                {(sectionLLMMessages[section.sectionId] || []).map((message, idx) => (
+                                                                                    <div key={message.chatId} className="d-flex align-items-center gap-2 mb-2">
+                                                                                        <div className="flex-grow-1">
+                                                                                            <label>LLM Message {idx}</label>
+                                                                                            <Field name={`section_${section.sectionId}_llm_message_${message.chatId}`}>
+                                                                                                {({ input }) => (
+                                                                                                    <textarea
+                                                                                                        {...input}
+                                                                                                        className="form-control"
+                                                                                                        rows={3}
+                                                                                                    />
+                                                                                                )}
+                                                                                            </Field>
+                                                                                        </div>
+                                                                                        <button
+                                                                                            className="btn btn-danger btn-sm mt-1"
+                                                                                            type="button"
+                                                                                            onClick={() => handleRemoveSectionLLMMessage(section.sectionId, message.chatId, setSectionLLMMessages)}
+                                                                                            aria-label="Remove LLM message"
+                                                                                        >
+                                                                                            <GoTrash />
+                                                                                        </button>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+
+                                                                    <button
+                                                                        className="btn btn-danger btn-sm ms-3 mt-1 mb-3"
+                                                                        type="button"
+                                                                        onClick={() => handleRemoveSection(idx, setSections)}
+                                                                        aria-label="Remove section"
+                                                                    >
+                                                                        Delete Section <GoTrash />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
                                                         <div>
+
                                                             <button
                                                                 className="btn btn-info mx-2 my-2"
                                                                 onClick={e => handleAddSection(e, setSections)}
@@ -317,28 +479,6 @@ const LLMRECreate = () => {
                                                                 Add New Section
                                                             </button>
                                                         </div>
-                                                        {/* Render a textarea for each section */}
-                                                        {sections.map((section, idx) => (
-                                                            <div key={section.sectionId} className="my-2 pb-2">
-                                                                <label>Section {idx + 1}</label>
-                                                                <div className="d-flex align-items-start gap-2">
-                                                                    <textarea
-                                                                        className="form-control"
-                                                                        value={section.llmOutput}
-                                                                        onChange={e => handleSectionChange(idx, e.target.value, setSections, setFormErrorLLMOutput)}
-                                                                        placeholder="Paste section transcript here"
-                                                                    />
-                                                                    <button
-                                                                        className="btn btn-danger btn-sm mt-1"
-                                                                        type="button"
-                                                                        onClick={() => handleRemoveSection(idx, setSections)}
-                                                                        aria-label="Remove section"
-                                                                    >
-                                                                        <GoTrash />
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        ))}
                                                     </div>
                                                 )}
                                             </>

@@ -138,3 +138,49 @@ export const handleRemoveLLMMessage = (chatId, setLLMMessages, llmMessages, llmM
 
     llmMessageIdRef.current = llmMessages.length - 1;
 };
+
+export const handleAddSectionHumanMessage = (e, sectionId, setSectionHumanMessages, sectionHumanMessageIdRef, setSectionHumanMessageIdRef) => {
+    e.preventDefault();
+    const nextId = (sectionHumanMessageIdRef[sectionId] || 0);
+    setSectionHumanMessages(prev => ({
+        ...prev,
+        [sectionId]: [
+            ...(prev[sectionId] || []),
+            { chatId: nextId, kind: "human", content: "" }
+        ]
+    }));
+    setSectionHumanMessageIdRef(prev => ({
+        ...prev,
+        [sectionId]: nextId + 1
+    }));
+};
+
+export const handleRemoveSectionHumanMessage = (sectionId, chatId, setSectionHumanMessages) => {
+    setSectionHumanMessages(prev => ({
+        ...prev,
+        [sectionId]: (prev[sectionId] || []).filter(msg => msg.chatId !== chatId)
+    }));
+};
+
+export const handleAddSectionLLMMessage = (e, sectionId, setSectionLLMMessages, sectionLLMMessageIdRef, setSectionLLMMessageIdRef) => {
+    e.preventDefault();
+    const nextId = (sectionLLMMessageIdRef[sectionId] || 0);
+    setSectionLLMMessages(prev => ({
+        ...prev,
+        [sectionId]: [
+            ...(prev[sectionId] || []),
+            { chatId: nextId, kind: "llm", content: "" }
+        ]
+    }));
+    setSectionLLMMessageIdRef(prev => ({
+        ...prev,
+        [sectionId]: nextId + 1
+    }));
+};
+
+export const handleRemoveSectionLLMMessage = (sectionId, chatId, setSectionLLMMessages) => {
+    setSectionLLMMessages(prev => ({
+        ...prev,
+        [sectionId]: (prev[sectionId] || []).filter(msg => msg.chatId !== chatId)
+    }));
+};
