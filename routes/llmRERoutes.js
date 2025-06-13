@@ -32,8 +32,8 @@ module.exports = (app) => {
                     rubricItems,
                     participants
                 });
-            } 
-            
+            }
+
             await evaluation.save();
             res.status(201).json(evaluation);
         } catch (error) {
@@ -55,6 +55,18 @@ module.exports = (app) => {
         const { evaluationId } = req.params;
         try {
             const llmre = await LLMResponseEvaluation.findById(evaluationId);
+
+            //update StudyParticipant responded to true
+            if (llmre && llmre.participants && req.user && req.user._id) {
+                const participant = llmre.participants.find(
+                    p => p._id && p._id.toString() === req.user._id.toString()
+                );
+                if (participant && !participant.responded) {
+                    participant.responded = true;
+                    await llmre.save();
+                }
+            }
+
             res.send(llmre);
 
         } catch (err) {

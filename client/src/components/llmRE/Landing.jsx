@@ -80,14 +80,52 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
     );
 
     const renderFacilitator = () => {
+        console.log(allEvaluations)
+
         const totalEvaluations = Array.isArray(allEvaluations) ? allEvaluations.length : 0;
-        
+        const uniqueParticipants = Array.from(
+            new Map(
+                (allEvaluations || [])
+                    .flatMap(evaluation => evaluation.participants || [])
+                    .map(participant => [participant._id, participant])
+            ).values()
+        );
+        const totalUniqueParticipants = uniqueParticipants.length;
+
+        //calculate the total number of participants who have responded
+                // Calculate the total number of unique participants who have responded
+        const uniqueRespondedParticipants = Array.from(
+            new Map(
+                (allEvaluations || [])
+                    .flatMap(evaluation => evaluation.participants || [])
+                    .filter(participant => participant.responded)
+                    .map(participant => [participant._id, participant])
+            ).values()
+        );
+        const totalRespondedParticipants = uniqueRespondedParticipants.length;
+
         return (
             <div>
                 {renderWelcomeHeader()}
                 <div className="container">
                     {/* Quick Stats */}
                     <div className="row mb-4">
+                        <div className="col-md-4">
+                            <Card className="text-center border-0 shadow-sm">
+                                <CardBody>
+                                    <div className="display-4 text-primary mb-2">{totalUniqueParticipants}</div>
+                                    <h6 className="text-muted">Total Participants</h6>
+                                </CardBody>
+                            </Card>
+                        </div>
+                        <div className="col-md-4">
+                            <Card className="text-center border-0 shadow-sm">
+                                <CardBody>
+                                    <div className="display-4 text-primary mb-2">{totalRespondedParticipants}/{totalUniqueParticipants}</div>
+                                    <h6 className="text-muted">Completed Evaluations</h6>
+                                </CardBody>
+                            </Card>
+                        </div>
                         <div className="col-md-4">
                             <Card className="text-center border-0 shadow-sm">
                                 <CardBody>
@@ -132,15 +170,15 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                     <p className="text-muted mb-4 flex-grow-1">
                                         Set up a new LLM response evaluation with custom rubrics and participants.
                                     </p>
-                                    <ButtonLink 
-                                        to="/llm-response-evaluation/create" 
-                                        text="Create Evaluation" 
+                                    <ButtonLink
+                                        to="/llm-response-evaluation/create"
+                                        text="Create Evaluation"
                                         additionalClasses="btn-primary w-100"
                                     />
                                 </CardBody>
                             </Card>
                         </div>
-                        
+
                         <div className="col-md-6">
                             <Card className="h-100 border-0 shadow-sm hover-shadow">
                                 <CardBody className="d-flex flex-column">
@@ -153,8 +191,8 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                     <p className="text-muted mb-4 flex-grow-1">
                                         View, edit, and manage your existing evaluations and participant responses.
                                     </p>
-                                    <button 
-                                        className="btn btn-outline-info w-100" 
+                                    <button
+                                        className="btn btn-outline-info w-100"
                                         onClick={handleShowExistingEvaluations}
                                     >
                                         {showExistingEvaluations ? 'Hide' : 'Show'} Evaluations
@@ -219,7 +257,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                 </div>
                                 <h4 className="mb-0">Your Assigned Evaluations</h4>
                             </div>
-                            
+
                             {userEvaluations.length === 0 ? (
                                 <div className="text-center py-5">
                                     <div className="text-muted mb-3">

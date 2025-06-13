@@ -247,43 +247,46 @@ const LLMResponseEvaluation = () => {
                                 </div>
                                 {/* AI Output */}
                                 <div
-                                    className="col-12 col-md-4 border d-flex align-items-center mb-2 mb-md-0"
+                                    className="col-12 col-md-4 border d-flex mb-2 mb-md-0"
                                     style={{
                                         minHeight: 120,
-                                        overflowWrap: "break-word",
-                                        wordBreak: "break-word",
-                                        whiteSpace: "pre-wrap"
+                                        maxHeight: 500,
+                                        overflowY: "auto",
+                                        overflowX: "hidden",
+                                        display: "block",
+                                        whiteSpace: "pre-wrap",
+                                        wordBreak: "break-word"
                                     }}
                                 >
-                                    <div className="container">
-                                    {section?.transcript.map((chat, idx) => {
-                                        if (chat.kind === "llm") {
-                                            return (
-                                                <div key={idx} className="text-start">
-                                                    <div
-                                                        className="row card bg-body-secondary border border-warning border-3 px-2 py-2"
-                                                    >
-                                                        {chat.content}
+                                    <div className="container mt-3 mb-3">
+                                        {section?.transcript.map((chat, idx) => {
+                                            if (chat.kind === "llm") {
+                                                return (
+                                                    <div key={idx} className="text-start">
+                                                        <div
+                                                            className="row card bg-body-secondary border border-warning border-3 px-2 py-2"
+                                                        >
+                                                            {chat.content}
 
+                                                        </div>
+                                                        <p>LLM</p>
                                                     </div>
-                                                    <p>LLM</p>
-                                                </div>
 
 
-                                            );
-                                        } else if (chat.kind === 'human') {
-                                            return (
-                                                <div key={idx} className="text-start">
-                                                    <div className="row card bg-body-secondary border border-info border-3 px-2 py-2">
-                                                        {chat.content}
+                                                );
+                                            } else if (chat.kind === 'human') {
+                                                return (
+                                                    <div key={idx} className="text-start">
+                                                        <div className="row card bg-body-secondary border border-info border-3 px-2 py-2">
+                                                            {chat.content}
 
+                                                        </div>
+                                                        <p className="text-end">User</p>
                                                     </div>
-                                                    <p className="text-end">User</p>
-                                                </div>
-                                            );
-                                        }
-                                    })}
-                                </div>
+                                                );
+                                            }
+                                        })}
+                                    </div>
                                 </div>
                                 {/* Rubric Items and Free Text, aligned */}
                                 <div className="col-12 col-md-8 border">
@@ -315,7 +318,7 @@ const LLMResponseEvaluation = () => {
                                 {formErrorSubmission}
                             </div>
                         ) : (<div></div>)}
-                        <div className="d-flex justify-content-end mt-3">
+                        <div className="d-flex justify-content-end mt-3 mb-3">
                             <button type="submit" className="btn btn-success ms-2 me-2 w-100 w-md-auto">
                                 Submit
                             </button>
@@ -353,16 +356,16 @@ const LLMResponseEvaluation = () => {
                                 <div className="fw-bold">AI Output</div>
                             </div>
                             {/* AI Output */}
-                            <div 
-                                className="col-12 col-md-4 border d-flex mb-2 mb-md-0" 
-                                style={{ 
-                                    minHeight: 120, 
+                            <div
+                                className="col-12 col-md-4 border d-flex mb-2 mb-md-0"
+                                style={{
+                                    minHeight: 120,
                                     maxHeight: 500,
                                     overflowY: "auto",
                                     overflowX: "hidden",
                                     display: "block",
                                     whiteSpace: "pre-wrap",
-                                    wordBreak: "break-word" 
+                                    wordBreak: "break-word"
                                 }}
                             >
                                 <div className="container">
@@ -424,7 +427,7 @@ const LLMResponseEvaluation = () => {
                                 {formErrorSubmission}
                             </div>
                         ) : (<div></div>)}
-                        <div className="d-flex justify-content-end mt-3">
+                        <div className="d-flex justify-content-end mt-3 mb-3">
                             <button type="submit" className="btn btn-success ms-2 me-2 mb-2 w-100 w-md-auto">
                                 Submit
                             </button>
