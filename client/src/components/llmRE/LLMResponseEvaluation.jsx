@@ -103,10 +103,12 @@ const LLMResponseEvaluation = () => {
         )
     }
 
+    console.log("LLMRE evaluation: ", evaluation)
+
     const mapResponseToInitialValues = (response) => {
         if (!response || !response.responses) return {};
         const initialValues = {};
-        console.log(response)
+
         response.responses.forEach(section => {
             section.rubricResponses.forEach(rubric => {
                 console.log(rubric)
@@ -207,7 +209,7 @@ const LLMResponseEvaluation = () => {
         };
 
         try {
-            console.log(submission)
+            //console.log(submission)
             await createEvaluationResponse(submission).unwrap();
             navigate('/home');
         } catch (err) {
@@ -323,8 +325,48 @@ const LLMResponseEvaluation = () => {
                                 <div className="fw-bold">AI Output</div>
                             </div>
                             {/* AI Output */}
-                            <div className="col-12 col-md-4 border d-flex align-items-center mb-2 mb-md-0" style={{ minHeight: 120 }}>
-                                {evaluation?.llmOutput}
+                            <div 
+                                className="col-12 col-md-4 border d-flex mb-2 mb-md-0" 
+                                style={{ 
+                                    minHeight: 120, 
+                                    maxHeight: 500,
+                                    overflowY: "auto",
+                                    overflowX: "hidden",
+                                    display: "block",
+                                    whiteSpace: "pre-wrap",
+                                    wordBreak: "break-word" 
+                                }}
+                            >
+                                <div className="container">
+                                    {evaluation?.transcript.map((chat, idx) => {
+                                        if (chat.kind === "llm") {
+                                            return (
+                                                <div key={idx} className="text-start">
+                                                    <div
+                                                        className="row card bg-body-secondary border border-warning border-3 px-2 py-2"
+                                                    >
+                                                        {chat.content}
+
+                                                    </div>
+                                                    <p>LLM</p>
+                                                </div>
+
+
+                                            );
+                                        } else if (chat.kind === 'human') {
+                                            return (
+                                                <div key={idx} className="text-start">
+                                                    <div className="row card bg-body-secondary border border-info border-3 px-2 py-2">
+                                                        {chat.content}
+
+                                                    </div>
+                                                    <p className="text-end">User</p>
+                                                </div>
+                                            );
+                                        }
+                                    })}
+                                </div>
+
                             </div>
                             <div className="col-12 col-md-8 border">
                                 {evaluation?.rubricItems.map((rubricItem, rubricIdx) => (

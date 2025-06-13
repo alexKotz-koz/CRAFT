@@ -1,11 +1,24 @@
 import { Form, Field } from "react-final-form";
-import DOMPurify from 'dompurify';
 import { Spinner } from "reactstrap";
-import { useState } from "react";
-import { GoTrash } from "react-icons/go";
+import { useState, useRef } from "react";
+import { GoTrash, GoPlus } from "react-icons/go";
 import { useNavigate } from "react-router-dom";
 import { useCreateEvaluationMutation, useFetchAllUsersQuery } from "../../store";
-
+import {
+    validate,
+    handleSectionChange,
+    handleAddSection,
+    handleRemoveSection,
+    handleAddLabel,
+    handleRemoveLabel,
+    handleLabelChange,
+    handleAddLLMMessage,
+    handleRemoveLLMMessage,
+    handleAddHumanMessage,
+    handleRemoveHumanMessage,
+    handleAddRubricItem,
+    handleRubricItemChange
+} from "./createNewEvaluationHelpers";
 const LLMRECreate = () => {
 
     const navigate = useNavigate();
@@ -20,6 +33,10 @@ const LLMRECreate = () => {
     const [formErrorSubmission, setFormErrorSubmission] = useState("");
     const [sections, setSections] = useState([]);
     const [rubricItems, setRubricItems] = useState([]);
+    const [humanMessages, setHumanMessages] = useState([]);
+    const [llmMessages, setLLMMessages] = useState([]);
+    const humanMessageIdRef = useRef(0);
+    const llmMessageIdRef = useRef(0);
 
     if (isLoading || isLoadingAllUsers) {
         return (
@@ -40,21 +57,11 @@ const LLMRECreate = () => {
     // Extract participants from all users in the system
     const participants = allUsers ? allUsers.filter(user => user.role === "participant") : [];
 
-
-    const validate = (values) => {
-        if (values.title === "" || values.title === undefined) {
-            return { title: "Title is required" }
-        }
-        const cleanedValues = Object.keys(values).reduce((acc, key) => {
-            acc[key] = DOMPurify.sanitize(values[key]);
-            return acc;
-        }, {});
-    };
-
     const handleFormSubmit = async (values) => {
         let evaluation = {};
         let selectedParticipants = [];
-        console.log(values);
+        let transcript = [];
+        console.log("handleFormSubmit values: ", values);
 
         if (sections.length === 0 && !values.isFullTranscript) {
             setFormErrorLLMOutput("At least one AI generated response is required, please add a section or a full transcript");
@@ -76,13 +83,40 @@ const LLMRECreate = () => {
             })
         }
 
+        if (values.isFullTranscript) {
+            // Collect all human and llm messages in order
+            const messageEntries = Object.entries(values)
+                .filter(([key]) => key.startsWith("human_message_") || key.startsWith("llm_message_"))
+                .map(([key, content]) => {
+                    const [kind, , idx] = key.split("_");
+                    return {
+                        kind,
+                        idx: parseInt(idx, 10),
+                        content
+                    };
+                })
+                .sort((a, b) => a.idx - b.idx); // Sort by index
+
+            console.log(messageEntries)
+
+            // Format for DB: [{kind: "human", content: "..."}, ...]
+            transcript = messageEntries.map(({ kind, idx, content }) => ({
+                chatId: idx,
+                kind,
+                content
+            }));
+        }
+
+
+        // Format data based on transcript type (Full or Sections)
         //REMOVE: For reuse (Specfically remove the "participants" item from the evaluation object)
         if (sections.length > 0 && rubricItems.length > 0) {
             evaluation = { "title": values.title, "instructions": values.instructions, "llmOutput": sections, "rubricItems": rubricItems, "participants": selectedParticipants };
         } else if (values.isFullTranscript && rubricItems.length > 0) {
-            evaluation = { "title": values.title, "instructions": values.instructions, "llmOutput": values.llmOutput, "rubricItems": rubricItems, "participants": selectedParticipants };
+            evaluation = { "title": values.title, "instructions": values.instructions, "transcript": transcript, "rubricItems": rubricItems, "participants": selectedParticipants, "isFullTranscript": values.isFullTranscript };
         }
 
+        console.log("handleFormSubmit evaluation: ", evaluation);
         try {
             await createEvalution(evaluation).unwrap();
             navigate('/home');
@@ -94,95 +128,6 @@ const LLMRECreate = () => {
 
     };
 
-    // Add a new section
-    const handleAddSection = (e) => {
-        e.preventDefault();
-        setSections(prev => [
-            ...prev,
-            { sectionId: Date.now(), llmOutput: "" }
-        ]);
-    };
-
-    // Update a section's llmOutput
-    const handleSectionChange = (index, value) => {
-        setSections(prev => prev.map((section, i) =>
-            i === index ? { ...section, llmOutput: value } : section
-        ));
-        setFormErrorLLMOutput();
-    };
-
-    // Remove a section
-    const handleRemoveSection = (index) => {
-        setSections(prev => prev.filter((_, i) => i !== index));
-    };
-
-    // Add a new rubric item
-    const handleAddRubricItem = (e) => {
-        e.preventDefault();
-        setRubricItems(prev => [
-            ...prev,
-            {
-                itemId: Date.now(),
-                title: "",
-                caption: "",
-                objectType: "radio",
-                checkboxLabels: [""],
-                radioLabels: ["", ""],
-                reason: ""
-            }
-        ]);
-    };
-
-    // Update a rubric item's field
-    const handleRubricItemChange = (idx, field, value) => {
-        setRubricItems(prev =>
-            prev.map((item, i) =>
-                i === idx ? { ...item, [field]: value } : item
-            )
-        );
-        setFormErrorRubric();
-    };
-
-    // Add/remove label for checkbox/radio
-    const handleAddLabel = (idx, type) => {
-        setRubricItems(prev =>
-            prev.map((item, i) =>
-                i === idx
-                    ? { ...item, [type]: [...item[type], ""] }
-                    : item
-            )
-        );
-    };
-    const handleLabelChange = (idx, type, labelIdx, value) => {
-        setRubricItems(prev =>
-            prev.map((item, i) =>
-                i === idx
-                    ? {
-                        ...item,
-                        [type]: item[type].map((label, j) =>
-                            j === labelIdx ? value : label
-                        )
-                    }
-                    : item
-            )
-        );
-    };
-    const handleRemoveLabel = (idx, type, labelIdx) => {
-        setRubricItems(prev =>
-            prev.map((item, i) =>
-                i === idx
-                    ? {
-                        ...item,
-                        [type]: item[type].filter((_, j) => j !== labelIdx)
-                    }
-                    : item
-            )
-        );
-    };
-
-    const handleRemoveRubricItem = (idx) => {
-        setRubricItems(prev => prev.filter((_, i) => i !== idx));
-    };
 
 
     return (
@@ -194,7 +139,7 @@ const LLMRECreate = () => {
                 initialValues={{}}
                 validate={validate}
                 onKeyDown={e => {
-                    if (e.key === "Enter" ){
+                    if (e.key === "Enter") {
                         e.preventDefault();
                     }
                 }}
@@ -242,35 +187,123 @@ const LLMRECreate = () => {
                             <div className="card bg-body-tertiary border border-tertiary p-2 rounded">
                                 <div className="mb-3">
                                     <label className="form-label fw-bold">Full LLM Transcript or Sections of a Transcript?</label>
-                                    <Field name="isFullTranscript" type="checkbox">
+                                    <Field name="isFullTranscript">
                                         {({ input, meta }) => (
                                             <>
-                                                <div className="form-check form-switch">
+                                                <div className="form-check">
                                                     <input
                                                         {...input}
-                                                        type="checkbox"
+                                                        type="radio"
                                                         className="form-check-input"
-                                                        id="transcriptSwitch"
+                                                        id="fullTranscript"
+                                                        value={true}
+                                                        checked={input.value === true || input.value === "true"}
+                                                        onChange={() => input.onChange(true)}
                                                     />
-                                                    <label className="form-check-label" htmlFor="transcriptSwitch">
-                                                        {input.checked ? "Full Transcript" : "Sections of a Transcript"}
+                                                    <label className="form-check-label" htmlFor="fullTranscript">
+                                                        Full Transcript
+                                                    </label>
+                                                </div>
+                                                <div className="form-check">
+                                                    <input
+                                                        {...input}
+                                                        type="radio"
+                                                        className="form-check-input"
+                                                        id="sectionsTranscript"
+                                                        value={false}
+                                                        checked={input.value === false || input.value === "false" || input.value === undefined}
+                                                        onChange={() => input.onChange(false)}
+                                                    />
+                                                    <label className="form-check-label" htmlFor="sectionsTranscript">
+                                                        Sections of a Transcript
                                                     </label>
                                                 </div>
                                                 {meta.error && meta.touched && (
                                                     <span className="text-danger">{meta.error}</span>
                                                 )}
                                                 {/* Conditional rendering based on switch */}
-                                                {input.checked ? (
+                                                {input.value === true || input.value === "true" ? (
                                                     // Full Transcript: show one textarea
-                                                    <div className="mt-3">
-                                                        <label>LLM Transcript</label>
-                                                        <Field
-                                                            name="llmOutput"
-                                                            component="textarea"
-                                                            className="form-control"
-                                                            placeholder="Paste the full transcript here"
-                                                            rows={7}
-                                                        />
+                                                    <div className="mt-3 container-fluid border border-solid rounded">
+                                                        <div className="row text-center w-100">
+                                                            <label>LLM Transcript</label>
+                                                        </div>
+                                                        <div className="row ">
+                                                            <div className="col-6 text-center">
+                                                                <button
+                                                                    className="btn btn-info mx-2 my-2 w-35"
+                                                                    onClick={e => handleAddHumanMessage(e, setHumanMessages, humanMessageIdRef)}
+                                                                >
+                                                                    <GoPlus /> Add Human Message
+                                                                </button>
+                                                            </div>
+                                                            <div className="col-6 text-center">
+                                                                <button
+                                                                    className="btn btn-warning mx-2 my-2 w-35"
+                                                                    onClick={e => handleAddLLMMessage(e, setLLMMessages, llmMessageIdRef)}
+                                                                >
+                                                                    <GoPlus /> Add LLM Message
+                                                                </button>
+                                                            </div>
+
+                                                        </div>
+                                                        <div className="row">
+                                                            <div className="col-6 border border-solid">
+                                                                {humanMessages.map((message) => (
+                                                                    <div key={message.chatId} className="d-flex align-items-center gap-2 mb-2">
+                                                                        <div className="flex-grow-1">
+                                                                            <label>Human Message {message.chatId}</label>
+                                                                            <Field name={`human_message_${message.chatId}`}>
+                                                                                {({ input }) => (
+                                                                                    <textarea
+                                                                                        {...input}
+                                                                                        className="form-control"
+                                                                                        rows={3}
+                                                                                    />
+                                                                                )}
+                                                                            </Field>
+                                                                        </div>
+                                                                        <button
+                                                                            className="btn btn-danger btn-sm mt-1"
+                                                                            type="button"
+                                                                            onClick={() => handleRemoveHumanMessage(message.chatId, setHumanMessages, humanMessages, humanMessageIdRef)}
+                                                                            aria-label="Remove human message"
+                                                                        >
+                                                                            <GoTrash />
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                            <div className="col-6 border border-solid">
+                                                                {llmMessages.map((message) => (
+                                                                    <div key={message.chatId} className="d-flex align-items-center gap-2 mb-2">
+                                                                        <div className="flex-grow-1">
+                                                                            <label>LLM Message {message.chatId}</label>
+                                                                            <Field name={`llm_message_${message.chatId}`}>
+                                                                                {({ input }) => (
+                                                                                    <textarea
+                                                                                        {...input}
+                                                                                        className="form-control"
+                                                                                        rows={3}
+                                                                                    />
+                                                                                )}
+                                                                            </Field>
+                                                                        </div>
+                                                                        <button
+                                                                            className="btn btn-danger btn-sm mt-1"
+                                                                            type="button"
+                                                                            onClick={() => handleRemoveLLMMessage(message.chatId, setLLMMessages, llmMessages, llmMessageIdRef)}
+                                                                            aria-label="Remove LLM message"
+                                                                        >
+                                                                            <GoTrash />
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+
+                                                        </div>
+
+                                                        {/*  */}
                                                     </div>
                                                 ) : (
                                                     <div className="card bg-body-secondary mt-3">
@@ -278,7 +311,7 @@ const LLMRECreate = () => {
                                                         <div>
                                                             <button
                                                                 className="btn btn-info mx-2 my-2"
-                                                                onClick={handleAddSection}
+                                                                onClick={e => handleAddSection(e, setSections)}
                                                                 type="button"
                                                             >
                                                                 Add New Section
@@ -292,13 +325,13 @@ const LLMRECreate = () => {
                                                                     <textarea
                                                                         className="form-control"
                                                                         value={section.llmOutput}
-                                                                        onChange={e => handleSectionChange(idx, e.target.value)}
+                                                                        onChange={e => handleSectionChange(idx, e.target.value, setSections, setFormErrorLLMOutput)}
                                                                         placeholder="Paste section transcript here"
                                                                     />
                                                                     <button
                                                                         className="btn btn-danger btn-sm mt-1"
                                                                         type="button"
-                                                                        onClick={() => handleRemoveSection(idx)}
+                                                                        onClick={() => handleRemoveSection(idx, setSections)}
                                                                         aria-label="Remove section"
                                                                     >
                                                                         <GoTrash />
@@ -335,7 +368,7 @@ const LLMRECreate = () => {
                                                 <button
                                                     className="btn btn-danger btn-sm"
                                                     type="button"
-                                                    onClick={() => handleRemoveRubricItem(idx)}
+                                                    onClick={() => handleRemoveRubricItem(idx, setRubricItems)}
                                                     aria-label="Remove rubric item"
                                                 >
                                                     <GoTrash />
@@ -347,19 +380,19 @@ const LLMRECreate = () => {
                                                     className="form-control mb-2"
                                                     placeholder="Title"
                                                     value={item.title}
-                                                    onChange={e => handleRubricItemChange(idx, "title", e.target.value)}
+                                                    onChange={e => handleRubricItemChange(idx, "title", e.target.value, setRubricItems, setFormErrorRubric)}
                                                 />
                                                 <input
                                                     type="text"
                                                     className="form-control mb-2"
                                                     placeholder="Caption"
                                                     value={item.caption}
-                                                    onChange={e => handleRubricItemChange(idx, "caption", e.target.value)}
+                                                    onChange={e => handleRubricItemChange(idx, "caption", e.target.value, setRubricItems, setFormErrorRubric)}
                                                 />
                                                 <select
                                                     className="form-select mb-2"
                                                     value={item.objectType}
-                                                    onChange={e => handleRubricItemChange(idx, "objectType", e.target.value)}
+                                                    onChange={e => handleRubricItemChange(idx, "objectType", e.target.value, setRubricItems, setFormErrorRubric)}
                                                 >
                                                     <option value="radio">Radio</option>
                                                     <option value="checkbox">Checkbox</option>
@@ -379,7 +412,7 @@ const LLMRECreate = () => {
                                                                     className="form-control"
                                                                     value={label}
                                                                     onChange={e =>
-                                                                        handleLabelChange(idx, item.objectType + "Labels", labelIdx, e.target.value)
+                                                                        handleLabelChange(idx, item.objectType + "Labels", labelIdx, e.target.value, setRubricItems)
                                                                     }
                                                                     placeholder={`Label ${labelIdx + 1}`}
                                                                 />
@@ -387,7 +420,7 @@ const LLMRECreate = () => {
                                                                     className="btn btn-danger btn-sm ms-2"
                                                                     type="button"
                                                                     onClick={() =>
-                                                                        handleRemoveLabel(idx, item.objectType + "Labels", labelIdx)
+                                                                        handleRemoveLabel(idx, item.objectType + "Labels", labelIdx, setRubricItems)
                                                                     }
                                                                     aria-label="Remove label"
                                                                 >
@@ -398,7 +431,7 @@ const LLMRECreate = () => {
                                                         <button
                                                             className="btn btn-secondary btn-sm mt-1"
                                                             type="button"
-                                                            onClick={() => handleAddLabel(idx, item.objectType + "Labels")}
+                                                            onClick={() => handleAddLabel(idx, item.objectType + "Labels", setRubricItems)}
                                                         >
                                                             Add Label
                                                         </button>
@@ -409,14 +442,14 @@ const LLMRECreate = () => {
                                                     className="form-control"
                                                     placeholder="Reason Label"
                                                     value={item.reason}
-                                                    onChange={e => handleRubricItemChange(idx, "reason", e.target.value)}
+                                                    onChange={e => handleRubricItemChange(idx, "reason", e.target.value, setRubricItems, setFormErrorRubric)}
                                                 />
                                             </div>
                                         </div>
                                     ))}
                                     <button
                                         className="btn btn-info btn-sm ms-2"
-                                        onClick={handleAddRubricItem}
+                                        onClick={e => handleAddRubricItem(e, setRubricItems)}
                                         type="button"
                                     >
                                         Add Rubric Item

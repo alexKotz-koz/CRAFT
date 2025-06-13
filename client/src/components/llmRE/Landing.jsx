@@ -32,7 +32,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
         return (
             <div className="d-flex flex-column justify-content-center align-items-center" style={{ height: '60vh' }}>
                 <Spinner color="primary" size="lg" />
-                <p className="mt-3 text-muted">Authenticating...</p>
+                <p className="mt-3 text-muted">Loading user information...</p>
             </div>
         );
     }
@@ -96,7 +96,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                 </CardBody>
                             </Card>
                         </div>
-                        <div className="col-md-4">
+                        {/*<div className="col-md-4">
                             <Card className="text-center border-0 shadow-sm">
                                 <CardBody>
                                     <div className="display-4 text-success mb-2">
@@ -105,7 +105,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                     <h6 className="text-muted">Ready to Create</h6>
                                 </CardBody>
                             </Card>
-                        </div>
+                        </div> 
                         <div className="col-md-4">
                             <Card className="text-center border-0 shadow-sm">
                                 <CardBody>
@@ -115,7 +115,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                     <h6 className="text-muted">Analytics Ready</h6>
                                 </CardBody>
                             </Card>
-                        </div>
+                        </div>*/}
                     </div>
 
                     {/* Action Cards */}

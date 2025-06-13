@@ -9,33 +9,31 @@ module.exports = (app) => {
     app.post('/api/llm-response-evaluation/create', requireFacilitatorPermissions, requireLogin, async (req, res) => {
 
         ////REMOVE: For reuse (participants)
-        const { title, instructions, llmOutput, rubricItems, participants } = req.body;
+        const { title, instructions, isFullTranscript, transcript, sections, rubricItems, participants } = req.body;
 
         //REMOVE: For reuse (participants)
         try {
             let evaluation;
-            if (Array.isArray(llmOutput)) {
+            if (!isFullTranscript) {
                 evaluation = new SectionsLLMResponseEvaluation({
                     user: req.user._id,
                     title,
                     instructions,
-                    llmOutput,
+                    sections,
                     rubricItems,
                     participants
                 });
-            } else if (typeof llmOutput === "string") {
+            } else if (isFullTranscript) {
                 evaluation = new FullLLMResponseEvaluation({
                     user: req.user._id,
                     title,
                     instructions,
-                    llmOutput,
+                    transcript,
                     rubricItems,
                     participants
                 });
-            } else {
-                return res.status(400).send("Invalid llmOutput type");
-            }
-
+            } 
+            
             await evaluation.save();
             res.status(201).json(evaluation);
         } catch (error) {

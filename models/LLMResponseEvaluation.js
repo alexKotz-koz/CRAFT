@@ -16,10 +16,21 @@ const RubricItemSchema = new Schema({
     radioLabels: [{type: String}],
     reason: { type: String },
 });
+
+const ChatSchema = new Schema({
+    chatId: {type: Number, required: true}, // An internal id to keep track of chat order in sections
+    kind: {
+        type: String,
+        enum: ['human', 'llm'],
+        required: true
+    },
+    content: {type: String, required: true}
+});
+
 // Helper model for SectionsLLMResponseEvaluation
 const LLMOutputSectionsSchema = new Schema({
     sectionId: { type: Number, required: true },
-    llmOutput: { type: String, required: true }
+    transcript: [ChatSchema],
 })
 
 
@@ -28,7 +39,6 @@ const BaseLLMResponseEvaluationSchema = new Schema({
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     title: {type: String, required: true},
     instructions: {type: String, required: true},
-    rubricInstructions: { type: String },
     rubricItems: [RubricItemSchema],
     /////Remove this for future use cases/////
     participants: { type: [StudyParticipantSchema], required: true },
@@ -38,11 +48,11 @@ const BaseLLMResponseEvaluationSchema = new Schema({
 const LLMResponseEvaluation = mongoose.model('LLMResponseEvaluation', BaseLLMResponseEvaluationSchema);
 
 const FullLLMResponseEvaluationSchema = new Schema({
-    llmOutput: { type: String, required: true },
+    transcript: [ChatSchema],
 });
 
 const SectionsLLMResponseEvaluationSchema = new Schema({
-    llmOutput: [LLMOutputSectionsSchema]
+    sections: [LLMOutputSectionsSchema]
 });
 
 // Discriminators (the models being using in the app)
