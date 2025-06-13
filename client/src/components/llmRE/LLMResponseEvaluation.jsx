@@ -239,7 +239,7 @@ const LLMResponseEvaluation = () => {
                             <div className="col-md-4 fw-bold border text-center">Rubric Selection</div>
                             <div className="col-md-4 fw-bold border text-center">Free Text</div>
                         </div>
-                        {evaluation?.llmOutput.map((section, sectionIdx) => (
+                        {evaluation?.sections.map((section, sectionIdx) => (
                             <div className="row mb-3" key={section.sectionId || sectionIdx}>
                                 {/* Mobile Headers */}
                                 <div className="d-block d-md-none mb-2">
@@ -255,7 +255,35 @@ const LLMResponseEvaluation = () => {
                                         whiteSpace: "pre-wrap"
                                     }}
                                 >
-                                    {section.llmOutput}
+                                    <div className="container">
+                                    {section?.transcript.map((chat, idx) => {
+                                        if (chat.kind === "llm") {
+                                            return (
+                                                <div key={idx} className="text-start">
+                                                    <div
+                                                        className="row card bg-body-secondary border border-warning border-3 px-2 py-2"
+                                                    >
+                                                        {chat.content}
+
+                                                    </div>
+                                                    <p>LLM</p>
+                                                </div>
+
+
+                                            );
+                                        } else if (chat.kind === 'human') {
+                                            return (
+                                                <div key={idx} className="text-start">
+                                                    <div className="row card bg-body-secondary border border-info border-3 px-2 py-2">
+                                                        {chat.content}
+
+                                                    </div>
+                                                    <p className="text-end">User</p>
+                                                </div>
+                                            );
+                                        }
+                                    })}
+                                </div>
                                 </div>
                                 {/* Rubric Items and Free Text, aligned */}
                                 <div className="col-12 col-md-8 border">
