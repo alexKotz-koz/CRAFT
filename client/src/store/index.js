@@ -76,5 +76,7 @@ export {
     useFetchAllEvaluationsQuery,
     useFetchEvaluationQuery,
     useCreateEvaluationResponseMutation,
-    useFetchUserEvaluationResponseQuery
+    useFetchUserEvaluationResponseQuery,
+    useFetchAllUserEvaluationResponsesQuery,
+    useLazyFetchUserResponsesForDownloadQuery
 } from './apis/llmREApi';

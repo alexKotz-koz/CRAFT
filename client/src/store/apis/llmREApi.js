@@ -42,10 +42,28 @@ const llmREApi = createApi({
                 },
             }),
             fetchUserEvaluationResponse: builder.query({
-                query: ({ evaluationId }) => ({
-                    url: `/llm-response-evaluation/${evaluationId}/response/me`,
-                    method: 'GET',
-                }),
+                query: ({ evaluationId }) => {
+                    return {
+                        url: `/llm-response-evaluation/${evaluationId}/response/me`,
+                        method: 'GET',
+                    };
+                },
+            }),
+            fetchAllUserEvaluationResponses: builder.query({
+                query: () => {
+                    return {
+                        url: '/llm-response-evaluation/responses/all',
+                        method: 'GET',
+                    };
+                },
+            }),
+            fetchUserResponsesForDownload: builder.query({
+                query: ({ evaluationId, participantIds }) => {
+                    return {
+                        url: `/llm-response-evaluation/prepare-download/${evaluationId}/${participantIds.join(',')}`,
+                        method: 'GET',
+                    };
+                },
             }),
         };
     }
@@ -58,5 +76,7 @@ export const {
     useFetchEvaluationQuery,
     useCreateEvaluationResponseMutation,
     useFetchUserEvaluationResponseQuery,
+    useFetchAllUserEvaluationResponsesQuery,
+    useLazyFetchUserResponsesForDownloadQuery,
 } = llmREApi;
 export { llmREApi };

@@ -56,17 +56,6 @@ module.exports = (app) => {
         try {
             const llmre = await LLMResponseEvaluation.findById(evaluationId);
 
-            //update StudyParticipant responded to true
-            if (llmre && llmre.participants && req.user && req.user._id) {
-                const participant = llmre.participants.find(
-                    p => p._id && p._id.toString() === req.user._id.toString()
-                );
-                if (participant && !participant.responded) {
-                    participant.responded = true;
-                    await llmre.save();
-                }
-            }
-
             res.send(llmre);
 
         } catch (err) {
@@ -87,6 +76,16 @@ module.exports = (app) => {
                 { $set: { responses, createdAt: new Date() } },
                 { new: true, upsert: true }
             );
+            const llmre = await LLMResponseEvaluation.findById(evaluationId);
+            if (llmre && llmre.participants && req.user && req.user._id) {
+                const participant = llmre.participants.find(
+                    p => p._id && p._id.toString() === req.user._id.toString()
+                );
+                if (participant && !participant.responded) {
+                    participant.responded = true;
+                    await llmre.save();
+                }
+            }
             res.status(200).json(responseDoc);
         } catch (err) {
             console.error("Error saving LLM Response Evaluation Response:", err);
@@ -105,6 +104,40 @@ module.exports = (app) => {
             console.error("Error fetching user response:", err);
             res.status(500).send("Internal Server Error");
         }
+    });
+
+    app.get('/api/llm-response-evaluation/responses/all', requireLogin, async (req, res) => {
+        try {
+            const responses = await LLMResponseEvaluationResponse.find()
+                .populate({ path: 'evaluationId', model: 'LLMResponseEvaluation' })
+                .populate({ path: 'userId', model: 'User' });
+            res.send(responses)
+        } catch (err) {
+            return res.status(500).send("Internal Server Error");
+        }
+    });
+
+    app.get('/api/llm-response-evaluation/prepare-download/:evaluationId/:participantIds', requireLogin, requireFacilitatorPermissions, async (req, res) => {
+        const { evaluationId, participantIds } = req.params;
+        console.log("Download Route eval ID: ", evaluationId);
+        console.log("Download Route participants: ", participantIds);
+        
+        const participantIdArray = participantIds.split(',');
+
+        try {
+            const responses = await LLMResponseEvaluationResponse.find({
+                evaluationId,
+                userId: { $in: participantIdArray }
+            })
+                .populate({ path: 'evaluationId', model: 'LLMResponseEvaluation' })
+                .populate({ path: 'userId', model: 'User' });
+
+            res.status(200).json(responses);
+        } catch (err) {
+            console.error("Error preparing download:", err);
+            res.status(500).send("Internal Server Error");
+        }
+
     });
 
 };

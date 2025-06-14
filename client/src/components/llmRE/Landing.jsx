@@ -1,14 +1,29 @@
-import { Spinner, Card, CardBody, Badge, Alert } from "reactstrap";
+import { Spinner, Card, CardBody, Badge, Alert, Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 import ButtonLink from "../tools/ButtonLink"
 import ExistingEvaluationsTable from "./ExistingEvaluationsTable";
-import { useFetchAllEvaluationsQuery } from "../../store";
-import { useState } from "react";
+import ExsitingResponsesTable from "./ExistingResponsesTable";
+import { useFetchAllEvaluationsQuery, useFetchAllUserEvaluationResponsesQuery, useLazyFetchUserResponsesForDownloadQuery } from "../../store";
+import { useState, useEffect } from "react";
 
 const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, currentUserLast }) => {
-    const { data: allEvaluations, isLoading, error } = useFetchAllEvaluationsQuery();
+    const { data: allEvaluations, isLoading: isLoadingAllEvalutions, error: errorAllEvaluations } = useFetchAllEvaluationsQuery();
+    const { data: allResponses, isLoading: isLoadingAllResponses, error: errorAllResponses } = useFetchAllUserEvaluationResponsesQuery();
+    const [triggerDownload, { data: userResponsesForDownload, isLoading: isLoadingUserResponses, error: errorUserResponses }] = useLazyFetchUserResponsesForDownloadQuery();
     const [showExistingEvaluations, setShowExistingEvaluations] = useState(false);
+    const [showExistingResponses, setShowExistingResponses] = useState(false);
+    const [showDownloadModal, setShowDownloadModal] = useState(false);
+    const [selectedEvaluation, setSelectedEvaluation] = useState(null);
+    const [selectedParticipants, setSelectedParticipants] = useState([]);
 
-    if (isLoading) {
+    useEffect(() => {
+        if (userResponsesForDownload) {
+            console.log("downloadable data: ", userResponsesForDownload);
+            handleShowDownloadModal();
+            formatDataForDownload(userResponsesForDownload);
+        }
+    }, [userResponsesForDownload]);
+
+    if (isLoadingAllEvalutions || isLoadingAllResponses || isLoadingUserResponses) {
         return (
             <div className="d-flex flex-column justify-content-center align-items-center" style={{ height: '60vh' }}>
                 <Spinner color="primary" />
@@ -17,12 +32,12 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
         );
     }
 
-    if (error) {
+    if (errorAllEvaluations || errorAllResponses || errorUserResponses) {
         return (
             <div className="container mt-4">
                 <Alert color="danger" className="text-center">
                     <h4 className="alert-heading">Error Loading Evaluations</h4>
-                    <p className="mb-0">{error?.message || error}</p>
+                    <p className="mb-0">{errorAllEvaluations?.message || errorAllResponses?.message || errorUserResponses?.message || errorAllEvaluations || errorAllResponses || errorUserResponses}</p>
                 </Alert>
             </div>
         );
@@ -31,7 +46,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
     if (!currentUserRole || !currentUserUsername) {
         return (
             <div className="d-flex flex-column justify-content-center align-items-center" style={{ height: '60vh' }}>
-                <Spinner color="primary" size="lg" />
+                <Spinner color="primary" />
                 <p className="mt-3 text-muted">Loading user information...</p>
             </div>
         );
@@ -40,6 +55,24 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
     const handleShowExistingEvaluations = () => {
         setShowExistingEvaluations(!showExistingEvaluations);
     };
+
+    const handleShowExistingResponses = () => {
+        setShowExistingResponses(!showExistingResponses);
+    };
+
+    const handleShowDownloadModal = () => {
+        setShowDownloadModal(!showDownloadModal);
+    };
+
+    const handleDownloadEvaluationResponses = ({ selectedEvaluation, selectedParticipants }) => {
+        //console.log("Download evaluation: ", selectedEvaluation);
+        //console.log("For: ", selectedParticipants);
+        triggerDownload({ evaluationId: selectedEvaluation._id, participantIds: selectedParticipants });
+    };
+
+    const formatDataForDownload = (downloadableData) => {
+        
+    }
 
     const getRoleDisplayName = (role) => {
         switch (role) {
@@ -80,7 +113,6 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
     );
 
     const renderFacilitator = () => {
-        console.log(allEvaluations)
 
         const totalEvaluations = Array.isArray(allEvaluations) ? allEvaluations.length : 0;
         const uniqueParticipants = Array.from(
@@ -92,8 +124,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
         );
         const totalUniqueParticipants = uniqueParticipants.length;
 
-        //calculate the total number of participants who have responded
-                // Calculate the total number of unique participants who have responded
+
         const uniqueRespondedParticipants = Array.from(
             new Map(
                 (allEvaluations || [])
@@ -186,17 +217,64 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                         <div className="bg-info bg-opacity-10 rounded-circle p-3 me-3">
                                             <i className="fas fa-list text-info fs-4"></i>
                                         </div>
-                                        <h5 className="mb-0">Manage Evaluations</h5>
+                                        <h5 className="mb-0">View Responses</h5>
                                     </div>
                                     <p className="text-muted mb-4 flex-grow-1">
-                                        View, edit, and manage your existing evaluations and participant responses.
+                                        View participant responses.
                                     </p>
                                     <button
                                         className="btn btn-outline-info w-100"
+                                        onClick={handleShowExistingResponses}
+                                    >
+                                        {showExistingResponses ? 'Hide' : 'Show'} Responses
+                                        <i className={`fas fa-chevron-${showExistingEvaluations ? 'up' : 'down'} ms-2`}></i>
+                                    </button>
+                                </CardBody>
+                            </Card>
+                        </div>
+
+
+                    </div>
+                    <div className="row g-4 mb-5">
+                        <div className="col-md-6">
+                            <Card className="h-100 border-0 shadow-sm hover-shadow">
+                                <CardBody className="d-flex flex-column">
+                                    <div className="d-flex align-items-center mb-3">
+                                        <div className="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
+                                            <i className="fas fa-list text-warning fs-4"></i>
+                                        </div>
+                                        <h5 className="mb-0">Manage Evaluations</h5>
+                                    </div>
+                                    <p className="text-muted mb-4 flex-grow-1">
+                                        View existing evaluations.
+                                    </p>
+                                    <button
+                                        className="btn btn-outline-warning w-100"
                                         onClick={handleShowExistingEvaluations}
                                     >
                                         {showExistingEvaluations ? 'Hide' : 'Show'} Evaluations
                                         <i className={`fas fa-chevron-${showExistingEvaluations ? 'up' : 'down'} ms-2`}></i>
+                                    </button>
+                                </CardBody>
+                            </Card>
+                        </div>
+                        <div className="col-md-6">
+                            <Card className="h-100 border-0 shadow-sm hover-shadow">
+                                <CardBody className="d-flex flex-column">
+                                    <div className="d-flex align-items-center mb-3">
+                                        <div className="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                                            <i className="fas fa-list text-warning fs-4"></i>
+                                        </div>
+                                        <h5 className="mb-0">Download Evaluation Responses</h5>
+                                    </div>
+                                    <p className="text-muted mb-4 flex-grow-1">
+                                        Select an LLM response evaluation to download existing participant responses.
+                                    </p>
+                                    <button
+                                        className="btn btn-success w-100"
+                                        onClick={handleShowDownloadModal}
+                                    >
+                                        Download Responses
                                     </button>
                                 </CardBody>
                             </Card>
@@ -215,6 +293,120 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                     <ExistingEvaluationsTable existingEvaluations={allEvaluations} />
                                 </CardBody>
                             </Card>
+                        </div>
+                    )}
+                    {/* Existing Responses Table */}
+                    {showExistingResponses && (
+                        <div className="mb-4">
+                            <Card className="border-0 shadow-sm">
+                                <CardBody>
+                                    <h5 className="card-title mb-3">
+                                        <i className="fas fa-table me-2"></i>
+                                        Existing Responses
+                                    </h5>
+                                    <ExsitingResponsesTable existingResponses={allResponses} />
+                                </CardBody>
+                            </Card>
+                        </div>
+                    )}
+                    {/* Download Modal */}
+                    {showDownloadModal && (
+                        <div>
+                            <Modal isOpen={showDownloadModal}>
+                                <ModalHeader>Select Evaluation and Participants</ModalHeader>
+                                <ModalBody>
+                                    {!selectedEvaluation ? (
+                                        <div>
+                                            <h6>Select an Evaluation</h6>
+                                            <div>
+                                                {isLoadingUserResponses ? (
+                                                    <div className="text-center my-4">
+                                                        <Spinner color="primary" />
+                                                        <div className="mt-2 text-muted">Preparing download...</div>
+                                                    </div>
+                                                ) : (
+                                                    (allEvaluations || []).map(evaluation => (
+                                                        <div key={evaluation._id} className="form-check mb-2">
+                                                            <input
+                                                                className="form-check-input"
+                                                                type="radio"
+                                                                name="evaluationRadio"
+                                                                id={`eval_${evaluation._id}`}
+                                                                value={evaluation._id}
+                                                                checked={selectedEvaluation && selectedEvaluation._id === evaluation._id}
+                                                                onChange={() => {
+                                                                    setSelectedEvaluation(evaluation);
+                                                                    setSelectedParticipants([]); // reset participants on new eval
+                                                                }}
+                                                            />
+                                                            <label className="form-check-label" htmlFor={`eval_${evaluation._id}`}>
+                                                                {evaluation.title}
+                                                            </label>
+                                                        </div>
+                                                    ))
+                                                )}
+                                                {errorUserResponses && (
+                                                    <Alert color="danger" className="mt-3">
+                                                        {errorUserResponses.message || "Error preparing download."}
+                                                    </Alert>
+                                                )}
+                                                {userResponsesForDownload && (
+                                                    <Alert color="success" className="mt-3">
+                                                        Download ready! {/* Or trigger your download logic here */}
+                                                    </Alert>
+                                                )}
+
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <h6>Select Participants</h6>
+                                            <Button
+                                                color="link"
+                                                className="mb-2 p-0"
+                                                onClick={() => {
+                                                    setSelectedEvaluation(null);
+                                                    setSelectedParticipants([]);
+                                                }}
+                                            >
+                                                &larr; Back to Evaluations
+                                            </Button>
+                                            <div>
+                                                {(selectedEvaluation.participants || []).map(participant => (
+                                                    <div key={participant._id} className="form-check mb-2">
+                                                        <input
+                                                            className="form-check-input"
+                                                            type="checkbox"
+                                                            id={`participant_${participant._id}`}
+                                                            value={participant._id}
+                                                            checked={selectedParticipants.includes(participant._id)}
+                                                            onChange={e => {
+                                                                if (e.target.checked) {
+                                                                    setSelectedParticipants(prev => [...prev, participant._id]);
+                                                                } else {
+                                                                    setSelectedParticipants(prev => prev.filter(p => p._id !== participant._id));
+                                                                }
+                                                            }}
+                                                            disabled={participant.responded === false}
+                                                        />
+                                                        <label className="form-check-label" htmlFor={`participant_${participant._id}`}>
+                                                            {participant.username} ({participant.email})
+                                                        </label>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </ModalBody>
+                                <ModalFooter>
+                                    <Button color="primary" onClick={() => handleDownloadEvaluationResponses({ selectedEvaluation, selectedParticipants })}>
+                                        Download
+                                    </Button>
+                                    <Button color="secondary" onClick={handleShowDownloadModal}>
+                                        Cancel
+                                    </Button>
+                                </ModalFooter>
+                            </Modal>
                         </div>
                     )}
                 </div>
