@@ -330,7 +330,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                         <div className="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
                                             <i className="fas fa-list text-warning fs-4"></i>
                                         </div>
-                                        <h5 className="mb-0">Manage Evaluations</h5>
+                                        <h5 className="mb-0">View Evaluations</h5>
                                     </div>
                                     <p className="text-muted mb-4 flex-grow-1">
                                         View existing evaluations.
