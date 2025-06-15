@@ -22,6 +22,11 @@ const renderRubricField = (sectionId, rubricItem) => {
                             component="input"
                             type="checkbox"
                             className="form-check-input"
+                            onKeyDown={e => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault();
+                                }
+                            }}
                         />
                         <label className="form-check-label ms-1">{capitalizeLabel(label)}</label>
                     </div>
@@ -39,6 +44,11 @@ const renderRubricField = (sectionId, rubricItem) => {
                             type="radio"
                             value={label}
                             className="form-check-input"
+                            onKeyDown={e => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault();
+                                }
+                            }}
                         />
                         <label className="form-check-label ms-1">{capitalizeLabel(label)}</label>
                     </div>
@@ -54,6 +64,11 @@ const renderRubricField = (sectionId, rubricItem) => {
                         component="input"
                         type="checkbox"
                         className="form-check-input"
+                        onKeyDown={e => {
+                            if (e.key === "Enter") {
+                                e.preventDefault();
+                            }
+                        }}
                     />
                     <label className="form-check-label ms-1">Toggle</label>
                 </div>
@@ -68,6 +83,11 @@ const renderRubricField = (sectionId, rubricItem) => {
                         min="0"
                         max="10"
                         className="form-range"
+                        onKeyDown={e => {
+                            if (e.key === "Enter") {
+                                e.preventDefault();
+                            }
+                        }}
                     />
                     <div className="d-flex justify-content-between">
                         <span>0</span>
@@ -103,15 +123,12 @@ const LLMResponseEvaluation = () => {
         )
     }
 
-    console.log("LLMRE evaluation: ", evaluation)
-
     const mapResponseToInitialValues = (response) => {
         if (!response || !response.responses) return {};
         const initialValues = {};
 
         response.responses.forEach(section => {
             section.rubricResponses.forEach(rubric => {
-                console.log(rubric)
                 const sectionId = section.sectionId;
                 const itemId = rubric.itemId;
                 if (rubric.selectedRadioOption !== undefined) {
@@ -200,7 +217,6 @@ const LLMResponseEvaluation = () => {
         return responses;
     };
 
-
     const handleSubmit = async (values) => {
         //console.log(values)
         let submission = {
@@ -222,16 +238,26 @@ const LLMResponseEvaluation = () => {
         <Form
             onSubmit={handleSubmit}
             initialValues={mapResponseToInitialValues(userResponse)}
+
             render={({ handleSubmit }) => (
-                <form onSubmit={handleSubmit}>
+                <form
+                    onSubmit={handleSubmit}
+                    onKeyDown={e => {
+                        if (e.key === "Enter") {
+                            e.preventDefault();
+                        }
+                    }}>
                     <div className="container">
                         <div className="row mb-3">
                             <h3 className="text-center">{evaluation?.title}</h3>
                         </div>
                         <div className="row mb-3">
-                            <p className="card bg-body-tertiary border border-tertiary p-2 rounded">
+                            <div
+                                className="card bg-body-tertiary border border-tertiary p-2 rounded"
+                                style={{ whiteSpace: "pre-line" }}
+                            >
                                 {evaluation?.instructions}
-                            </p>
+                            </div>
                         </div>
                         {/* Desktop Header Row */}
                         <div className="row d-none d-md-flex mb-2">
@@ -306,6 +332,11 @@ const LLMResponseEvaluation = () => {
                                                     className="form-control mb-2 w-100"
                                                     placeholder={rubricItem.reason || "Enter feedback..."}
                                                     rows={2}
+                                                    onKeyDown={e => {
+                                                        if (e.key === "Enter") {
+                                                            e.preventDefault();
+                                                        }
+                                                    }}
                                                 />
                                             </div>
                                         </div>
@@ -340,9 +371,12 @@ const LLMResponseEvaluation = () => {
                             <h3 className="text-center">{evaluation?.title}</h3>
                         </div>
                         <div className="row mb-3">
-                            <p className="card bg-body-tertiary border border-tertiary p-2 rounded">
+                            <div
+                                className="card bg-body-tertiary border border-tertiary p-2 rounded"
+                                style={{ whiteSpace: "pre-line" }}
+                            >
                                 {evaluation?.instructions}
-                            </p>
+                            </div>
                         </div>
                         {/* Desktop Header Row - Hidden on mobile */}
                         <div className="row d-none d-md-flex mb-2">
@@ -360,7 +394,7 @@ const LLMResponseEvaluation = () => {
                                 className="col-12 col-md-4 border d-flex mb-2 mb-md-0"
                                 style={{
                                     minHeight: 120,
-                                    maxHeight: 500,
+                                    maxHeight: 1000,
                                     overflowY: "auto",
                                     overflowX: "hidden",
                                     display: "block",
@@ -416,6 +450,11 @@ const LLMResponseEvaluation = () => {
                                                 className="form-control mb-2 w-100"
                                                 placeholder={rubricItem.reason || "Enter feedback..."}
                                                 rows={4}
+                                                onKeyDown={e => {
+                                                    if (e.key === "Enter") {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
                                             />
                                         </div>
                                     </div>

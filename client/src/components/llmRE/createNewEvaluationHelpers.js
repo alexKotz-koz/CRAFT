@@ -4,6 +4,9 @@ export const validate = (values) => {
     if (values.title === "" || values.title === undefined) {
         return { title: "Title is required" }
     }
+    if (values.instructions === "" || values.instructions === undefined ){
+        return { instructions: "Insturctions are required"}
+    }
     const cleanedValues = Object.keys(values).reduce((acc, key) => {
         acc[key] = DOMPurify.sanitize(values[key]);
         return acc;

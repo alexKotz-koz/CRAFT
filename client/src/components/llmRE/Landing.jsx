@@ -12,14 +12,17 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
     const [showExistingEvaluations, setShowExistingEvaluations] = useState(false);
     const [showExistingResponses, setShowExistingResponses] = useState(false);
     const [showDownloadModal, setShowDownloadModal] = useState(false);
+    const [downloadReady, setDownloadReady] = useState(false);
     const [selectedEvaluation, setSelectedEvaluation] = useState(null);
     const [selectedParticipants, setSelectedParticipants] = useState([]);
 
     useEffect(() => {
         if (userResponsesForDownload) {
-            console.log("downloadable data: ", userResponsesForDownload);
             handleShowDownloadModal();
             formatDataForDownload(userResponsesForDownload);
+            setSelectedEvaluation(null);
+            setSelectedParticipants([]);
+            setDownloadReady(true); // set ready after download
         }
     }, [userResponsesForDownload]);
 
@@ -31,7 +34,6 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
             </div>
         );
     }
-
     if (errorAllEvaluations || errorAllResponses || errorUserResponses) {
         return (
             <div className="container mt-4">
@@ -62,17 +64,102 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
 
     const handleShowDownloadModal = () => {
         setShowDownloadModal(!showDownloadModal);
+        setDownloadReady(false);
     };
-
     const handleDownloadEvaluationResponses = ({ selectedEvaluation, selectedParticipants }) => {
         //console.log("Download evaluation: ", selectedEvaluation);
         //console.log("For: ", selectedParticipants);
         triggerDownload({ evaluationId: selectedEvaluation._id, participantIds: selectedParticipants });
     };
 
+    const downloadFile = (content, fileName, contentType) => {
+        const a = document.createElement('a');
+        const file = new Blob([content], { type: contentType });
+        a.href = URL.createObjectURL(file);
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+    };
+
     const formatDataForDownload = (downloadableData) => {
-        
-    }
+        if (!downloadableData || !Array.isArray(downloadableData) || downloadableData.length === 0) return;
+    
+        const evalKind = downloadableData[0]?.evaluationId?.kind || "FullLLMResponseEvaluation";
+        const rubricItems = downloadableData[0]?.evaluationId?.rubricItems || [];
+        const isSections = evalKind === "SectionsLLMResponseEvaluation";
+    
+        // Headers
+        const headers = [
+            "participantUsername",
+            "participantEmail",
+            ...(isSections ? ["sectionId"] : []),
+            "rubricItem",
+            "rubricItemResponse",
+            "rubricItemFeedback"
+        ];
+    
+        // Build rows
+        const rows = [];
+    
+        downloadableData.forEach(response => {
+            const username = response.userId?.username || "";
+            const email = response.userId?.email || "";
+    
+            (response.responses || []).forEach(section => {
+                rubricItems.forEach(rubricItem => {
+                    const rubricResponse = (section.rubricResponses || []).find(
+                        rr => rr.itemId === rubricItem.itemId
+                    );
+                    if (rubricResponse) {
+                        let responseValue = "";
+                        if (
+                            rubricResponse.selectedRadioOption &&
+                            rubricResponse.selectedRadioOption !== ""
+                        ) {
+                            responseValue = rubricResponse.selectedRadioOption;
+                        } else if (
+                            rubricResponse.selectedCheckboxOptions &&
+                            rubricResponse.selectedCheckboxOptions.length > 0
+                        ) {
+                            responseValue = rubricResponse.selectedCheckboxOptions.join(" | ");
+                        }
+
+                        rows.push([
+                            username,
+                            email,
+                            ...(isSections ? [String(section.sectionId)] : []),
+                            rubricItem.caption,
+                            responseValue,
+                            rubricResponse.feedback || ""
+                        ]);
+                    }
+                });
+            });
+        });
+    
+        // Convert to CSV string
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(row =>
+                row
+                    .map(field =>
+                        `"${String(field).replace(/"/g, '""')}"`
+                    )
+                    .join(",")
+            )
+        ].join("\r\n");
+    
+        const safeTitle = (downloadableData[0]?.evaluationId?.title || "llm_evaluation_responses")
+            .replace(/[^a-z0-9_\-]+/gi, "_"); // sanitize for filename
+    
+        downloadFile(
+            csvContent,
+            `${safeTitle}.csv`,
+            "text/csv"
+        );
+    };
 
     const getRoleDisplayName = (role) => {
         switch (role) {
@@ -350,7 +437,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                                         {errorUserResponses.message || "Error preparing download."}
                                                     </Alert>
                                                 )}
-                                                {userResponsesForDownload && (
+                                                {downloadReady && (
                                                     <Alert color="success" className="mt-3">
                                                         Download ready! {/* Or trigger your download logic here */}
                                                     </Alert>

@@ -101,7 +101,19 @@ module.exports = (app) => {
             if (!response) return res.status(200).send(null);
             res.json(response);
         } catch (err) {
-            console.error("Error fetching user response:", err);
+            console.error("Error fetching current user response:", err);
+            res.status(500).send("Internal Server Error");
+        }
+    });
+
+    app.get('/api/llm-response-evaluation/participant-response/:evaluationId/:userId', requireLogin, async (req, res) => {
+        const { evaluationId, userId } = req.params;
+        try {
+            const response = await LLMResponseEvaluationResponse.findOne({ evaluationId, userId });
+            if (!response) return res.status(200).send(null);
+            res.json(response);
+        } catch (err) {
+            console.error("Error fetching specific user response:", err);
             res.status(500).send("Internal Server Error");
         }
     });
@@ -119,8 +131,6 @@ module.exports = (app) => {
 
     app.get('/api/llm-response-evaluation/prepare-download/:evaluationId/:participantIds', requireLogin, requireFacilitatorPermissions, async (req, res) => {
         const { evaluationId, participantIds } = req.params;
-        console.log("Download Route eval ID: ", evaluationId);
-        console.log("Download Route participants: ", participantIds);
         
         const participantIdArray = participantIds.split(',');
 

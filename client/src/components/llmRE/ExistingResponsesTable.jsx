@@ -2,10 +2,8 @@ import { Link } from "react-router-dom";
 
 const ExsitingResponsesTable = ({ existingResponses }) => {
 
-    console.log("existingResponses: ", existingResponses)
-    
     const handleFormatType = (type) => {
-        switch(type){
+        switch (type) {
             case "SectionsLLMResponseEvaluation":
                 return "Sections of an LLM Transcript"
             case "FullLLMResponseEvaluation":
@@ -34,9 +32,7 @@ const ExsitingResponsesTable = ({ existingResponses }) => {
                             <tr key={response._id}>
                                 <th scope="row">{idx + 1}</th>
                                 <td>
-                                    <Link to={`/llm-response-evaluation/${response.evaluationId._id}`} className="text-decoration-none text-primary">
-                                        {response.evaluationId.title}
-                                    </Link>
+                                    {response.evaluationId.title}
                                 </td>
                                 <td>{handleFormatType(response.evaluationId.kind)}</td>
                                 <td>{response.userId.username}</td>
@@ -57,9 +53,7 @@ const ExsitingResponsesTable = ({ existingResponses }) => {
                         <div className="card mb-3" key={response._id}>
                             <div className="card-body">
                                 <h5 className="card-title mb-2">
-                                    <Link to={`/llm-response-evaluation/${response.evaluationId._id}`} className="text-decoration-none text-primary">
-                                        {response.evaluationId.title}
-                                    </Link>
+                                    {response.evaluationId.title}
                                 </h5>
                                 <p className="card-text mb-1"><strong>Type:</strong> {handleFormatType(response.evaluationId.kind)}</p>
                                 <p className="card-text mb-1"><strong>Participant Username:</strong> {response.userId.username}</p>

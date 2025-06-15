@@ -71,7 +71,6 @@ const LLMRECreate = () => {
         let evaluation = {};
         let selectedParticipants = [];
         let transcript = [];
-        console.log("handleFormSubmit values: ", values);
 
         if (sections.length === 0 && !values.isFullTranscript) {
             setFormErrorLLMOutput("At least one AI generated response is required, please add a section or a full transcript");
@@ -107,7 +106,6 @@ const LLMRECreate = () => {
                 })
                 .sort((a, b) => a.idx - b.idx); // Sort by index
 
-            console.log(messageEntries)
 
             // Format for DB: [{kind: "human", content: "..."}, ...]
             transcript = messageEntries.map(({ kind, idx, content }) => ({
@@ -167,7 +165,6 @@ const LLMRECreate = () => {
             evaluation = { "title": values.title, "instructions": values.instructions, "transcript": transcript, "rubricItems": rubricItems, "participants": selectedParticipants, "isFullTranscript": values.isFullTranscript };
         }
 
-        console.log("handleFormSubmit evaluation: ", evaluation);
         try {
             await createEvalution(evaluation).unwrap();
             navigate('/home');
@@ -654,6 +651,10 @@ const LLMRECreate = () => {
                                 Create Evaluation
                             </button>
                         </div>
+                        {formErrorSubmission ? (
+                            <div>{formErrorSubmission}</div>
+
+                        ):<div></div>}
                     </form>
                 )}
 
