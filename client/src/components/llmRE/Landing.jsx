@@ -85,11 +85,11 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
 
     const formatDataForDownload = (downloadableData) => {
         if (!downloadableData || !Array.isArray(downloadableData) || downloadableData.length === 0) return;
-    
+
         const evalKind = downloadableData[0]?.evaluationId?.kind || "FullLLMResponseEvaluation";
         const rubricItems = downloadableData[0]?.evaluationId?.rubricItems || [];
         const isSections = evalKind === "SectionsLLMResponseEvaluation";
-    
+
         // Headers
         const headers = [
             "participantUsername",
@@ -99,14 +99,14 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
             "rubricItemResponse",
             "rubricItemFeedback"
         ];
-    
+
         // Build rows
         const rows = [];
-    
+
         downloadableData.forEach(response => {
             const username = response.userId?.username || "";
             const email = response.userId?.email || "";
-    
+
             (response.responses || []).forEach(section => {
                 rubricItems.forEach(rubricItem => {
                     const rubricResponse = (section.rubricResponses || []).find(
@@ -138,7 +138,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                 });
             });
         });
-    
+
         // Convert to CSV string
         const csvContent = [
             headers.join(","),
@@ -150,10 +150,10 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                     .join(",")
             )
         ].join("\r\n");
-    
+
         const safeTitle = (downloadableData[0]?.evaluationId?.title || "llm_evaluation_responses")
             .replace(/[^a-z0-9_\-]+/gi, "_"); // sanitize for filename
-    
+
         downloadFile(
             csvContent,
             `${safeTitle}.csv`,
@@ -448,16 +448,35 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                     ) : (
                                         <div>
                                             <h6>Select Participants</h6>
-                                            <Button
-                                                color="link"
-                                                className="mb-2 p-0"
-                                                onClick={() => {
-                                                    setSelectedEvaluation(null);
-                                                    setSelectedParticipants([]);
-                                                }}
-                                            >
-                                                &larr; Back to Evaluations
-                                            </Button>
+
+                                            {/* Check All Checkbox */}
+                                            <div className="form-check mb-2">
+                                                <input
+                                                    className="form-check-input"
+                                                    type="checkbox"
+                                                    id="checkAllParticipants"
+                                                    checked={
+                                                        (selectedEvaluation.participants || [])
+                                                            .filter(p => p.responded !== false)
+                                                            .every(p => selectedParticipants.includes(p._id))
+                                                        && (selectedEvaluation.participants || []).some(p => p.responded !== false)
+                                                    }
+                                                    onChange={e => {
+                                                        if (e.target.checked) {
+                                                            setSelectedParticipants(
+                                                                (selectedEvaluation.participants || [])
+                                                                    .filter(p => p.responded !== false)
+                                                                    .map(p => p._id)
+                                                            );
+                                                        } else {
+                                                            setSelectedParticipants([]);
+                                                        }
+                                                    }}
+                                                />
+                                                <label className="form-check-label fw-bold" htmlFor="checkAllParticipants">
+                                                    Select All
+                                                </label>
+                                            </div>
                                             <div>
                                                 {(selectedEvaluation.participants || []).map(participant => (
                                                     <div key={participant._id} className="form-check mb-2">
@@ -482,6 +501,16 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                                     </div>
                                                 ))}
                                             </div>
+                                            <Button
+                                                color="secondary"
+                                                className="mb-2 p-2"
+                                                onClick={() => {
+                                                    setSelectedEvaluation(null);
+                                                    setSelectedParticipants([]);
+                                                }}
+                                            >
+                                                &larr; Back to Evaluations
+                                            </Button>
                                         </div>
                                     )}
                                 </ModalBody>
