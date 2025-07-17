@@ -118,8 +118,8 @@ const Home = () => {
 
 
     const renderWelcomeHeader = () => (
-        <div className="bg-light border-bottom mb-4">
-            <div className="container py-4">
+        <div className=" bg-light border-bottom mb-4">
+            <div className="container py-3">
                 <div className="row align-items-center">
                     <div className="col-md-8">
                         <h1 className="display-6 mb-2">My Studies</h1>
@@ -285,19 +285,22 @@ const Home = () => {
     };
 
     return (
-        <div className="container py-2 px-5 text-start">
-            {renderWelcomeHeader()}
-            {renderContent()}
-            {prefaceModalOpen &&
-                <PrefaceModal
-                    isOpen={prefaceModalOpen}
-                    toggle={showPrefaceModal}
-                    studyName={studyName}
-                    studyId={studyId}
-                    preface={studyPreface}
-                />
-            }
-        </div>
+        <>
+        {renderWelcomeHeader()}
+            <div className="container py-0 px-5 text-start">
+                {renderContent()}
+                {prefaceModalOpen &&
+                    <PrefaceModal
+                        isOpen={prefaceModalOpen}
+                        toggle={showPrefaceModal}
+                        studyName={studyName}
+                        studyId={studyId}
+                        preface={studyPreface}
+                    />
+                }
+            </div>
+        </>
+
     );
 };
 

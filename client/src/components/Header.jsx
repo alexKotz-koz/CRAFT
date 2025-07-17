@@ -97,11 +97,21 @@ const Header = ({ user }) => {
                 <li className="nav-item mx-2">
                     <Link
                         to="/llm-response-evaluation"
-                            className="btn btn-light btn-sm border border-dark rounded-pill d-flex align-items-center gap-2 px-3"
+                        className="btn btn-light btn-sm border border-dark rounded-pill d-flex align-items-center gap-2 px-3"
                     >
                         LLM Response Evaluation
                     </Link>
                 </li>
+                {(data?.role === "facilitator" || data?.role === "admin") && (
+                    <li className="nav-item mx-2">
+                        <Link
+                            to="/admin/password-reset"
+                            className="btn btn-light btn-sm border border-dark rounded-pill d-flex align-items-center gap-2 px-3"
+                        >
+                            Reset Participant Password
+                        </Link>
+                    </li>
+                )}
                 <li className="nav-item dropdown mx-2">
                     <div className="position-relative notification-icon" data-bs-toggle="dropdown" aria-expanded="false">
                         <GoBell className="text-dark" />
