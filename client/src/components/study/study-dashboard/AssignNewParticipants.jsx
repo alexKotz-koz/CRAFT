@@ -14,7 +14,6 @@ const AssignNewParticipants = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [selectedTasks, setSelectedTasks] = useState({});
 
-    // Debug the first study and its participants
     useEffect(() => {
         if (allUsers) {
             const filteredUsers = allUsers.filter(user => user.role === 'participant');

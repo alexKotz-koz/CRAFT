@@ -263,7 +263,7 @@ const LLMResponseEvaluation = () => {
                         <div className="row d-none d-md-flex mb-2">
                             <div className="col-md-4 fw-bold border text-center">AI Output</div>
                             <div className="col-md-4 fw-bold border text-center">Rubric Selection</div>
-                            <div className="col-md-4 fw-bold border text-center">Free Text</div>
+                            <div className="col-md-4 fw-bold border text-center">Feedback</div>
                         </div>
                         {evaluation?.sections.map((section, sectionIdx) => (
                             <div className="row mb-3" key={section.sectionId || sectionIdx}>
@@ -382,7 +382,7 @@ const LLMResponseEvaluation = () => {
                         <div className="row d-none d-md-flex mb-2">
                             <div className="col-4 fw-bold border text-center">AI Output</div>
                             <div className="col-4 fw-bold border text-center">Rubric Selection</div>
-                            <div className="col-4 fw-bold border text-center">Free Text</div>
+                            <div className="col-4 fw-bold border text-center"> Feedback</div>
                         </div>
                         <div className="row mb-3">
                             {/* Mobile Headers */}

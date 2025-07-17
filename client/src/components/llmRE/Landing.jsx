@@ -2,6 +2,7 @@ import { Spinner, Card, CardBody, Badge, Alert, Button, Modal, ModalHeader, Moda
 import ButtonLink from "../tools/ButtonLink"
 import ExistingEvaluationsTable from "./ExistingEvaluationsTable";
 import ExsitingResponsesTable from "./ExistingResponsesTable";
+import AssignNewParticipantsTable from "./AssignNewParticipantsTable";
 import { useFetchAllEvaluationsQuery, useFetchAllUserEvaluationResponsesQuery, useLazyFetchUserResponsesForDownloadQuery } from "../../store";
 import { useState, useEffect } from "react";
 
@@ -12,6 +13,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
     const [showExistingEvaluations, setShowExistingEvaluations] = useState(false);
     const [showExistingResponses, setShowExistingResponses] = useState(false);
     const [showDownloadModal, setShowDownloadModal] = useState(false);
+    const [showAssignNewParticipants,  setShowAssignNewParticipants] = useState(false);
     const [downloadReady, setDownloadReady] = useState(false);
     const [selectedEvaluation, setSelectedEvaluation] = useState(null);
     const [selectedParticipants, setSelectedParticipants] = useState([]);
@@ -71,6 +73,10 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
         //console.log("For: ", selectedParticipants);
         triggerDownload({ evaluationId: selectedEvaluation._id, participantIds: selectedParticipants });
     };
+
+    const handleShowAssignNewParticipants = () => {
+        setShowAssignNewParticipants(!showAssignNewParticipants);
+    }
 
     const downloadFile = (content, fileName, contentType) => {
         const a = document.createElement('a');
@@ -252,26 +258,6 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                 </CardBody>
                             </Card>
                         </div>
-                        {/*<div className="col-md-4">
-                            <Card className="text-center border-0 shadow-sm">
-                                <CardBody>
-                                    <div className="display-4 text-success mb-2">
-                                        <i className="fas fa-plus-circle"></i>
-                                    </div>
-                                    <h6 className="text-muted">Ready to Create</h6>
-                                </CardBody>
-                            </Card>
-                        </div> 
-                        <div className="col-md-4">
-                            <Card className="text-center border-0 shadow-sm">
-                                <CardBody>
-                                    <div className="display-4 text-info mb-2">
-                                        <i className="fas fa-chart-line"></i>
-                                    </div>
-                                    <h6 className="text-muted">Analytics Ready</h6>
-                                </CardBody>
-                            </Card>
-                        </div>*/}
                     </div>
 
                     {/* Action Cards */}
@@ -297,54 +283,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                             </Card>
                         </div>
 
-                        <div className="col-md-6">
-                            <Card className="h-100 border-0 shadow-sm hover-shadow">
-                                <CardBody className="d-flex flex-column">
-                                    <div className="d-flex align-items-center mb-3">
-                                        <div className="bg-info bg-opacity-10 rounded-circle p-3 me-3">
-                                            <i className="fas fa-list text-info fs-4"></i>
-                                        </div>
-                                        <h5 className="mb-0">View Responses</h5>
-                                    </div>
-                                    <p className="text-muted mb-4 flex-grow-1">
-                                        View participant responses.
-                                    </p>
-                                    <button
-                                        className="btn btn-outline-info w-100"
-                                        onClick={handleShowExistingResponses}
-                                    >
-                                        {showExistingResponses ? 'Hide' : 'Show'} Responses
-                                        <i className={`fas fa-chevron-${showExistingEvaluations ? 'up' : 'down'} ms-2`}></i>
-                                    </button>
-                                </CardBody>
-                            </Card>
-                        </div>
-
-
-                    </div>
-                    <div className="row g-4 mb-5">
-                        <div className="col-md-6">
-                            <Card className="h-100 border-0 shadow-sm hover-shadow">
-                                <CardBody className="d-flex flex-column">
-                                    <div className="d-flex align-items-center mb-3">
-                                        <div className="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
-                                            <i className="fas fa-list text-warning fs-4"></i>
-                                        </div>
-                                        <h5 className="mb-0">View Evaluations</h5>
-                                    </div>
-                                    <p className="text-muted mb-4 flex-grow-1">
-                                        View existing evaluations.
-                                    </p>
-                                    <button
-                                        className="btn btn-outline-warning w-100"
-                                        onClick={handleShowExistingEvaluations}
-                                    >
-                                        {showExistingEvaluations ? 'Hide' : 'Show'} Evaluations
-                                        <i className={`fas fa-chevron-${showExistingEvaluations ? 'up' : 'down'} ms-2`}></i>
-                                    </button>
-                                </CardBody>
-                            </Card>
-                        </div>
+                        {/**Download Responses Card */}
                         <div className="col-md-6">
                             <Card className="h-100 border-0 shadow-sm hover-shadow">
                                 <CardBody className="d-flex flex-column">
@@ -362,6 +301,77 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                         onClick={handleShowDownloadModal}
                                     >
                                         Download Responses
+                                    </button>
+                                </CardBody>
+                            </Card>
+                        </div>
+
+                    </div>
+                    {/** Assign New Participants Card */}
+                    <div className="row g-4 mb-5">
+                        <div className="col-md-6">
+                            <Card className="h-100 border-0 shadow-sm hover-shadow">
+                                <CardBody className="d-flex flex-column">
+                                    <div className="d-flex align-items-center mb-3">
+                                        <div className="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
+                                            <i className="fas fa-list text-warning fs-4"></i>
+                                        </div>
+                                        <h5 className="mb-0">Assign New Participants</h5>
+                                    </div>
+                                    <p className="text-muted mb-4 flex-grow-1">Assign New Participants</p>
+                                    <button
+                                        className={showAssignNewParticipants ? `btn btn-outline-warning w-100`: `btn btn-warning w-100`}
+                                        onClick={handleShowAssignNewParticipants}
+                                    >
+                                        {showAssignNewParticipants ? 'Hide' : 'Show'} Assignments
+                                    </button>
+                                </CardBody>
+                            </Card>
+                        </div>
+                    </div>
+                    {/** View Evaluations Card */}
+                    <div className="row g-4 mb-5">
+                        <div className="col-md-6">
+                            <Card className="h-100 border-0 shadow-sm hover-shadow">
+                                <CardBody className="d-flex flex-column">
+                                    <div className="d-flex align-items-center mb-3">
+                                        <div className="bg-info bg-opacity-10 rounded-circle p-3 me-3">
+                                            <i className="fas fa-list text-info fs-4"></i>
+                                        </div>
+                                        <h5 className="mb-0">View Evaluations</h5>
+                                    </div>
+                                    <p className="text-muted mb-4 flex-grow-1">
+                                        View existing evaluations.
+                                    </p>
+                                    <button
+                                        className={showExistingEvaluations ? `btn btn-outline-info w-100` : `btn btn-info w-100`}
+                                        onClick={handleShowExistingEvaluations}
+                                    >
+                                        {showExistingEvaluations ? 'Hide' : 'Show'} Evaluations
+                                        <i className={`fas fa-chevron-${showExistingEvaluations ? 'up' : 'down'} ms-2`}></i>
+                                    </button>
+                                </CardBody>
+                            </Card>
+                        </div>
+                        {/** View Responses Card */}
+                        <div className="col-md-6">
+                            <Card className="h-100 border-0 shadow-sm hover-shadow">
+                                <CardBody className="d-flex flex-column">
+                                    <div className="d-flex align-items-center mb-3">
+                                        <div className="bg-info bg-opacity-10 rounded-circle p-3 me-3">
+                                            <i className="fas fa-list text-info fs-4"></i>
+                                        </div>
+                                        <h5 className="mb-0">View Responses</h5>
+                                    </div>
+                                    <p className="text-muted mb-4 flex-grow-1">
+                                        View participant responses.
+                                    </p>
+                                    <button
+                                        className={showExistingResponses ? `btn btn-outline-info w-100` : `btn btn-info w-100`}
+                                        onClick={handleShowExistingResponses}
+                                    >
+                                        {showExistingResponses ? 'Hide' : 'Show'} Responses
+                                        <i className={`fas fa-chevron-${showExistingEvaluations ? 'up' : 'down'} ms-2`}></i>
                                     </button>
                                 </CardBody>
                             </Card>
@@ -392,6 +402,20 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                         Existing Responses
                                     </h5>
                                     <ExsitingResponsesTable existingResponses={allResponses} />
+                                </CardBody>
+                            </Card>
+                        </div>
+                    )}
+                    {/** Assign New Participants Table */}
+                    {showAssignNewParticipants && (
+                        <div className="mb-4">
+                            <Card className="border-0 shadow-sm">
+                                <CardBody>
+                                    <h5 className="card-title mb-3">
+                                        <i className="fas fa-table me-2"></i>
+                                         Responses
+                                    </h5>
+                                    <AssignNewParticipantsTable evaluations={allEvaluations} />
                                 </CardBody>
                             </Card>
                         </div>

@@ -79,9 +79,8 @@ const LLMRECreate = () => {
         if (rubricItems.length === 0) {
             setFormErrorRubric("At least on rubric item is required, please add a rubric item");
         }
-
         //REMOVE: For reuse
-        if (values.participants.length <= 0) {
+        if (!values.participants) {
             setFormErrorSubmission("At least one participant is required, please add at least one participant to this evaluation task")
         } else {
             values.participants.map((id) => {

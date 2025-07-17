@@ -711,7 +711,7 @@ const StudyDashboard = () => {
                         </div>
                     </div>
                 </div>
-                {/* Assign New Participants */}
+                {/* Assign New Participants - Study */}
                 <div className="accordion-item">
                     <h2 className="accordion-header">
                         <button
@@ -719,7 +719,7 @@ const StudyDashboard = () => {
                             type="button"
                             onClick={() => toggleAccordion('3')}
                         >
-                            Assign New Participants
+                            Assign New Participants - Study
                         </button>
                     </h2>
                     <div className={`accordion-collapse collapse ${openAccordion === '3' ? 'show' : ''}`}>

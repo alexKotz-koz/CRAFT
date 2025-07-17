@@ -150,4 +150,54 @@ module.exports = (app) => {
 
     });
 
+    app.post('/api/llm-response-evaluation/:evaluationId/assign-participant', requireLogin, requireFacilitatorPermissions, async(req, res) => {
+        try {
+            const { evaluationId } = req.params;
+            const { userId } = req.body;
+
+            if (!evaluationId || !userId){
+                return res.status(400).send("Missing requireid parameters");
+            }
+
+            const user = await mongoose.model('User').findById(userId);
+            if (!user){
+                return res.status(404).send("User not found");
+            }
+            
+            const evaluation = await mongoose.model('LLMResponseEvaluation').findById(evaluationId);
+            if (!evaluation){
+                return res.status(404).send('Evaluation not found');
+            }
+
+            const isParticipant = evaluation.participants.some(participant => {
+                if (typeof participant === 'object' && participant._id){
+                    return participant._id.toString() === userId;
+                } else {
+                    return participant.toString() === userId;
+                }
+            });
+
+            if (!isParticipant){
+                await LLMResponseEvaluation.findByIdAndUpdate(
+                    evaluationId, 
+                    {
+                        $push: {
+                            participants: {
+                                user: userId,
+                                email: user.email,
+                                username: user.username,
+                                responded: false
+                            }
+                        }
+                    },
+                    {new:true}
+                )
+            }
+            res.send({message: "Participant assigned successfully"});
+        } catch (err) {
+            console.error("Error assigning participant:", err);
+            res.status(500).send(err);
+        }
+    });
+
 };

@@ -65,6 +65,15 @@ const llmREApi = createApi({
                     };
                 },
             }),
+            assignParticipantLLMRE: builder.mutation({
+                query: ({ userId, evaluationId }) => {
+                    return {
+                        url: `llm-response-evaluation/${evaluationId}/assign-participant`,
+                        method: 'POST',
+                        body: { userId }
+                    }
+                }
+            })
         };
     }
 
@@ -78,5 +87,6 @@ export const {
     useFetchUserEvaluationResponseQuery,
     useFetchAllUserEvaluationResponsesQuery,
     useLazyFetchUserResponsesForDownloadQuery,
+    useAssignParticipantLLMREMutation
 } = llmREApi;
 export { llmREApi };
