@@ -77,7 +77,6 @@ const AssignNewParticipantsTable = ({ evaluations }) => {
     }
 
     const handleEvaluationSelect = (evaluationId, user) => {
-        //console.log(evaluationId, user)
 
         const evaluation = evaluations.find(evaluation => evaluation._id === evaluationId);
         if (evaluation) {

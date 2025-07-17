@@ -218,14 +218,12 @@ const LLMResponseEvaluation = () => {
     };
 
     const handleSubmit = async (values) => {
-        //console.log(values)
         let submission = {
             evaluationId,
             responses: reformatValuesForResponse(values)
         };
 
         try {
-            //console.log(submission)
             await createEvaluationResponse(submission).unwrap();
             navigate('/home');
         } catch (err) {
@@ -435,10 +433,10 @@ const LLMResponseEvaluation = () => {
                             </div>
                             <div className="col-12 col-md-8 border">
                                 {evaluation?.rubricItems.map((rubricItem, rubricIdx) => (
-                                    <div key={rubricItem.itemId || rubricIdx} className="row mb-3 align-items-center">
+                                    <div key={rubricItem.itemId || rubricIdx} className="row mb-3 align-items-center border-bottom border-secondary ">
                                         {/* Rubric Selection */}
                                         <div className="col-12 col-md-6 mb-2 mb-md-0">
-                                            <div className="fw-semibold">{rubricItem.title}</div>
+                                            <div className="fw-semibold border-bottom mb-3">{rubricItem.title}</div>
                                             <div className="mb-1">{rubricItem.caption}</div>
                                             {renderRubricField("full", rubricItem)}
                                         </div>

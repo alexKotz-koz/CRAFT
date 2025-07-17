@@ -221,19 +221,43 @@ const AssignNewParticipants = () => {
                 <ModalBody>
                     <p>Select tasks to assign to <strong>{selectedUser?.username}</strong>:</p>
                     {selectedStudy?.tasks?.length > 0 ? (
-                        selectedStudy.tasks.map(task => (
-                            <FormGroup check key={task._id}>
+                        <>
+                            {/* Check All Checkbox */}
+                            <FormGroup check className="mb-2">
                                 <Input
                                     type="checkbox"
-                                    id={`task-${task._id}`}
-                                    checked={selectedTasks[task._id] || false}
-                                    onChange={() => handleTaskCheckboxChange(task._id)}
+                                    id="check-all-tasks"
+                                    checked={
+                                        selectedStudy.tasks.every(task => selectedTasks[task._id])
+                                        && selectedStudy.tasks.length > 0
+                                    }
+                                    onChange={e => {
+                                        const checked = e.target.checked;
+                                        const newSelected = {};
+                                        selectedStudy.tasks.forEach(task => {
+                                            newSelected[task._id] = checked;
+                                        });
+                                        setSelectedTasks(newSelected);
+                                    }}
                                 />
-                                <Label check for={`task-${task._id}`}>
-                                    {task.name}
+                                <Label check for="check-all-tasks">
+                                    Check All
                                 </Label>
                             </FormGroup>
-                        ))
+                            {selectedStudy.tasks.map(task => (
+                                <FormGroup check key={task._id}>
+                                    <Input
+                                        type="checkbox"
+                                        id={`task-${task._id}`}
+                                        checked={selectedTasks[task._id] || false}
+                                        onChange={() => handleTaskCheckboxChange(task._id)}
+                                    />
+                                    <Label check for={`task-${task._id}`}>
+                                        {task.name}
+                                    </Label>
+                                </FormGroup>
+                            ))}
+                        </>
                     ) : (
                         <p>No tasks available in this study.</p>
                     )}

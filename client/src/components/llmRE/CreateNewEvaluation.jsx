@@ -105,13 +105,53 @@ const LLMRECreate = () => {
                 })
                 .sort((a, b) => a.idx - b.idx); // Sort by index
 
+            // Determine the correct order based on firstActor selection
+            const firstActor = values.firstActor || "human"; // Default to human if not specified
+            
+            // Create alternating pattern based on first actor
+            const orderedMessages = [];
+            const humanMessages = messageEntries.filter(msg => msg.kind === "human");
+            const llmMessages = messageEntries.filter(msg => msg.kind === "llm");
+            
+            const maxLength = Math.max(humanMessages.length, llmMessages.length);
+            
+            for (let i = 0; i < maxLength; i++) {
+                if (firstActor === "human") {
+                    // Human first pattern: Human, LLM, Human, LLM...
+                    if (i < humanMessages.length) {
+                        orderedMessages.push({
+                            chatId: orderedMessages.length,
+                            kind: "human",
+                            content: humanMessages[i].content
+                        });
+                    }
+                    if (i < llmMessages.length) {
+                        orderedMessages.push({
+                            chatId: orderedMessages.length,
+                            kind: "llm",
+                            content: llmMessages[i].content
+                        });
+                    }
+                } else {
+                    // LLM first pattern: LLM, Human, LLM, Human...
+                    if (i < llmMessages.length) {
+                        orderedMessages.push({
+                            chatId: orderedMessages.length,
+                            kind: "llm",
+                            content: llmMessages[i].content
+                        });
+                    }
+                    if (i < humanMessages.length) {
+                        orderedMessages.push({
+                            chatId: orderedMessages.length,
+                            kind: "human",
+                            content: humanMessages[i].content
+                        });
+                    }
+                }
+            }
 
-            // Format for DB: [{kind: "human", content: "..."}, ...]
-            transcript = messageEntries.map(({ kind, idx, content }) => ({
-                chatId: idx,
-                kind,
-                content
-            }));
+            transcript = orderedMessages;
         } else if (!values.isFullTranscript) {
             //1. Collect all section message fields
             const sectionMessages = Object.entries(values)
@@ -183,7 +223,7 @@ const LLMRECreate = () => {
 
             <Form
                 onSubmit={handleFormSubmit}
-                initialValues={{ isFullTranscript: false }}
+                initialValues={{ isFullTranscript: false, firstActor: "human" }}
                 validate={validate}
                 onKeyDown={e => {
                     if (e.key === "Enter") {
@@ -267,6 +307,46 @@ const LLMRECreate = () => {
                                                 </div>
                                                 {meta.error && meta.touched && (
                                                     <span className="text-danger">{meta.error}</span>
+                                                )}
+                                                {/** Add 'which actor is first' radio here */}
+                                                {(input.value === true || input.value === "true") && (
+                                                    <div className="mt-3">
+                                                        <label className="form-label fw-bold">Which actor sends the first message?</label>
+                                                        <Field name="firstActor">
+                                                            {({ input: actorInput }) => (
+                                                                <div>
+                                                                    <div className="form-check">
+                                                                        <input
+                                                                            {...actorInput}
+                                                                            type="radio"
+                                                                            className="form-check-input"
+                                                                            id="firstActorHuman"
+                                                                            value="human"
+                                                                            checked={actorInput.value === "human"}
+                                                                            onChange={() => actorInput.onChange("human")}
+                                                                        />
+                                                                        <label className="form-check-label" htmlFor="firstActorHuman">
+                                                                            Human
+                                                                        </label>
+                                                                    </div>
+                                                                    <div className="form-check">
+                                                                        <input
+                                                                            {...actorInput}
+                                                                            type="radio"
+                                                                            className="form-check-input"
+                                                                            id="firstActorLLM"
+                                                                            value="llm"
+                                                                            checked={actorInput.value === "llm"}
+                                                                            onChange={() => actorInput.onChange("llm")}
+                                                                        />
+                                                                        <label className="form-check-label" htmlFor="firstActorLLM">
+                                                                            LLM
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </Field>
+                                                    </div>
                                                 )}
                                                 {/* Conditional rendering based on switch */}
                                                 {input.value === true || input.value === "true" ? (
