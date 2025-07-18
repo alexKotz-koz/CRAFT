@@ -28,17 +28,26 @@ const ExsitingResponsesTable = ({ existingResponses }) => {
                 </thead>
                 <tbody>
                     {existingResponses && existingResponses.length > 0 ? (
-                        existingResponses.map((response, idx) => (
-                            <tr key={response._id}>
-                                <th scope="row">{idx + 1}</th>
-                                <td>
-                                    {response.evaluationId.title}
-                                </td>
-                                <td>{handleFormatType(response.evaluationId.kind)}</td>
-                                <td>{response.userId.username}</td>
-                                <td>{new Date(response.createdAt).toLocaleString()}</td>
-                            </tr>
-                        ))
+                        existingResponses.map((response, idx) => {
+                            if (!response.evaluationId || response.evaluationId === null || response.evaluationId === undefined) {
+                                return (
+                                    <tr key={response._id || idx}>
+                                        <td colSpan="5" className="text-center text-muted">Bad Record for User: {response.userId.username}</td>
+                                    </tr>
+                                );
+                            }
+                            return (
+                                <tr key={response._id}>
+                                    <th scope="row">{idx + 1}</th>
+                                    <td>
+                                        {response.evaluationId?.title || 'N/A'}
+                                    </td>
+                                    <td>{handleFormatType(response.evaluationId?.kind)}</td>
+                                    <td>{response.userId?.username || 'N/A'}</td>
+                                    <td>{new Date(response.createdAt).toLocaleString()}</td>
+                                </tr>
+                            );
+                        })
                     ) : (
                         <tr>
                             <td colSpan="5" className="text-center">No evaluations found.</td>
@@ -53,10 +62,10 @@ const ExsitingResponsesTable = ({ existingResponses }) => {
                         <div className="card mb-3" key={response._id}>
                             <div className="card-body">
                                 <h5 className="card-title mb-2">
-                                    {response.evaluationId.title}
+                                    {response.evaluationId?.title || 'Bad Record'}
                                 </h5>
-                                <p className="card-text mb-1"><strong>Type:</strong> {handleFormatType(response.evaluationId.kind)}</p>
-                                <p className="card-text mb-1"><strong>Participant Username:</strong> {response.userId.username}</p>
+                                <p className="card-text mb-1"><strong>Type:</strong> {response.evaluationId?.kind ? handleFormatType(response.evaluationId.kind) : 'N/A'}</p>
+                                <p className="card-text mb-1"><strong>Participant Username:</strong> {response.userId?.username || 'N/A'}</p>
                                 <p className="card-text mb-1"><strong>Date:</strong> {new Date(response.createdAt).toLocaleString()}</p>
                             </div>
                         </div>

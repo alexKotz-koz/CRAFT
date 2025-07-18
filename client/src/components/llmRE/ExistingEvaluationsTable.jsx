@@ -2,8 +2,6 @@ import { Link } from "react-router-dom";
 
 const ExistingEvaluationsTable = ({ existingEvaluations }) => {
 
-    console.log(existingEvaluations)
-
     const handleFormatType = (type) => {
         switch(type){
             case "SectionsLLMResponseEvaluation":
