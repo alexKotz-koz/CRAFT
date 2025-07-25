@@ -17,11 +17,13 @@ import {
     handleAddHumanMessage,
     handleRemoveHumanMessage,
     handleAddRubricItem,
+    handleRemoveRubricItem,
     handleRubricItemChange,
     handleAddSectionHumanMessage,
     handleRemoveSectionHumanMessage,
     handleAddSectionLLMMessage,
     handleRemoveSectionLLMMessage,
+    handleAddExistingRubricItems
 } from "./createNewEvaluationHelpers";
 const LLMRECreate = () => {
 
@@ -669,6 +671,13 @@ const LLMRECreate = () => {
                                         type="button"
                                     >
                                         Add Rubric Item
+                                    </button>
+                                    <button
+                                        className="btn btn-info btn-sm ms-2"
+                                        onClick={e => handleAddExistingRubricItems(e, setRubricItems)}
+                                        type="button"
+                                    >
+                                        Add Foster Study LLM RE Rubric Items
                                     </button>
                                     {formErrorRubric ? (
                                         <div className="border border-danger rounded text-danger px-2 mt-2">

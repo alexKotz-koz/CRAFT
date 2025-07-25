@@ -13,7 +13,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
     const [showExistingEvaluations, setShowExistingEvaluations] = useState(false);
     const [showExistingResponses, setShowExistingResponses] = useState(false);
     const [showDownloadModal, setShowDownloadModal] = useState(false);
-    const [showAssignNewParticipants,  setShowAssignNewParticipants] = useState(false);
+    const [showAssignNewParticipants, setShowAssignNewParticipants] = useState(false);
     const [downloadReady, setDownloadReady] = useState(false);
     const [selectedEvaluation, setSelectedEvaluation] = useState(null);
     const [selectedParticipants, setSelectedParticipants] = useState([]);
@@ -55,6 +55,10 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
             </div>
         );
     }
+
+
+    console.log("allEvaluations: ", allEvaluations)
+
 
     const handleShowExistingEvaluations = () => {
         setShowExistingEvaluations(!showExistingEvaluations);
@@ -208,14 +212,14 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
     const renderFacilitator = () => {
 
         const totalEvaluations = Array.isArray(allEvaluations) ? allEvaluations.length : 0;
-        const uniqueParticipants = Array.from(
-            new Map(
-                (allEvaluations || [])
-                    .flatMap(evaluation => evaluation.participants || [])
-                    .map(participant => [participant._id, participant])
-            ).values()
-        );
-        const totalUniqueParticipants = uniqueParticipants.length;
+
+        const uniqueParticipantsSet = new Set();
+        (allEvaluations || []).forEach(evaluation => {
+            (evaluation.participants || []).forEach(participant => {
+                if (participant.username) uniqueParticipantsSet.add(participant.username);
+            });
+        });
+        const totalUniqueParticipants = uniqueParticipantsSet.size;
 
 
         const uniqueRespondedParticipants = Array.from(
@@ -320,7 +324,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                     </div>
                                     <p className="text-muted mb-4 flex-grow-1">Assign New Participants</p>
                                     <button
-                                        className={showAssignNewParticipants ? `btn btn-outline-warning w-100`: `btn btn-warning w-100`}
+                                        className={showAssignNewParticipants ? `btn btn-outline-warning w-100` : `btn btn-warning w-100`}
                                         onClick={handleShowAssignNewParticipants}
                                     >
                                         {showAssignNewParticipants ? 'Hide' : 'Show'} Assignments
@@ -413,7 +417,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                 <CardBody>
                                     <h5 className="card-title mb-3">
                                         <i className="fas fa-table me-2"></i>
-                                         Responses
+                                        Responses
                                     </h5>
                                     <AssignNewParticipantsTable evaluations={allEvaluations} />
                                 </CardBody>
