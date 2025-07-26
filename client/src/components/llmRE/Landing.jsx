@@ -57,7 +57,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
     }
 
 
-    console.log("allEvaluations: ", allEvaluations)
+    //console.log("allEvaluations: ", allEvaluations)
 
 
     const handleShowExistingEvaluations = () => {

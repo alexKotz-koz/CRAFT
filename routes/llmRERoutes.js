@@ -155,7 +155,6 @@ module.exports = (app) => {
         try {
             const { evaluationId } = req.params;
             const { userId } = req.body;
-
             if (!evaluationId || !userId){
                 return res.status(400).send("Missing requireid parameters");
             }
@@ -184,6 +183,7 @@ module.exports = (app) => {
                     {
                         $push: {
                             participants: {
+                                _id: userId,
                                 user: userId,
                                 email: user.email,
                                 username: user.username,
