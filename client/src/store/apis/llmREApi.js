@@ -73,7 +73,13 @@ const llmREApi = createApi({
                         body: { userId }
                     }
                 }
-            })
+            }),
+            fetchEvaluationResponseById: builder.query({
+                query: ({ responseId }) => ({
+                    url: `/llm-response-evaluation/response/${responseId}`,
+                    method: 'GET',
+                }),
+            }),
         };
     }
 
@@ -87,6 +93,7 @@ export const {
     useFetchUserEvaluationResponseQuery,
     useFetchAllUserEvaluationResponsesQuery,
     useLazyFetchUserResponsesForDownloadQuery,
-    useAssignParticipantLLMREMutation
+    useAssignParticipantLLMREMutation,
+    useFetchEvaluationResponseByIdQuery
 } = llmREApi;
 export { llmREApi };

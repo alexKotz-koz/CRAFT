@@ -17,6 +17,7 @@ import ParticipantInitialConfig from "./auth/ParticipantInitialConfig";
 import LLMRELanding from "./llmRE/Landing";
 import LLMRECreate from './llmRE/CreateNewEvaluation';
 import LLMResponseEvaluation from "./llmRE/LLMResponseEvaluation";
+import READONLY_LLMResponseEvaluation from "./llmRE/READONLY_LLMResponseEvaluation";
 import ReactGA from 'react-ga4';
 
 //Prod
@@ -46,40 +47,44 @@ const App = () => {
     const { data: user } = useFetchUserQuery();
 
 
-  return (
-    <div className='container-fluid'>
-      <BrowserRouter>
-      <Header user={user} />
+    return (
+        <div className='container-fluid'>
+            <BrowserRouter>
+                <Header user={user} />
 
-      <Routes>
-        <Route path='/' element={<Landing />} />
-        <Route path='/home' element={<Home />} />
-        <Route path='/login' element={<Login />} />
-        <Route path='/participant-config' element={<ParticipantInitialConfig user={user}/>} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/study/:studyId" element={<Study user={user}  />} />
-        <Route path='/study/new' element={<StudyNewWizard />} />
-        <Route path='/study/dashboard/:studyId' element={<StudyDashboard />} />
-        <Route path='/study/response/:studyId' element={<StudyResponseWizard user={user} />} />
-        <Route path='/study/response/task/:taskId' element={<StudyResponse user={user} />} />
-        <Route path='/password_reset' element={<PasswordReset />} />
-        <Route path='/discussion/:taskId' element={<DiscussionBoard />} />
-        <Route path='/discussion/landing/:studyId' element={<DiscussionBoardLanding />} />
-        <Route path='/admin/password-reset' element= {<AdminPasswordReset />} />
-        <Route path='/llm-response-evaluation' element={
-            <LLMRELanding 
-                currentUserRole={user?.role}
-                currentUserFirst={user?.firstName}
-                currentUserLast={user?.lastName}
-                currentUserUsername={user?.username}
-            />
-        } />
-        <Route path='/llm-response-evaluation/create' element={<LLMRECreate />} />
-        <Route path="/llm-response-evaluation/:evaluationId" element={<LLMResponseEvaluation />} />
-      </Routes>
-      </BrowserRouter>
-    </div>
-  );
+                <Routes>
+                    <Route path='/' element={<Landing />} />
+                    <Route path='/home' element={<Home />} />
+                    <Route path='/login' element={<Login />} />
+                    <Route path='/participant-config' element={<ParticipantInitialConfig user={user} />} />
+                    <Route path="/signup" element={<SignUp />} />
+                    <Route path="/study/:studyId" element={<Study user={user} />} />
+                    <Route path='/study/new' element={<StudyNewWizard />} />
+                    <Route path='/study/dashboard/:studyId' element={<StudyDashboard />} />
+                    <Route path='/study/response/:studyId' element={<StudyResponseWizard user={user} />} />
+                    <Route path='/study/response/task/:taskId' element={<StudyResponse user={user} />} />
+                    <Route path='/password_reset' element={<PasswordReset />} />
+                    <Route path='/discussion/:taskId' element={<DiscussionBoard />} />
+                    <Route path='/discussion/landing/:studyId' element={<DiscussionBoardLanding />} />
+                    <Route path='/admin/password-reset' element={<AdminPasswordReset />} />
+                    <Route path='/llm-response-evaluation' element={
+                        <LLMRELanding
+                            currentUserRole={user?.role}
+                            currentUserFirst={user?.firstName}
+                            currentUserLast={user?.lastName}
+                            currentUserUsername={user?.username}
+                        />
+                    } />
+                    <Route path='/llm-response-evaluation/create' element={<LLMRECreate />} />
+                    <Route path="/llm-response-evaluation/:evaluationId" element={<LLMResponseEvaluation />} />
+                    <Route
+                        path="/llm-response-evaluation/readonly/:evaluationId/:responseId"
+                        element={<READONLY_LLMResponseEvaluation />}
+                    />
+                </Routes>
+            </BrowserRouter>
+        </div>
+    );
 };
 
 export default App;

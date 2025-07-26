@@ -79,5 +79,6 @@ export {
     useFetchUserEvaluationResponseQuery,
     useFetchAllUserEvaluationResponsesQuery,
     useLazyFetchUserResponsesForDownloadQuery,
-    useAssignParticipantLLMREMutation
+    useAssignParticipantLLMREMutation,
+    useFetchEvaluationResponseByIdQuery
 } from './apis/llmREApi';

@@ -1,6 +1,7 @@
 import { Spinner } from "reactstrap";
 import { useParams } from "react-router-dom";
-import { useFetchEvaluationQuery, useCreateEvaluationResponseMutation, useFetchUserEvaluationResponseQuery } from "../../store";
+import { useFetchEvaluationQuery, useFetchEvaluationResponseByIdQuery, useCreateEvaluationResponseMutation } from "../../store/apis/llmREApi";
+
 import { Form, Field } from "react-final-form";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -27,6 +28,7 @@ const renderRubricField = (sectionId, rubricItem) => {
                                     e.preventDefault();
                                 }
                             }}
+                            disabled
                         />
                         <label className="form-check-label ms-1">{capitalizeLabel(label)}</label>
                     </div>
@@ -49,6 +51,7 @@ const renderRubricField = (sectionId, rubricItem) => {
                                     e.preventDefault();
                                 }
                             }}
+                            disabled
                         />
                         <label className="form-check-label ms-1">{capitalizeLabel(label)}</label>
                     </div>
@@ -69,6 +72,7 @@ const renderRubricField = (sectionId, rubricItem) => {
                                 e.preventDefault();
                             }
                         }}
+                        disabled
                     />
                     <label className="form-check-label ms-1">Toggle</label>
                 </div>
@@ -88,6 +92,7 @@ const renderRubricField = (sectionId, rubricItem) => {
                                 e.preventDefault();
                             }
                         }}
+                        disabled
                     />
                     <div className="d-flex justify-content-between">
                         <span>0</span>
@@ -100,32 +105,23 @@ const renderRubricField = (sectionId, rubricItem) => {
     }
 };
 
-const LLMResponseEvaluation = () => {
-    const { evaluationId } = useParams();
-    const { data: evaluation, isLoading, error } = useFetchEvaluationQuery({ evaluationId });
+const READONLY_LLMResponseEvaluation = () => {
+    //const { evaluationId } = useParams();
+    //const { data: evaluation, isLoading, error } = useFetchEvaluationQuery({ evaluationId });
+
+    //const { data: userResponse, isLoading: isLoadingUserResponse } = useFetchUserEvaluationResponseQuery({ evaluationId });
+
+    const { evaluationId, responseId } = useParams();
+    const { data: evaluation, isLoading: loadingEval } = useFetchEvaluationQuery({ evaluationId });
     const [createEvaluationResponse, { isLoading: isLoadingResponse, error: errorResponse }] = useCreateEvaluationResponseMutation();
-    const { data: userResponse, isLoading: isLoadingUserResponse } = useFetchUserEvaluationResponseQuery({ evaluationId });
+    const { data: userResponse, isLoading: loadingResp } = useFetchEvaluationResponseByIdQuery({ responseId });
+    // All hooks must be called before any return!
     const [formErrorSubmission, setFormErrorSubmission] = useState("");
     const navigate = useNavigate();
 
-    if (isLoading || isLoadingResponse || isLoadingUserResponse) {
-        return (
-            <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-                <Spinner color="primary" />
-            </div>
-        );
-    }
-    if (error || errorResponse) {
-        return (
-            <div className="border border-danger rounded text-danger px-2 mt-2">
-                {error || errorResponse}
-            </div>
-        )
-    }
+    if (loadingEval || loadingResp) return <div>Loading...</div>;
 
 
-    console.log("evaluation: ", evaluation)
-    console.log("userResponse: ", userResponse)
 
     const mapResponseToInitialValues = (response) => {
         if (!response || !response.responses) return {};
@@ -251,7 +247,14 @@ const LLMResponseEvaluation = () => {
                     }}>
                     <div className="container">
                         <div className="row mb-3">
-                            <h3 className="text-center">{evaluation?.title}</h3>
+                            <h3 className="text-center">
+                                {evaluation?.title}
+                                {userResponse.userId.username && (
+                                    <span className="ms-2 text-secondary" >
+                                        — {userResponse.userId.email}
+                                    </span>
+                                )}
+                            </h3>
                         </div>
                         <div className="row mb-3">
                             <div
@@ -370,7 +373,14 @@ const LLMResponseEvaluation = () => {
                 <form onSubmit={handleSubmit}>
                     <div className="container">
                         <div className="row mb-3">
-                            <h3 className="text-center">{evaluation?.title}</h3>
+                            <h3 className="text-center">
+                                {evaluation?.title}
+                                {userResponse.userId.username && (
+                                    <span className="ms-2 text-secondary" >
+                                        — {userResponse.userId.email}
+                                    </span>
+                                )}
+                            </h3>
                         </div>
                         <div className="row mb-3">
                             <div
@@ -457,6 +467,7 @@ const LLMResponseEvaluation = () => {
                                                         e.preventDefault();
                                                     }
                                                 }}
+                                                disabled
                                             />
                                         </div>
                                     </div>
@@ -487,4 +498,4 @@ const LLMResponseEvaluation = () => {
     return null;
 };
 
-export default LLMResponseEvaluation;
+export default READONLY_LLMResponseEvaluation;

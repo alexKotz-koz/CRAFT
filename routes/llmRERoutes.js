@@ -84,7 +84,7 @@ module.exports = (app) => {
                 if (participant && !participant.responded) {
                     participant.responded = true;
                     await llmre.save();
-                
+
                 }
             }
             res.status(200).json(responseDoc);
@@ -118,7 +118,14 @@ module.exports = (app) => {
             res.status(500).send("Internal Server Error");
         }
     });
-
+    // Example Express route
+    app.get('/api/llm-response-evaluation/response/:responseId', requireLogin, async (req, res) => {
+        const { responseId } = req.params;
+        const response = await LLMResponseEvaluationResponse.findById(responseId)
+            .populate('evaluationId')
+            .populate('userId');
+        res.json(response);
+    });
     app.get('/api/llm-response-evaluation/responses/all', requireLogin, async (req, res) => {
         try {
             const responses = await LLMResponseEvaluationResponse.find()
@@ -132,7 +139,7 @@ module.exports = (app) => {
 
     app.get('/api/llm-response-evaluation/prepare-download/:evaluationId/:participantIds', requireLogin, requireFacilitatorPermissions, async (req, res) => {
         const { evaluationId, participantIds } = req.params;
-        
+
         const participantIdArray = participantIds.split(',');
 
         try {
@@ -151,35 +158,35 @@ module.exports = (app) => {
 
     });
 
-    app.post('/api/llm-response-evaluation/:evaluationId/assign-participant', requireLogin, requireFacilitatorPermissions, async(req, res) => {
+    app.post('/api/llm-response-evaluation/:evaluationId/assign-participant', requireLogin, requireFacilitatorPermissions, async (req, res) => {
         try {
             const { evaluationId } = req.params;
             const { userId } = req.body;
-            if (!evaluationId || !userId){
+            if (!evaluationId || !userId) {
                 return res.status(400).send("Missing requireid parameters");
             }
 
             const user = await mongoose.model('User').findById(userId);
-            if (!user){
+            if (!user) {
                 return res.status(404).send("User not found");
             }
-            
+
             const evaluation = await mongoose.model('LLMResponseEvaluation').findById(evaluationId);
-            if (!evaluation){
+            if (!evaluation) {
                 return res.status(404).send('Evaluation not found');
             }
 
             const isParticipant = evaluation.participants.some(participant => {
-                if (typeof participant === 'object' && participant._id){
+                if (typeof participant === 'object' && participant._id) {
                     return participant._id.toString() === userId;
                 } else {
                     return participant.toString() === userId;
                 }
             });
 
-            if (!isParticipant){
+            if (!isParticipant) {
                 await LLMResponseEvaluation.findByIdAndUpdate(
-                    evaluationId, 
+                    evaluationId,
                     {
                         $push: {
                             participants: {
@@ -191,10 +198,10 @@ module.exports = (app) => {
                             }
                         }
                     },
-                    {new:true}
+                    { new: true }
                 )
             }
-            res.send({message: "Participant assigned successfully"});
+            res.send({ message: "Participant assigned successfully" });
         } catch (err) {
             console.error("Error assigning participant:", err);
             res.status(500).send(err);

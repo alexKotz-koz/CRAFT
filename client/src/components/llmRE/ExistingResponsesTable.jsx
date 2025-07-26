@@ -40,7 +40,13 @@ const ExsitingResponsesTable = ({ existingResponses }) => {
                                 <tr key={response._id}>
                                     <th scope="row">{idx + 1}</th>
                                     <td>
-                                        {response.evaluationId?.title || 'N/A'}
+                                        <Link
+                                            to={`/llm-response-evaluation/readonly/${response.evaluationId?._id || response.evaluationId}/${response._id}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {response.evaluationId?.title || 'N/A'}
+                                        </Link>
                                     </td>
                                     <td>{handleFormatType(response.evaluationId?.kind)}</td>
                                     <td>{response.userId?.username || 'N/A'}</td>
