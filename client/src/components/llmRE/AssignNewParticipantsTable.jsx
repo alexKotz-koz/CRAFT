@@ -1,22 +1,18 @@
 import { Table, Modal, ModalHeader, ModalBody, ModalFooter, Button, FormGroup, Input, Label } from "reactstrap";
 import { useState, useEffect } from "react";
-import { useFetchAllUsersQuery, useAssignParticipantLLMREMutation} from "../../store";
+import { useFetchAllUsersQuery, useAssignParticipantLLMREMutation } from "../../store";
 
-const AssignNewParticipantsTable = ({ evaluations }) => {
-    const { data: allUsers, isLoading: isLoadingAllUsers, error: errorAllUsers } = useFetchAllUsersQuery();
-    const [participants, setParticipants] = useState([]);
-    const [assignParticipant, {isLoading: isAssigning}] = useAssignParticipantLLMREMutation();
+const AssignNewParticipantsTable = ({ evaluations, refetchEvaluations }) => {
+    const { data: allUsers, isLoading: isLoadingAllUsers, error: errorAllUsers, refetch } = useFetchAllUsersQuery();
+    const participants = allUsers ? allUsers.filter(user => user.role === 'participant') : [];
+
+    const [assignParticipant, { isLoading: isAssigning }] = useAssignParticipantLLMREMutation();
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEvaluation, setSelectedEvaluation] = useState(null);
     const [selectedUser, setSelectedUser] = useState(null);
+    const [successMsg, setSuccessMsg] = useState("");
 
-    useEffect(() => {
-        if (allUsers) {
-            const filteredUsers = allUsers.filter(user => user.role === 'participant');
-            setParticipants(filteredUsers);
-        }
-    }, [allUsers]);
 
     const getAssignedLLMREs = (username) => {
         if (!evaluations) return [];
@@ -25,13 +21,13 @@ const AssignNewParticipantsTable = ({ evaluations }) => {
             if (!evaluation.participants || !evaluation.participants.length) return false;
 
             return evaluation.participants.some(participant => {
-                if (typeof participant === 'object' && participant.username){
+                if (typeof participant === 'object' && participant.username) {
                     return participant.username === username;
                 }
 
-                if (allUsers){
+                if (allUsers) {
                     const matchedUser = allUsers.find(user => {
-                        if (typeof participant==='object') {
+                        if (typeof participant === 'object') {
                             return user._id === participant._id || user._id === participant.user;
                         } else {
                             return user._id === participant;
@@ -47,18 +43,18 @@ const AssignNewParticipantsTable = ({ evaluations }) => {
 
     const getAvailableLLMREs = (username) => {
         if (!evaluations) return [];
-        
+
         return evaluations.filter(evaluation => {
             // If no participants, the user isn't assigned
             if (!evaluation.participants || !evaluation.participants.length) return true;
-            
+
             // Check that user is NOT in participants
             return !evaluation.participants.some(participant => {
                 // If participant is an object with username property
                 if (typeof participant === 'object' && participant.username) {
                     return participant.username === username;
                 }
-                
+
                 // If participant is an ID, find the corresponding user
                 if (allUsers) {
                     const matchedUser = allUsers.find(user => {
@@ -70,7 +66,7 @@ const AssignNewParticipantsTable = ({ evaluations }) => {
                     });
                     return matchedUser?.username === username;
                 }
-                
+
                 return false;
             });
         });
@@ -97,13 +93,17 @@ const AssignNewParticipantsTable = ({ evaluations }) => {
                 userId: selectedUser._id
             });
             toggleModal();
-            alert(`${selectedUser.username} has been assigned to the LLM Response Evaluation: ${selectedEvaluation.title}`)
+            refetch();
+            if (refetchEvaluations) refetchEvaluations(); 
+
+            setSuccessMsg(`${selectedUser.username} has been assigned to the LLM Response Evaluation: ${selectedEvaluation.title}`);
+            setTimeout(() => setSuccessMsg(""), 5000); 
         } catch (error) {
             console.error("Error assigning participant: ", error);
-            alert("Failed to assign participant to LLM Response Evaluation")
+            setSuccessMsg("Failed to assign participant to LLM Response Evaluation");
+            setTimeout(() => setSuccessMsg(""), 5000);
         }
-    }
-
+    };
 
     return (
         <div className="container border border-solid">
@@ -125,7 +125,7 @@ const AssignNewParticipantsTable = ({ evaluations }) => {
                         {participants && participants.map((user, idx) => {
                             const userAssignedLLMREs = getAssignedLLMREs(user.username);
                             const userAvailableLLMREs = getAvailableLLMREs(user.username);
-      
+
                             return (
                                 <tr key={user._id}>
                                     <th>{idx + 1}</th>
@@ -144,7 +144,7 @@ const AssignNewParticipantsTable = ({ evaluations }) => {
                                     </td>
                                     <td>
                                         {userAvailableLLMREs.length > 0 ? (
-                                            <select 
+                                            <select
                                                 className="form-select"
                                                 onChange={(e) => {
                                                     if (e.target.value) {
@@ -166,6 +166,9 @@ const AssignNewParticipantsTable = ({ evaluations }) => {
                         })}
                     </tbody>
                 </Table>
+                {successMsg && (
+                    <div className="alert alert-success text-center">{successMsg}</div>
+                )}
             </div>
             {/* Assignment Modal */}
             <Modal isOpen={isModalOpen} toggle={toggleModal}>
@@ -180,9 +183,9 @@ const AssignNewParticipantsTable = ({ evaluations }) => {
                     <Button color="secondary" onClick={toggleModal}>
                         Cancel
                     </Button>
-                    <Button 
-                        color="primary" 
-                        onClick={handleAssignSubmit} 
+                    <Button
+                        color="primary"
+                        onClick={handleAssignSubmit}
                     >
                         {isAssigning ? 'Assigning...' : 'Confirm'}
                     </Button>

@@ -5,7 +5,7 @@ const llmREApi = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: '/api'
     }),
-    //tagTypes: ['User', 'Notification'], 
+    tagTypes: ['Evaluation', 'Response', 'Assignment'],
     endpoints(builder) {
         return {
             createEvaluation: builder.mutation({
@@ -18,12 +18,11 @@ const llmREApi = createApi({
                 },
             }),
             fetchAllEvaluations: builder.query({
-                query: () => {
-                    return {
-                        url: '/llm-response-evaluation/all',
-                        method: 'GET',
-                    };
-                },
+                query: () => ({
+                    url: '/llm-response-evaluation/all',
+                    method: 'GET',
+                }),
+                providesTags: ['Evaluation'],
             }),
             fetchEvaluation: builder.query({
                 query: ({ evaluationId }) => {
@@ -33,13 +32,12 @@ const llmREApi = createApi({
                 }
             }),
             createEvaluationResponse: builder.mutation({
-                query: ({ evaluationId, ...body }) => {
-                    return {
-                        url: `/llm-response-evaluation/${evaluationId}/response`,
-                        method: 'POST',
-                        body,
-                    };
-                },
+                query: ({ evaluationId, ...body }) => ({
+                    url: `/llm-response-evaluation/${evaluationId}/response`,
+                    method: 'POST',
+                    body,
+                }),
+                invalidatesTags: ['Evaluation', 'Response'], 
             }),
             fetchUserEvaluationResponse: builder.query({
                 query: ({ evaluationId }) => {
@@ -50,12 +48,11 @@ const llmREApi = createApi({
                 },
             }),
             fetchAllUserEvaluationResponses: builder.query({
-                query: () => {
-                    return {
-                        url: '/llm-response-evaluation/responses/all',
-                        method: 'GET',
-                    };
-                },
+                query: () => ({
+                    url: '/llm-response-evaluation/responses/all',
+                    method: 'GET',
+                }),
+                providesTags: ['Response'],
             }),
             fetchUserResponsesForDownload: builder.query({
                 query: ({ evaluationId, participantIds }) => {
@@ -66,13 +63,12 @@ const llmREApi = createApi({
                 },
             }),
             assignParticipantLLMRE: builder.mutation({
-                query: ({ userId, evaluationId }) => {
-                    return {
-                        url: `llm-response-evaluation/${evaluationId}/assign-participant`,
-                        method: 'POST',
-                        body: { userId }
-                    }
-                }
+                query: ({ userId, evaluationId }) => ({
+                    url: `llm-response-evaluation/${evaluationId}/assign-participant`,
+                    method: 'POST',
+                    body: { userId }
+                }),
+                invalidatesTags: ['Assignment', 'User']
             }),
             fetchEvaluationResponseById: builder.query({
                 query: ({ responseId }) => ({

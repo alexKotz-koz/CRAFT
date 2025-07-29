@@ -5,16 +5,15 @@ const authApi = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: '/auth'
     }),
-    tagTypes: ['User', 'Notification'], 
+    tagTypes: ['User', 'Notification', 'Assignment'], 
     endpoints(builder){
         return{
             fetchAllUsers: builder.query({
-                query: () => {
-                    return {
-                        url: '/all_users',
-                        method: 'GET',
-                    };
-                },
+                query: () => ({
+                    url: '/all_users',
+                    method: 'GET',
+                }),
+                providesTags: ['User', 'Assignment'], 
             }),
             fetchUser: builder.query({
                 providesTags: ['User', 'Notification'],

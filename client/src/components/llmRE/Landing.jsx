@@ -7,7 +7,7 @@ import { useFetchAllEvaluationsQuery, useFetchAllUserEvaluationResponsesQuery, u
 import { useState, useEffect } from "react";
 
 const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, currentUserLast }) => {
-    const { data: allEvaluations, isLoading: isLoadingAllEvalutions, error: errorAllEvaluations } = useFetchAllEvaluationsQuery();
+    const { data: allEvaluations, isLoading: isLoadingAllEvalutions, error: errorAllEvaluations, refetch: refetchEvaluations } = useFetchAllEvaluationsQuery();
     const { data: allResponses, isLoading: isLoadingAllResponses, error: errorAllResponses } = useFetchAllUserEvaluationResponsesQuery();
     const [triggerDownload, { data: userResponsesForDownload, isLoading: isLoadingUserResponses, error: errorUserResponses }] = useLazyFetchUserResponsesForDownloadQuery();
     const [showExistingEvaluations, setShowExistingEvaluations] = useState(false);
@@ -17,6 +17,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
     const [downloadReady, setDownloadReady] = useState(false);
     const [selectedEvaluation, setSelectedEvaluation] = useState(null);
     const [selectedParticipants, setSelectedParticipants] = useState([]);
+
 
     // Download 2. Call formatDataForDownload
     useEffect(() => {
@@ -57,10 +58,6 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
         );
     }
 
-
-    //console.log("allEvaluations: ", allEvaluations)
-
-
     const handleShowExistingEvaluations = () => {
         setShowExistingEvaluations(!showExistingEvaluations);
     };
@@ -80,7 +77,6 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
         //console.log("For: ", selectedParticipants);
         triggerDownload({ evaluationId: selectedEvaluation._id, participantIds: selectedParticipants });
     };
-
     // Download 1 b.
     const handleDownloadAllResponses = async () => {
         // Option 1: If you have an API endpoint for all responses, use it here.
@@ -115,7 +111,6 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
 
         // Build rows
         const rows = [];
-        console.log(downloadableData)
 
         downloadableData.forEach(response => {
             const username = response.userId?.username || "";
@@ -176,7 +171,6 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
             "text/csv"
         );
     };
-
     // Download 3b. Format allResponses for download
     const formatDataForDownloadAllResponses = (responses, fileName) => {
         if (!responses || !Array.isArray(responses) || responses.length === 0) return;
@@ -261,7 +255,6 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
             "text/csv"
         );
     };
-
     // Download 4. Download the formatted data
     const downloadFile = (content, fileName, contentType) => {
         const a = document.createElement('a');
@@ -501,7 +494,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                         <i className="fas fa-table me-2"></i>
                                         Existing Evaluations
                                     </h5>
-                                    <ExistingEvaluationsTable existingEvaluations={allEvaluations} />
+                                    <ExistingEvaluationsTable existingEvaluations={allEvaluations} isParticipantView={false} currentUser={null}/>
                                 </CardBody>
                             </Card>
                         </div>
@@ -529,7 +522,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                         <i className="fas fa-table me-2"></i>
                                         Responses
                                     </h5>
-                                    <AssignNewParticipantsTable evaluations={allEvaluations} />
+                                    <AssignNewParticipantsTable evaluations={allEvaluations} refetchEvaluations={refetchEvaluations} />
                                 </CardBody>
                             </Card>
                         </div>
@@ -656,13 +649,16 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                     <Button color="primary" onClick={() => handleDownloadEvaluationResponses({ selectedEvaluation, selectedParticipants })}>
                                         Download
                                     </Button>
-                                    <Button
+                                    {!selectedEvaluation && (
+                                        <Button
                                         color="dark"
                                         className="mb-2"
                                         onClick={handleDownloadAllResponses}
                                     >
                                         Download All Responses
                                     </Button>
+                                    )}
+                                    
                                     <Button color="secondary" onClick={handleShowDownloadModal}>
                                         Cancel
                                     </Button>
@@ -720,7 +716,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                     <p className="text-muted">Check back later for new evaluation assignments.</p>
                                 </div>
                             ) : (
-                                <ExistingEvaluationsTable existingEvaluations={userEvaluations} />
+                                <ExistingEvaluationsTable existingEvaluations={userEvaluations} isParticipantView={true} currentUser={currentUserUsername} />
                             )}
                         </CardBody>
                     </Card>

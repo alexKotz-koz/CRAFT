@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
+import { GoCheck, GoX } from "react-icons/go"
 
-const ExistingEvaluationsTable = ({ existingEvaluations }) => {
+
+const ExistingEvaluationsTable = ({ existingEvaluations, isParticipantView, currentUser }) => {
 
     const handleFormatType = (type) => {
-        switch(type){
+        switch (type) {
             case "SectionsLLMResponseEvaluation":
                 return "Sections of an LLM Transcript"
             case "FullLLMResponseEvaluation":
@@ -12,7 +14,6 @@ const ExistingEvaluationsTable = ({ existingEvaluations }) => {
                 break;
         }
     }
-
     return (
         <div>
             {/* Desktop Table */}
@@ -21,6 +22,9 @@ const ExistingEvaluationsTable = ({ existingEvaluations }) => {
                     <tr>
                         <th scope="col">#</th>
                         <th scope="col">Title</th>
+                        {isParticipantView && (
+                            <th scope="col">Status</th>
+                        )}
                         <th scope="col">Type</th>
                         <th scope="col"># of Rubric Items</th>
                         <th scope="col">Date Created</th>
@@ -36,6 +40,17 @@ const ExistingEvaluationsTable = ({ existingEvaluations }) => {
                                         {evalItem.title}
                                     </Link>
                                 </td>
+                                {isParticipantView && (
+                                    <td>
+                                        {(() => {
+                                            const participant = evalItem.participants.find(p => p.username === currentUser);
+                                            if (!participant) return "Not Assigned";
+                                            return participant.responded
+                                                ? (<span><GoCheck /> Completed</span>)
+                                                : (<span><GoX /> Not Completed</span>);
+                                        })()}
+                                    </td>
+                                )}
                                 <td>{handleFormatType(evalItem.kind)}</td>
                                 <td>{evalItem.rubricItems ? evalItem.rubricItems.length : 0}</td>
                                 <td>{new Date(evalItem.createdAt).toLocaleString()}</td>
