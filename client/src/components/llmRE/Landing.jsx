@@ -18,6 +18,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
     const [selectedEvaluation, setSelectedEvaluation] = useState(null);
     const [selectedParticipants, setSelectedParticipants] = useState([]);
 
+    // Download 2. Call formatDataForDownload
     useEffect(() => {
         if (userResponsesForDownload) {
             handleShowDownloadModal();
@@ -72,27 +73,28 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
         setShowDownloadModal(!showDownloadModal);
         setDownloadReady(false);
     };
+
+    // Download 1. This is triggered from the modal
     const handleDownloadEvaluationResponses = ({ selectedEvaluation, selectedParticipants }) => {
         //console.log("Download evaluation: ", selectedEvaluation);
         //console.log("For: ", selectedParticipants);
         triggerDownload({ evaluationId: selectedEvaluation._id, participantIds: selectedParticipants });
     };
 
-    const handleShowAssignNewParticipants = () => {
-        setShowAssignNewParticipants(!showAssignNewParticipants);
-    }
+    // Download 1 b.
+    const handleDownloadAllResponses = async () => {
+        // Option 1: If you have an API endpoint for all responses, use it here.
+        // Option 2: Otherwise, fetch all evaluations and all responses, then merge.
+        // Example using your existing data:
+        if (!allResponses || !Array.isArray(allResponses) || allResponses.length === 0) return;
 
-    const downloadFile = (content, fileName, contentType) => {
-        const a = document.createElement('a');
-        const file = new Blob([content], { type: contentType });
-        a.href = URL.createObjectURL(file);
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(a.href);
+        // You may want to fetch rubricItems for each evaluation, or include them in allResponses.
+        // For simplicity, let's assume allResponses has enough info.
+        // You can adapt formatDataForDownload to accept allResponses directly:
+        formatDataForDownloadAllResponses(allResponses, "all_llmre_responses");
     };
-
+    // Download 3. Format data collected from the api endpoint and selected options in the modal
+    // Calls downloadFile
     const formatDataForDownload = (downloadableData) => {
         if (!downloadableData || !Array.isArray(downloadableData) || downloadableData.length === 0) return;
 
@@ -104,6 +106,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
         const headers = [
             "participantUsername",
             "participantEmail",
+            "participantRole",
             ...(isSections ? ["sectionId"] : []),
             "rubricItem",
             "rubricItemResponse",
@@ -112,10 +115,12 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
 
         // Build rows
         const rows = [];
+        console.log(downloadableData)
 
         downloadableData.forEach(response => {
             const username = response.userId?.username || "";
             const email = response.userId?.email || "";
+            const role = response.userId?.jobRole || "No job title provided by user";
 
             (response.responses || []).forEach(section => {
                 rubricItems.forEach(rubricItem => {
@@ -139,6 +144,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                         rows.push([
                             username,
                             email,
+                            role,
                             ...(isSections ? [String(section.sectionId)] : []),
                             rubricItem.caption,
                             responseValue,
@@ -170,6 +176,110 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
             "text/csv"
         );
     };
+
+    // Download 3b. Format allResponses for download
+    const formatDataForDownloadAllResponses = (responses, fileName) => {
+        if (!responses || !Array.isArray(responses) || responses.length === 0) return;
+
+        // Headers
+        let headers = [];
+
+        const rows = [];
+
+        responses.forEach(response => {
+            const evalKind = response?.evaluationId?.kind || "FullLLMResponseEvaluation";
+            const rubricItems = response?.evaluationId?.rubricItems || [];
+            const isSections = evalKind === "SectionsLLMResponseEvaluation";
+            const username = response.userId?.username || "";
+            const email = response.userId?.email || "";
+            const role = response.userId?.jobRole || "No job title provided by user";
+            const title = response.evaluationId?.title || "";
+            headers = [
+                "participantUsername",
+                "participantEmail",
+                "participantRole",
+                ...(isSections ? ["sectionId"] : []),
+                ...(!isSections ? ["title"] : []),
+                "rubricItem",
+                "rubricItemResponse",
+                "rubricItemFeedback"
+            ];
+
+
+            (response.responses || []).forEach(section => {
+                rubricItems.forEach(rubricItem => {
+                    const rubricResponse = (section.rubricResponses || []).find(
+                        rr => rr.itemId === rubricItem.itemId
+                    );
+                    if (rubricResponse) {
+                        let responseValue = "";
+                        if (
+                            rubricResponse.selectedRadioOption &&
+                            rubricResponse.selectedRadioOption !== ""
+                        ) {
+                            responseValue = rubricResponse.selectedRadioOption;
+                        } else if (
+                            rubricResponse.selectedCheckboxOptions &&
+                            rubricResponse.selectedCheckboxOptions.length > 0
+                        ) {
+                            responseValue = rubricResponse.selectedCheckboxOptions.join(" | ");
+                        }
+
+                        rows.push([
+                            username,
+                            email,
+                            role,
+                            ...(isSections ? [String(section.sectionId)] : []),
+                            ...(!isSections ? [title] : []),
+                            rubricItem.caption,
+                            responseValue,
+                            rubricResponse.feedback || ""
+                        ]);
+                    }
+                });
+            });
+
+        });
+
+        // Convert to CSV string
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(row =>
+                row
+                    .map(field =>
+                        `"${String(field).replace(/"/g, '""')}"`
+                    )
+                    .join(",")
+            )
+        ].join("\r\n");
+
+        const safeTitle = (fileName);
+
+        downloadFile(
+            csvContent,
+            `${safeTitle}.csv`,
+            "text/csv"
+        );
+    };
+
+    // Download 4. Download the formatted data
+    const downloadFile = (content, fileName, contentType) => {
+        const a = document.createElement('a');
+        const file = new Blob([content], { type: contentType });
+        a.href = URL.createObjectURL(file);
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+    };
+
+    const handleShowAssignNewParticipants = () => {
+        setShowAssignNewParticipants(!showAssignNewParticipants);
+    }
+
+
+
 
     const getRoleDisplayName = (role) => {
         switch (role) {
@@ -545,6 +655,13 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                 <ModalFooter>
                                     <Button color="primary" onClick={() => handleDownloadEvaluationResponses({ selectedEvaluation, selectedParticipants })}>
                                         Download
+                                    </Button>
+                                    <Button
+                                        color="dark"
+                                        className="mb-2"
+                                        onClick={handleDownloadAllResponses}
+                                    >
+                                        Download All Responses
                                     </Button>
                                     <Button color="secondary" onClick={handleShowDownloadModal}>
                                         Cancel
