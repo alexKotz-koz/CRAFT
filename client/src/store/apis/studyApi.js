@@ -94,6 +94,13 @@ const studyApi = createApi({
                 }),
                 invalidatesTags: ['Study']
             }),
+            updateConsent: builder.mutation({
+                query: ({ studyId, userId}) => ({
+                    url: `/study/${studyId}/consent`,
+                    method: 'POST',
+                    body: {userId}
+                })
+            }),
         };
     }
 
@@ -108,6 +115,7 @@ export const {
     useFetchStudyTasksQuery,
     useLazyFetchAllStudyResponsesQuery,
     useFetchAllStudiesQuery,
-    useAssignParticipantMutation
+    useAssignParticipantMutation,
+    useUpdateConsentMutation
 } = studyApi;
 export { studyApi };

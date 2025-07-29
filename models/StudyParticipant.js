@@ -5,6 +5,7 @@ const studyParticipantSchema = new Schema({
     email: {type: String, required: true},
     username: {type: String, required: true},
     responded: {type: Boolean, default: false},
+    consent: {type: Boolean, default: false},
 });
 
 module.exports = studyParticipantSchema;

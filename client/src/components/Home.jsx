@@ -194,10 +194,10 @@ const Home = () => {
 
     const showPreface = (currentUser, study) => {
         const participant = study.participants.find(p => p.username === currentUser);
-        const hasResponded = participant.responded;
-        if (hasResponded) {
+        const consentCompleted = participant.consent;
+        if (consentCompleted) {
             return false
-        } else if (!hasResponded) {
+        } else if (!consentCompleted) {
             return true
         }
     };
@@ -210,6 +210,7 @@ const Home = () => {
     }
 
     const renderCompletedStudyCard = (status, study) => {
+        console.log("status", study)
         const studyId = study._id;
         const currentUser = user.username;
         if (study.tasks.length >= 1) {
@@ -232,6 +233,7 @@ const Home = () => {
         } else {
             switch (status) {
                 case true:
+                    console.log("here")
                     return (
                         <div className="card-footer w-100">
                             <button
@@ -243,6 +245,7 @@ const Home = () => {
                         </div>
                     );
                 default:
+                    console.log("no")
                     return (
                         <button
                             className="btn btn-success text-decoration-none text-white w-100 mt-auto"
@@ -296,6 +299,7 @@ const Home = () => {
                         studyName={studyName}
                         studyId={studyId}
                         preface={studyPreface}
+                        userId={user._id}
                     />
                 }
             </div>

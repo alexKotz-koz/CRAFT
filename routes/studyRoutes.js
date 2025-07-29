@@ -520,4 +520,36 @@ module.exports = (app) => {
         }
     });
 
+    //Update consent
+    app.post('/api/study/:studyId/consent', requireLogin, async (req, res) => {
+        try {
+            const { userId } = req.body;
+            const { studyId } = req.params;
+
+            if (!studyId || !userId) {
+                return res.status(400).send("Missing required parameters");
+            }
+
+            //given the study id and user id update the study.participants.consent to true
+            const user = await mongoose.model('User').findById(userId);
+            if (!user) {
+                return res.status(404).send("User not found");
+            }
+
+            const result = await Study.updateOne(
+                { _id: studyId, "participants.username": user.username },
+                { $set: { "participants.$.consent": true } }
+
+            );
+            if (result.nModified === 0) {
+                return res.status(404).send("Participant not found in this study");
+            }
+
+            res.send({ message: "Consent updated successfully" });
+        } catch (err) {
+            console.error("Error updating participant consent for the study: ", err);
+            res.status(500).send("Internal server error");
+        }
+    })
+
 };
