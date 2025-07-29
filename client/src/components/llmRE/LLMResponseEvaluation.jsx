@@ -128,6 +128,7 @@ const LLMResponseEvaluation = () => {
         const initialValues = {};
 
         response.responses.forEach(section => {
+            initialValues['otherFeedback'] = section.otherFeedback;
             section.rubricResponses.forEach(rubric => {
                 const sectionId = section.sectionId;
                 const itemId = rubric.itemId;
@@ -199,19 +200,28 @@ const LLMResponseEvaluation = () => {
                 sectionMap[sectionId][itemId] = sectionMap[sectionId][itemId] || {};
                 sectionMap[sectionId][itemId].feedback = value;
             }
+            if (key === "otherFeedback") {
+                // For FullLLMResponseEvaluation, sectionId is "full"
+                sectionMap["full"] = sectionMap["full"] || {};
+                sectionMap["full"].otherFeedback = value;
+            }
         });
+
 
         // Convert to array format expected by the model
         const responses = Object.entries(sectionMap).map(([sectionId, rubricObj]) => ({
             sectionId: isNaN(Number(sectionId)) ? sectionId : Number(sectionId),
-            rubricResponses: Object.entries(rubricObj).map(([itemId, resp]) => ({
-                itemId: Number(itemId),
-                selectedRadioOption: resp.selectedRadioOption,
-                selectedCheckboxOptions: resp.selectedCheckboxOptions,
-                selectedSwitchOption: resp.selectedSwitchOption,
-                selectedRangeOption: resp.selectedRangeOption,
-                feedback: resp.feedback
-            }))
+            rubricResponses: Object.entries(rubricObj)
+                .filter(([k]) => k !== "otherFeedback")
+                .map(([itemId, resp]) => ({
+                    itemId: Number(itemId),
+                    selectedRadioOption: resp.selectedRadioOption,
+                    selectedCheckboxOptions: resp.selectedCheckboxOptions,
+                    selectedSwitchOption: resp.selectedSwitchOption,
+                    selectedRangeOption: resp.selectedRangeOption,
+                    feedback: resp.feedback
+                })),
+            otherFeedback: rubricObj.otherFeedback // <-- add this line
         }));
 
         return responses;
@@ -355,6 +365,21 @@ const LLMResponseEvaluation = () => {
                                 </div>
                             </div>
                         ))}
+                        <div className="row mb-3">
+                            <label htmlFor="otherFeedback" className="form-label fw-semibold">Additional Feedback (optional)</label>
+                            <Field
+                                name='otherFeedback'
+                                component="textarea"
+                                className="form-control mb-2 w-100"
+                                placeholder={"Enter your justification here..."}
+                                rows={4}
+                                onKeyDown={e => {
+                                    if (e.key === "Enter") {
+                                        e.preventDefault();
+                                    }
+                                }}
+                            />
+                        </div>
                         {formErrorSubmission ? (
                             <div className="border border-danger rounded text-danger px-2 mt-2">
                                 {formErrorSubmission}
@@ -451,7 +476,8 @@ const LLMResponseEvaluation = () => {
                                         <div className="col-12 col-md-6 mb-2 mb-md-0">
                                             <div className="fw-semibold border-bottom mb-3">{rubricItem.title}</div>
                                             <div className="mb-3">{rubricItem.caption}</div>
-                                            {/* <div
+                                            {/* Either put Additional Considerations here or above the rubric item feedback 
+                                            <div
                                                 className="bg-light border-start border-4 border-secondary rounded-3 px-3 py-2 mb-2"
                                                 style={{ whiteSpace: "pre-wrap", fontSize: "0.97rem" }}
                                             >
@@ -500,6 +526,21 @@ const LLMResponseEvaluation = () => {
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                        <div className="row mb-3">
+                            <label htmlFor="otherFeedback" className="form-label fw-semibold">Additional Feedback (optional)</label>
+                            <Field
+                                name='otherFeedback'
+                                component="textarea"
+                                className="form-control mb-2 w-100"
+                                placeholder={"Enter your justification here..."}
+                                rows={4}
+                                onKeyDown={e => {
+                                    if (e.key === "Enter") {
+                                        e.preventDefault();
+                                    }
+                                }}
+                            />
                         </div>
                         {formErrorSubmission ? (
                             <div className="border border-danger rounded text-danger px-2 mt-2">

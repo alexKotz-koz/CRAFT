@@ -128,6 +128,7 @@ const READONLY_LLMResponseEvaluation = () => {
         const initialValues = {};
 
         response.responses.forEach(section => {
+            initialValues['otherFeedback'] = section.otherFeedback;
             section.rubricResponses.forEach(rubric => {
                 const sectionId = section.sectionId;
                 const itemId = rubric.itemId;
@@ -349,15 +350,21 @@ const READONLY_LLMResponseEvaluation = () => {
                                 </div>
                             </div>
                         ))}
-                        {formErrorSubmission ? (
-                            <div className="border border-danger rounded text-danger px-2 mt-2">
-                                {formErrorSubmission}
-                            </div>
-                        ) : (<div></div>)}
-                        <div className="d-flex justify-content-end mt-3 mb-3">
-                            <button type="submit" className="btn btn-success ms-2 me-2 w-100 w-md-auto">
-                                Submit
-                            </button>
+                        <div className="row mb-3">
+                            <label htmlFor="otherFeedback" className="form-label fw-semibold">Additional Feedback (optional)</label>
+                            <Field
+                                name='otherFeedback'
+                                component="textarea"
+                                className="form-control mb-2 w-100"
+                                placeholder={"Enter your justification here..."}
+                                rows={4}
+                                onKeyDown={e => {
+                                    if (e.key === "Enter") {
+                                        e.preventDefault();
+                                    }
+                                }}
+                                disabled
+                            />
                         </div>
                     </div>
                 </form>
@@ -474,15 +481,21 @@ const READONLY_LLMResponseEvaluation = () => {
                                 ))}
                             </div>
                         </div>
-                        {formErrorSubmission ? (
-                            <div className="border border-danger rounded text-danger px-2 mt-2">
-                                {formErrorSubmission}
-                            </div>
-                        ) : (<div></div>)}
-                        <div className="d-flex justify-content-end mt-3 mb-3">
-                            <button type="submit" className="btn btn-success ms-2 me-2 mb-2 w-100 w-md-auto">
-                                Submit
-                            </button>
+                        <div className="row mb-3">
+                            <label htmlFor="otherFeedback" className="form-label fw-semibold">Additional Feedback (optional)</label>
+                            <Field
+                                name='otherFeedback'
+                                component="textarea"
+                                className="form-control mb-2 w-100"
+                                placeholder={"Enter your justification here..."}
+                                rows={4}
+                                onKeyDown={e => {
+                                    if (e.key === "Enter") {
+                                        e.preventDefault();
+                                    }
+                                }}
+                                disabled
+                            />
                         </div>
                     </div>
                 </form>

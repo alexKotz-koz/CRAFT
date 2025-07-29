@@ -147,6 +147,17 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                         ]);
                     }
                 });
+                if (section.otherFeedback) {
+                    rows.push([
+                        username,
+                        email,
+                        role,
+                        ...(isSections ? [String(section.sectionId)] : []),
+                        "OtherFeedback",
+                        "OtherFeedback",
+                        section.otherFeedback,
+                    ])
+                }
             });
         });
 
@@ -174,7 +185,6 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
     // Download 3b. Format allResponses for download
     const formatDataForDownloadAllResponses = (responses, fileName) => {
         if (!responses || !Array.isArray(responses) || responses.length === 0) return;
-
         // Headers
         let headers = [];
 
@@ -188,6 +198,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
             const email = response.userId?.email || "";
             const role = response.userId?.jobRole || "No job title provided by user";
             const title = response.evaluationId?.title || "";
+
             headers = [
                 "participantUsername",
                 "participantEmail",
@@ -229,8 +240,21 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                             responseValue,
                             rubricResponse.feedback || ""
                         ]);
+
                     }
                 });
+                if (section.otherFeedback) {
+                    rows.push([
+                        username,
+                        email,
+                        role,
+                        ...(isSections ? [String(section.sectionId)] : []),
+                        ...(!isSections ? [title] : []),
+                        "OtherFeedback",
+                        "OtherFeedback",
+                        section.otherFeedback,
+                    ])
+                }
             });
 
         });
@@ -494,7 +518,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                         <i className="fas fa-table me-2"></i>
                                         Existing Evaluations
                                     </h5>
-                                    <ExistingEvaluationsTable existingEvaluations={allEvaluations} isParticipantView={false} currentUser={null}/>
+                                    <ExistingEvaluationsTable existingEvaluations={allEvaluations} isParticipantView={false} currentUser={null} />
                                 </CardBody>
                             </Card>
                         </div>
@@ -651,14 +675,14 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                     </Button>
                                     {!selectedEvaluation && (
                                         <Button
-                                        color="dark"
-                                        className="mb-2"
-                                        onClick={handleDownloadAllResponses}
-                                    >
-                                        Download All Responses
-                                    </Button>
+                                            color="dark"
+                                            className="mb-2"
+                                            onClick={handleDownloadAllResponses}
+                                        >
+                                            Download All Responses
+                                        </Button>
                                     )}
-                                    
+
                                     <Button color="secondary" onClick={handleShowDownloadModal}>
                                         Cancel
                                     </Button>

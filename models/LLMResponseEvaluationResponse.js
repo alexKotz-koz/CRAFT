@@ -14,7 +14,8 @@ const LLMResponseEvaluationResponseSchema = new Schema({
             selectedSwitchOption: { type: String },
             selectedRangeOption: { type: Number },
             feedback: { type: String } 
-        }]
+        }],
+        otherFeedback: { type: String },
     }],
     createdAt: { type: Date, default: Date.now }
 });
