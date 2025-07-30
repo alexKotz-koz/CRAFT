@@ -2,18 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import StudyCard from './tools/StudyCard';
 import PrefaceModal from './tools/modals/PrefaceModal';
-import { useFetchUserQuery, useFetchStudiesQuery, useFetchAllStudiesQuery } from "../store";
+import { useFetchUserQuery, useFetchStudiesQuery, useFetchAllStudiesQuery, useFetchAllEvaluationsQuery } from "../store";
 import { Spinner, Badge } from "reactstrap";
 import '../static/custom.css';
 import ReactGA from 'react-ga4';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
     const navigate = useNavigate();
     const { data: user, error: userError, isLoading: isLoadingUser } = useFetchUserQuery();
-    // Only proceed with queries once we have user data
     const isAdmin = user?.role === 'admin';
 
-    // Skip the regular studies query if user is admin
     const {
         data: regularStudies,
         error: regularStudiesError,
@@ -21,7 +20,6 @@ const Home = () => {
         refetch: refetchRegularStudies
     } = useFetchStudiesQuery(undefined, { skip: !user || isAdmin });
 
-    // Skip the all studies query if user is not admin
     const {
         data: allStudies,
         error: allStudiesError,
@@ -29,18 +27,21 @@ const Home = () => {
         refetch: refetchAllStudies
     } = useFetchAllStudiesQuery(undefined, { skip: !user || !isAdmin });
 
-    // Combine the results based on user role
+    const {
+        data: allEvaluations,
+        error: allEvaluationsError,
+        isLoading: isLoadingAllEvaluations,
+        refetch: refetchAllEvaluations
+    } = useFetchAllEvaluationsQuery(undefined, { skip: !user || isAdmin });
+
     const userStudies = isAdmin ? allStudies : regularStudies;
     const studiesError = isAdmin ? allStudiesError : regularStudiesError;
     const isLoadingStudies = isAdmin ? isLoadingAllStudies : isLoadingRegularStudies;
     const refetch = isAdmin ? refetchAllStudies : refetchRegularStudies;
 
     const [respondedStatus, setRespondedStatus] = useState({});
-
     const [prefaceModalOpen, setPrefaceModalOpen] = useState(false);
-    const [studyName, setStudyName] = useState("");
-    const [studyId, setStudyId] = useState("");
-    const [studyPreface, setStudyPreface] = useState("");
+    const [studyNeedingPreface, setStudyNeedingPreface] = useState(null);
 
     useEffect(() => {
         ReactGA.send({
@@ -50,14 +51,13 @@ const Home = () => {
         });
     }, []);
 
-
     useEffect(() => {
         if (user) {
             refetch();
         }
-    }, [user?._id, refetch])
+    }, [user?._id, refetch]);
 
-    // Participant: Upon initial render, get all studies associated with the logged in user && get the status (responded/not responded) for each study
+    // Set responded status for studies
     useEffect(() => {
         if (user && userStudies) {
             const status = {};
@@ -68,11 +68,10 @@ const Home = () => {
                 }
             });
             setRespondedStatus(status);
-
         }
     }, [userStudies, user]);
 
-    // Participant: Upon initial render, check if it is the first time the user is logging into the app, if so send to initialConfiguration form, otherwise ignore and display user studies.
+    // Redirect to participant config if first login
     useEffect(() => {
         if (user && user.firstLogin) {
             if (user.role === 'participant') {
@@ -81,7 +80,34 @@ const Home = () => {
         }
     }, [user]);
 
-    if (isLoadingUser || isLoadingStudies) {
+    // Centralized logic for showing preface modal
+    useEffect(() => {
+        if (user && userStudies && user.role === 'participant') {
+            const study = userStudies.find(study => {
+                const participant = study.participants.find(
+                    p => p.username === user.username || p.email === user.email
+                );
+                return participant && !participant.consent;
+            });
+            if (study) {
+                setStudyNeedingPreface(study);
+                setPrefaceModalOpen(true);
+            } else {
+                setStudyNeedingPreface(null);
+                setPrefaceModalOpen(false);
+            }
+        }
+    }, [user, userStudies]);
+
+    const hasLLMREs = allEvaluations?.some(evaluation =>
+        evaluation.participants?.find(
+            participant =>
+                (participant.username === user.username || participant.email === user.email) &&
+                participant.responded === false
+        )
+    );
+
+    if (isLoadingUser || isLoadingStudies || isLoadingAllEvaluations) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
                 <Spinner color="primary" />
@@ -89,8 +115,8 @@ const Home = () => {
         );
     }
 
-    if (userError || studiesError) {
-        return <div>Error: {userError?.data.error || studiesError?.data.error}</div>;
+    if (userError || studiesError || allEvaluationsError) {
+        return <div>Error: {userError?.data?.error || studiesError?.data?.error || allEvaluationsError?.data?.error}</div>;
     }
 
     if (!user) {
@@ -115,7 +141,6 @@ const Home = () => {
             default: return 'secondary';
         }
     };
-
 
     const renderWelcomeHeader = () => (
         <div className=" bg-light border-bottom mb-4">
@@ -157,11 +182,9 @@ const Home = () => {
         );
     };
 
-
     const facilitatorContent = (study) => {
         return (
             <>
-                {/*This code is present in the study dashboard cards and clutters this card: facilitatorCompletedStudies({ study })*/}
                 {facilitatorViewDashboard({ link: `/study/dashboard/${study._id}` })}
                 {facilitatorFooter({ study })}
             </>
@@ -190,42 +213,15 @@ const Home = () => {
 
     const handleViewDiscussion = async (studyId) => {
         navigate(`/discussion/landing/${studyId}`)
-    }
-
-    const showPreface = (currentUser, study) => {
-        const participant = study.participants.find(p => p.username === currentUser);
-        const consentCompleted = participant.consent;
-        if (consentCompleted) {
-            return false
-        } else if (!consentCompleted) {
-            return true
-        }
     };
 
-    const showPrefaceModal = (study) => {
-        setStudyName(study.name);
-        setStudyPreface(study.preface);
-        setStudyId(study._id);
-        setPrefaceModalOpen(!prefaceModalOpen);
-    }
-
     const renderCompletedStudyCard = (status, study) => {
-        console.log("status", study)
         const studyId = study._id;
-        const currentUser = user.username;
         if (study.tasks.length >= 1) {
             return (
                 <button
                     className="btn btn-success text-decoration-none text-white w-100 mt-auto"
-                    onClick={
-                        () => {
-                            if (showPreface(currentUser, study)) {
-                                showPrefaceModal(study);
-                            } else {
-                                navigate(`/study/response/${studyId}`);
-                            }
-                        }
-                    }
+                    onClick={() => navigate(`/study/response/${studyId}`)}
                 >
                     Open Study
                 </button>
@@ -233,7 +229,6 @@ const Home = () => {
         } else {
             switch (status) {
                 case true:
-                    console.log("here")
                     return (
                         <div className="card-footer w-100">
                             <button
@@ -245,7 +240,6 @@ const Home = () => {
                         </div>
                     );
                 default:
-                    console.log("no")
                     return (
                         <button
                             className="btn btn-success text-decoration-none text-white w-100 mt-auto"
@@ -256,25 +250,45 @@ const Home = () => {
                     );
             }
         }
-
     };
-
 
     const renderParticipant = () => {
-        return (
-            <div className="row">
-                {userStudies.map((study, studyIndex) => (
-                    <StudyCard
-                        key={studyIndex}
-                        cardIndex={studyIndex}
-                        cardName={study.name}
-                        cardDescription={study.description}
-                        content={renderCompletedStudyCard(respondedStatus[study._id], study)}
-                    />
-                ))}
-            </div>
-        );
+        if (hasLLMREs) {
+            return (
+                <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+                    <div className="card h-100">
+                        <div className="card-body d-flex flex-column">
+                            <h5 className="card-title mb-2">LLM Response Evaluations</h5>
+                            <p className="card-text description">You have LLM Response Evalutions to Complete</p>
+                            <button
+                                className='btn btn-success'
+                                type='button'
+                            >
+                                <Link to="/llm-response-evaluation" className="text-decoration-none text-white">
+                                    Open LLM Response Evaluations
+                                </Link>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )
+        } else {
+            return (
+                <div className="row">
+                    {userStudies.map((study, studyIndex) => (
+                        <StudyCard
+                            key={studyIndex}
+                            cardIndex={studyIndex}
+                            cardName={study.name}
+                            cardDescription={study.description}
+                            content={renderCompletedStudyCard(respondedStatus[study._id], study)}
+                        />
+                    ))}
+                </div>
+            );
+        }
     };
+
     const renderContent = () => {
         switch (user.role) {
             case 'admin':
@@ -289,22 +303,22 @@ const Home = () => {
 
     return (
         <>
-        {renderWelcomeHeader()}
+            {renderWelcomeHeader()}
             <div className="container py-0 px-5 text-start">
                 {renderContent()}
-                {prefaceModalOpen &&
+                {studyNeedingPreface && prefaceModalOpen &&
                     <PrefaceModal
                         isOpen={prefaceModalOpen}
-                        toggle={showPrefaceModal}
-                        studyName={studyName}
-                        studyId={studyId}
-                        preface={studyPreface}
+                        setIsOpen={setPrefaceModalOpen}
+                        toggle={() => setPrefaceModalOpen(!prefaceModalOpen)}
+                        studyName={studyNeedingPreface.name}
+                        studyId={studyNeedingPreface._id}
+                        preface={studyNeedingPreface.preface}
                         userId={user._id}
                     />
                 }
             </div>
         </>
-
     );
 };
 

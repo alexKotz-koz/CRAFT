@@ -2,14 +2,15 @@ import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { useNavigate } from 'react-router-dom';
 import { useUpdateConsentMutation } from '../../../store';
 
-const PrefaceModal = ({ isOpen, toggle, studyName, studyId, preface, userId }) => {
+const PrefaceModal = ({ isOpen, setIsOpen, toggle, studyName, studyId, preface, userId }) => {
     const navigate = useNavigate();
     const [updateConsent, {error: updateConsentError, isLoading: consentIsLoading }] = useUpdateConsentMutation()
 
     const handleContinue = async (studyId) => {
-        console.log(studyId)
         await updateConsent({studyId, userId});
-        navigate(`/study/response/${studyId}`);
+        // Commenting the navigation to study out for Fosters Study (requested to include the LLM RE as a card on the home page so need to show consent before LLMRE's are completed, but can't navigate from consent directly to study, need to navigate to LLMRE/home)
+        //navigate(`/study/response/${studyId}`);
+        setIsOpen(!isOpen);
     };
 
     return (

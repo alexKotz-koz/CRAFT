@@ -27,6 +27,7 @@ const renderRubricField = (sectionId, rubricItem) => {
                                     e.preventDefault();
                                 }
                             }}
+                            required
                         />
                         <label className="form-check-label ms-1">{capitalizeLabel(label)}</label>
                     </div>
@@ -49,6 +50,7 @@ const renderRubricField = (sectionId, rubricItem) => {
                                     e.preventDefault();
                                 }
                             }}
+                            required
                         />
                         <label className="form-check-label ms-1">{capitalizeLabel(label)}</label>
                     </div>
@@ -69,6 +71,7 @@ const renderRubricField = (sectionId, rubricItem) => {
                                 e.preventDefault();
                             }
                         }}
+                        required
                     />
                     <label className="form-check-label ms-1">Toggle</label>
                 </div>
@@ -88,6 +91,7 @@ const renderRubricField = (sectionId, rubricItem) => {
                                 e.preventDefault();
                             }
                         }}
+                        required
                     />
                     <div className="d-flex justify-content-between">
                         <span>0</span>

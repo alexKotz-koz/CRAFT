@@ -41,7 +41,7 @@ const ExistingEvaluationsTable = ({ existingEvaluations, isParticipantView, curr
                                     </Link>
                                 </td>
                                 {isParticipantView && (
-                                    <td>
+                                    <td className="text-nowrap">
                                         {(() => {
                                             const participant = evalItem.participants.find(p => p.username === currentUser);
                                             if (!participant) return "Not Assigned";
@@ -74,6 +74,17 @@ const ExistingEvaluationsTable = ({ existingEvaluations, isParticipantView, curr
                                         {evalItem.title}
                                     </Link>
                                 </h5>
+                                {isParticipantView && (
+                                    <p className="text-nowrap mb-1">
+                                        {(() => {
+                                            const participant = evalItem.participants.find(p => p.username === currentUser);
+                                            if (!participant) return "Not Assigned";
+                                            return participant.responded
+                                                ? (<span><GoCheck /> Completed</span>)
+                                                : (<span><GoX /> Not Completed</span>);
+                                        })()}
+                                    </p>
+                                )}
                                 <p className="card-text mb-1"><strong>Type:</strong> {handleFormatType(evalItem.kind)}</p>
                                 <p className="card-text mb-1"><strong>Rubric Items:</strong> {evalItem.rubricItems ? evalItem.rubricItems.length : 0}</p>
                                 <p className="card-text mb-1"><strong>Date:</strong> {new Date(evalItem.createdAt).toLocaleString()}</p>
