@@ -76,6 +76,13 @@ const llmREApi = createApi({
                     method: 'GET',
                 }),
             }),
+            editEvaluation: builder.mutation({
+                query: ({ evaluationId, evaluationEdits }) => ({
+                    url: `/llm-response-evaluation/${evaluationId}/edit`,
+                    method: 'POST',
+                    body: {evaluationEdits}
+                })
+            })
         };
     }
 
@@ -90,6 +97,7 @@ export const {
     useFetchAllUserEvaluationResponsesQuery,
     useLazyFetchUserResponsesForDownloadQuery,
     useAssignParticipantLLMREMutation,
-    useFetchEvaluationResponseByIdQuery
+    useFetchEvaluationResponseByIdQuery,
+    useEditEvaluationMutation
 } = llmREApi;
 export { llmREApi };

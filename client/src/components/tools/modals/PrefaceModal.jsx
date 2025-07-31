@@ -10,7 +10,7 @@ const PrefaceModal = ({ isOpen, setIsOpen, toggle, studyName, studyId, preface, 
         await updateConsent({studyId, userId});
         // Commenting the navigation to study out for Fosters Study (requested to include the LLM RE as a card on the home page so need to show consent before LLMRE's are completed, but can't navigate from consent directly to study, need to navigate to LLMRE/home)
         //navigate(`/study/response/${studyId}`);
-        setIsOpen(!isOpen);
+        setIsOpen(!isOpen); //comment this line if you want to uncomment navigate(<study>) 
     };
 
     return (

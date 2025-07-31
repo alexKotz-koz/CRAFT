@@ -208,4 +208,57 @@ module.exports = (app) => {
         }
     });
 
+    app.post('/api/llm-response-evaluation/:evaluationId/edit', requireLogin, requireFacilitatorPermissions, async (req, res) => {
+        try {
+            const { evaluationId } = req.params;
+            const { evaluationEdits } = req.body;
+    
+            const llmre = await LLMResponseEvaluation.findById(evaluationId);
+            if (!llmre) {
+                return res.status(404).send('Evaluation not found');
+            }
+    
+            if (!evaluationEdits || typeof evaluationEdits !== "object" || Object.keys(evaluationEdits).length === 0) {
+                return res.status(400).send("Evaluation edits not formatted properly");
+            }
+    
+            // Update top-level fields
+            if (evaluationEdits.instructions !== undefined) {
+                llmre.instructions = evaluationEdits.instructions;
+            }
+    
+            // Update chat content and rubric items
+            Object.entries(evaluationEdits).forEach(([key, value]) => {
+                // Chat updates
+                if (key.startsWith("chat_")) {
+                    const chatId = parseInt(key.replace("chat_", ""), 10);
+                    if (llmre.transcript) {
+                        const chat = llmre.transcript.find(c => c.chatId === chatId);
+                        if (chat) chat.content = value;
+                    }
+                    if (llmre.sections) {
+                        llmre.sections.forEach(section => {
+                            const chat = section.transcript.find(c => c.chatId === chatId);
+                            if (chat) chat.content = value;
+                        });
+                    }
+                }
+    
+                // Rubric item updates
+                const rubricMatch = key.match(/^rubricItem_(\d+)_(title|caption|reason)$/);
+                if (rubricMatch) {
+                    const itemId = parseInt(rubricMatch[1], 10);
+                    const field = rubricMatch[2];
+                    const rubricItem = llmre.rubricItems.find(item => item.itemId === itemId);
+                    if (rubricItem) rubricItem[field] = value;
+                }
+            });
+    
+            await llmre.save();
+            res.send({ message: "Evaluation updated successfully", llmre });
+        } catch (err) {
+            console.error("Error updating llm response evaluation: ", err);
+            res.status(500).send(err);
+        }
+    });
 };

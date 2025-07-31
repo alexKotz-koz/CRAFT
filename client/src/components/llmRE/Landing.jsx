@@ -3,6 +3,7 @@ import ButtonLink from "../tools/ButtonLink"
 import ExistingEvaluationsTable from "./ExistingEvaluationsTable";
 import ExsitingResponsesTable from "./ExistingResponsesTable";
 import AssignNewParticipantsTable from "./AssignNewParticipantsTable";
+import EditExistingEvaluationsTable from "./EditExistingEvaluationsTable";
 import { useFetchAllEvaluationsQuery, useFetchAllUserEvaluationResponsesQuery, useLazyFetchUserResponsesForDownloadQuery } from "../../store";
 import { useState, useEffect } from "react";
 
@@ -10,10 +11,13 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
     const { data: allEvaluations, isLoading: isLoadingAllEvalutions, error: errorAllEvaluations, refetch: refetchEvaluations } = useFetchAllEvaluationsQuery();
     const { data: allResponses, isLoading: isLoadingAllResponses, error: errorAllResponses } = useFetchAllUserEvaluationResponsesQuery();
     const [triggerDownload, { data: userResponsesForDownload, isLoading: isLoadingUserResponses, error: errorUserResponses }] = useLazyFetchUserResponsesForDownloadQuery();
+
     const [showExistingEvaluations, setShowExistingEvaluations] = useState(false);
     const [showExistingResponses, setShowExistingResponses] = useState(false);
     const [showDownloadModal, setShowDownloadModal] = useState(false);
     const [showAssignNewParticipants, setShowAssignNewParticipants] = useState(false);
+    const [showEditEvaluation, setShowEditEvaluation] = useState(false);
+
     const [downloadReady, setDownloadReady] = useState(false);
     const [selectedEvaluation, setSelectedEvaluation] = useState(null);
     const [selectedParticipants, setSelectedParticipants] = useState([]);
@@ -58,6 +62,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
         );
     }
 
+    /** Helper functions for displaying tables */
     const handleShowExistingEvaluations = () => {
         setShowExistingEvaluations(!showExistingEvaluations);
     };
@@ -69,6 +74,10 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
     const handleShowDownloadModal = () => {
         setShowDownloadModal(!showDownloadModal);
         setDownloadReady(false);
+    };
+
+    const handleShowEditEvaluation = () => {
+        setShowEditEvaluation(!showEditEvaluation);
     };
 
     // Download 1. This is triggered from the modal
@@ -392,6 +401,7 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                     </div>
 
                     {/* Action Cards */}
+                    {/** ROW */}
                     <div className="row g-4 mb-5">
                         <div className="col-md-6">
                             <Card className="h-100 border-0 shadow-sm hover-shadow">
@@ -413,7 +423,6 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                 </CardBody>
                             </Card>
                         </div>
-
                         {/**Download Responses Card */}
                         <div className="col-md-6">
                             <Card className="h-100 border-0 shadow-sm hover-shadow">
@@ -436,9 +445,10 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                 </CardBody>
                             </Card>
                         </div>
-
                     </div>
+
                     {/** Assign New Participants Card */}
+                    {/** ROW */}
                     <div className="row g-4 mb-5">
                         <div className="col-md-6">
                             <Card className="h-100 border-0 shadow-sm hover-shadow">
@@ -459,8 +469,30 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                                 </CardBody>
                             </Card>
                         </div>
+                        {/** Edit Evaluation Template Card */}
+                        <div className="col-md-6">
+                            <Card className="h-100 border-0 shadow-sm hover-shadow">
+                                <CardBody className="d-flex flex-column">
+                                    <div className="d-flex align-items-center mb-3">
+                                        <div className="bg-purple-10 rounded-circle p-3 me-3">
+                                            <i className="fas fa-list text-warning fs-4"></i>
+                                        </div>
+                                        <h5 className="mb-0">Edit Existing Evaluation</h5>
+                                    </div>
+                                    <p className="text-muted mb-4 flex-grow-1">Edit an existing LLM Response Evaluation</p>
+                                    <button
+                                        className={showEditEvaluation ? `btn btn-outline-purple w-100` : `btn btn-purple w-100`}
+                                        onClick={handleShowEditEvaluation}
+                                    >
+                                        {showEditEvaluation ? 'Hide' : 'Show'} Evaluations
+                                    </button>
+                                </CardBody>
+                            </Card>
+                        </div>
                     </div>
+
                     {/** View Evaluations Card */}
+                    {/** ROW */}
                     <div className="row g-4 mb-5">
                         <div className="col-md-6">
                             <Card className="h-100 border-0 shadow-sm hover-shadow">
@@ -509,6 +541,22 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                         </div>
                     </div>
 
+                    {/* Edit Existing Evaluations Table */}
+                    {showEditEvaluation && (
+                        <div className="mb-4">
+                            <Card className="border-0 shadow-sm">
+                                <CardBody>
+                                    <h5 className="card-title mb-3">
+                                        <i className="fas fa-table me-2"></i>
+                                        Existing Evaluations
+                                    </h5>
+                                    <EditExistingEvaluationsTable existingEvaluations={allEvaluations} />
+                                </CardBody>
+                            </Card>
+                        </div>
+                    )
+
+                    }
                     {/* Existing Evaluations Table */}
                     {showExistingEvaluations && (
                         <div className="mb-4">

@@ -18,6 +18,7 @@ import LLMRELanding from "./llmRE/Landing";
 import LLMRECreate from './llmRE/CreateNewEvaluation';
 import LLMResponseEvaluation from "./llmRE/LLMResponseEvaluation";
 import READONLY_LLMResponseEvaluation from "./llmRE/READONLY_LLMResponseEvaluation";
+import EditExistingEvaluation from "./llmRE/EditExistingEvaluation";
 import ReactGA from 'react-ga4';
 
 //Prod
@@ -77,6 +78,7 @@ const App = () => {
                     } />
                     <Route path='/llm-response-evaluation/create' element={<LLMRECreate />} />
                     <Route path="/llm-response-evaluation/:evaluationId" element={<LLMResponseEvaluation />} />
+                    <Route path="/llm-response-evaluation/:evaluationId/edit" element={<EditExistingEvaluation />} />
                     <Route
                         path="/llm-response-evaluation/readonly/:evaluationId/:responseId"
                         element={<READONLY_LLMResponseEvaluation />}
