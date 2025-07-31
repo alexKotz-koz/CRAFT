@@ -133,7 +133,7 @@ const EditExistingEvaluation = () => {
             evaluationId,
             evaluationEdits: values
         };
-        console.log("handleSubmit: ", submission)
+        
         try {
             await editEvaluation(submission).unwrap();
             navigate('/home');
