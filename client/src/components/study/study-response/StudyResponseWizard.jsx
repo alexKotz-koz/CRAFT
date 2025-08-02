@@ -18,7 +18,7 @@ const StudyResponseWizard = ({ user }) => {
             title: "Study Response Wizard - CRAFT",
         });
     }, []);
-    
+
 
     useEffect(() => {
         if (study && study.tasks) {
@@ -55,13 +55,13 @@ const StudyResponseWizard = ({ user }) => {
         .filter(task => task.participants.some(participant => participant.email === user.email)) // Filter tasks
         .reduce((resultArray, item, index) => {
             const chunkIndex = Math.floor(index / 4);
-    
+
             if (!resultArray[chunkIndex]) {
                 resultArray[chunkIndex] = [];
             }
-    
+
             resultArray[chunkIndex].push(item);
-    
+
             return resultArray;
         }, []);
 
@@ -103,7 +103,7 @@ const StudyResponseWizard = ({ user }) => {
                     <p className="card-text">{study.description}</p>
                 </div>
             </div>
-            
+
             <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
                 {study.tasks
                     .filter(task => task.participants.some(participant => participant.email === user.email))
@@ -116,7 +116,9 @@ const StudyResponseWizard = ({ user }) => {
                                     </h5>
                                 </div>
                                 <p className="card-text description flex-grow-1">
-                                    {task.instructions}
+                                    {task.instructions && task.instructions !== "" && task.instructions !== "TBD" && (
+                                        task.instructions
+                                    )}
                                 </p>
                                 {renderCompletedTaskCard(respondedStatus[task._id], task._id)}
                             </div>

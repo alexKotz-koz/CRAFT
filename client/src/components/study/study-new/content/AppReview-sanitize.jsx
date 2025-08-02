@@ -37,13 +37,11 @@ const AppReview = ({ initialValues, handleFormSubmit, onCancel }) => {
 
 
     const handleBundleTaskData = (content) => {
-        console.log("handleBundleTaskData", content);
         handleFormSubmit(content);
     }
 
     const handleAddTask = (values) => {
-        console.log("handleAddTask values: ", values)
-        console.log("handleAddTask Questions: ", questionList)
+
 
         const cleanedValues = Object.keys(values).reduce((acc, key) => {
             acc[key] = sanitizeHtml(values[key]); 

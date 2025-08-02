@@ -269,7 +269,7 @@ const READONLY_LLMResponseEvaluation = () => {
                         <div className="row d-none d-md-flex mb-2">
                             <div className="col-md-4 fw-bold border text-center">AI Output</div>
                             <div className="col-md-4 fw-bold border text-center">Rubric Selection</div>
-                            <div className="col-md-4 fw-bold border text-center">Feedback</div>
+                            <div className="col-md-4 fw-bold border text-center">Jusification for yes or no</div>
                         </div>
                         {evaluation?.sections.map((section, sectionIdx) => (
                             <div className="row mb-3" key={section.sectionId || sectionIdx}>
@@ -328,23 +328,24 @@ const READONLY_LLMResponseEvaluation = () => {
                                             <div className="col-12 col-md-6 mb-2 mb-md-0">
                                                 <div className="fw-semibold">{rubricItem.title}</div>
                                                 <div className="mb-1">{rubricItem.caption}</div>
+                                                {/* Free Text */}
+                                                <div className="col-12 col-md-6">
+                                                    <Field
+                                                        name={`section_${section.sectionId}_feedback_${rubricItem.itemId}`}
+                                                        component="textarea"
+                                                        className="form-control mb-2 w-100"
+                                                        placeholder={rubricItem.reason || "Enter feedback..."}
+                                                        rows={2}
+                                                        onKeyDown={e => {
+                                                            if (e.key === "Enter") {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
                                                 {renderRubricField(section.sectionId, rubricItem)}
                                             </div>
-                                            {/* Free Text */}
-                                            <div className="col-12 col-md-6">
-                                                <Field
-                                                    name={`section_${section.sectionId}_feedback_${rubricItem.itemId}`}
-                                                    component="textarea"
-                                                    className="form-control mb-2 w-100"
-                                                    placeholder={rubricItem.reason || "Enter feedback..."}
-                                                    rows={2}
-                                                    onKeyDown={e => {
-                                                        if (e.key === "Enter") {
-                                                            e.preventDefault();
-                                                        }
-                                                    }}
-                                                />
-                                            </div>
+
                                         </div>
                                     ))}
                                 </div>
@@ -401,7 +402,7 @@ const READONLY_LLMResponseEvaluation = () => {
                         <div className="row d-none d-md-flex mb-2">
                             <div className="col-4 fw-bold border text-center">AI Output</div>
                             <div className="col-4 fw-bold border text-center">Rubric Selection</div>
-                            <div className="col-4 fw-bold border text-center"> Feedback</div>
+                            <div className="col-4 fw-bold border text-center">Justification for yes or no</div>
                         </div>
                         <div className="row mb-3">
                             {/* Mobile Headers */}
@@ -458,17 +459,45 @@ const READONLY_LLMResponseEvaluation = () => {
                                         {/* Rubric Selection */}
                                         <div className="col-12 col-md-6 mb-2 mb-md-0">
                                             <div className="fw-semibold border-bottom mb-3">{rubricItem.title}</div>
-                                            <div className="mb-1">{rubricItem.caption}</div>
+                                            <div className="mb-3">{rubricItem.caption}</div>
+                                            <div
+                                                className="bg-light border-start border-4 border-secondary rounded-3 px-3 py-2 mb-2"
+                                                style={{ whiteSpace: "pre-wrap", fontSize: "0.97rem" }}
+                                            >
+                                                <span className="small text-muted">
+                                                    {rubricItem.reason?.includes("Sub-criteria to consider:") ? (
+                                                        <>
+                                                            <strong>Sub-criteria to consider:</strong>
+                                                            {rubricItem.reason.split("Sub-criteria to consider:")[1]}
+                                                        </>
+                                                    ) : rubricItem.reason}
+                                                </span>
+                                            </div>
+
                                             {renderRubricField("full", rubricItem)}
                                         </div>
                                         {/* Free Text */}
                                         <div className="col-12 col-md-6">
+                                            {/* <div
+                                                className="bg-light border-start border-4 border-secondary rounded-3 px-3 py-2 mb-2"
+                                                style={{ whiteSpace: "pre-wrap", fontSize: "0.97rem" }}
+                                            >
+                                                <span className="small text-muted">
+                                                    {rubricItem.reason?.includes("Sub-criteria to consider:") ? (
+                                                        <>
+                                                            <strong>Sub-criteria to consider:</strong>
+                                                            {rubricItem.reason.split("Sub-criteria to consider:")[1]}
+                                                        </>
+                                                    ) : rubricItem.reason}
+                                                </span>
+                                            </div> */}
+
                                             <Field
                                                 name={`full_feedback_${rubricItem.itemId}`}
                                                 component="textarea"
                                                 className="form-control mb-2 w-100"
-                                                placeholder={rubricItem.reason || "Enter feedback..."}
-                                                rows={4}
+                                                placeholder={"Enter your justification for 'yes' or 'no' here..."}
+                                                rows={6}
                                                 onKeyDown={e => {
                                                     if (e.key === "Enter") {
                                                         e.preventDefault();

@@ -338,7 +338,7 @@ const LLMResponseEvaluation = () => {
                                             </div>
                                             {/* Free Text */}
                                             <div className="col-12 col-md-6">
-                                                <div
+                                                {/* <div
                                                     className="bg-light border-start border-4 border-secondary rounded-3 px-3 py-2 mb-2"
                                                     style={{ whiteSpace: "pre-wrap", fontSize: "0.97rem" }}
                                                 >
@@ -350,7 +350,7 @@ const LLMResponseEvaluation = () => {
                                                             </>
                                                         ) : rubricItem.reason}
                                                     </span>
-                                                </div>
+                                                </div> */}
                                                 <Field
                                                     name={`section_${section.sectionId}_feedback_${rubricItem.itemId}`}
                                                     component="textarea"
@@ -422,7 +422,7 @@ const LLMResponseEvaluation = () => {
                         <div className="row d-none d-md-flex mb-2">
                             <div className="col-4 fw-bold border text-center">AI Output</div>
                             <div className="col-4 fw-bold border text-center">Rubric Selection</div>
-                            <div className="col-4 fw-bold border text-center"> Jusification for Your Answer</div>
+                            <div className="col-4 fw-bold border text-center">Jusification for yes or no</div>
                         </div>
                         <div className="row mb-3">
                             {/* Mobile Headers */}
@@ -480,26 +480,6 @@ const LLMResponseEvaluation = () => {
                                         <div className="col-12 col-md-6 mb-2 mb-md-0">
                                             <div className="fw-semibold border-bottom mb-3">{rubricItem.title}</div>
                                             <div className="mb-3">{rubricItem.caption}</div>
-                                            {/* Either put Additional Considerations here or above the rubric item feedback 
-                                            <div
-                                                className="bg-light border-start border-4 border-secondary rounded-3 px-3 py-2 mb-2"
-                                                style={{ whiteSpace: "pre-wrap", fontSize: "0.97rem" }}
-                                            >
-                                                <span className="small text-muted">
-                                                    {rubricItem.reason?.includes("Sub-criteria to consider:") ? (
-                                                        <>
-                                                            <strong>Sub-criteria to consider:</strong>
-                                                            {rubricItem.reason.split("Sub-criteria to consider:")[1]}
-                                                        </>
-                                                    ) : rubricItem.reason}
-                                                </span>
-                                            </div>*/}
-
-                                            {renderRubricField("full", rubricItem)}
-                                        </div>
-
-                                        {/* Free Text */}
-                                        <div className="col-12 col-md-6">
                                             <div
                                                 className="bg-light border-start border-4 border-secondary rounded-3 px-3 py-2 mb-2"
                                                 style={{ whiteSpace: "pre-wrap", fontSize: "0.97rem" }}
@@ -514,17 +494,37 @@ const LLMResponseEvaluation = () => {
                                                 </span>
                                             </div>
 
+                                            {renderRubricField("full", rubricItem)}
+                                        </div>
+
+                                        {/* Free Text */}
+                                        <div className="col-12 col-md-6">
+                                            {/* <div
+                                                className="bg-light border-start border-4 border-secondary rounded-3 px-3 py-2 mb-2"
+                                                style={{ whiteSpace: "pre-wrap", fontSize: "0.97rem" }}
+                                            >
+                                                <span className="small text-muted">
+                                                    {rubricItem.reason?.includes("Sub-criteria to consider:") ? (
+                                                        <>
+                                                            <strong>Sub-criteria to consider:</strong>
+                                                            {rubricItem.reason.split("Sub-criteria to consider:")[1]}
+                                                        </>
+                                                    ) : rubricItem.reason}
+                                                </span>
+                                            </div> */}
+
                                             <Field
                                                 name={`full_feedback_${rubricItem.itemId}`}
                                                 component="textarea"
                                                 className="form-control mb-2 w-100"
-                                                placeholder={"Enter your justification here..."}
-                                                rows={4}
+                                                placeholder={"Enter your justification for 'yes' or 'no' here..."}
+                                                rows={6}
                                                 onKeyDown={e => {
                                                     if (e.key === "Enter") {
                                                         e.preventDefault();
                                                     }
                                                 }}
+                                                required
                                             />
                                         </div>
                                     </div>
@@ -532,12 +532,12 @@ const LLMResponseEvaluation = () => {
                             </div>
                         </div>
                         <div className="row mb-3">
-                            <label htmlFor="otherFeedback" className="form-label fw-semibold">Additional Feedback (optional)</label>
+                            <label htmlFor="otherFeedback" className="form-label fw-semibold">Additional Feedback on Quality of Rubric Questions and AI Output</label>
                             <Field
                                 name='otherFeedback'
                                 component="textarea"
                                 className="form-control mb-2 w-100"
-                                placeholder={"Enter your justification here..."}
+                                placeholder={"Enter feedback here..."}
                                 rows={4}
                                 onKeyDown={e => {
                                     if (e.key === "Enter") {
