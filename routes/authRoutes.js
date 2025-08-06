@@ -6,6 +6,7 @@ const requireLogin = require('../middlewares/requireLogin');
 const requireFacilitatorPermissions = require('../middlewares/requireFacilitatorPermissions');
 const getRandomWords = require('./usernameGeneration/generateUsername');
 const generateAvatar = require('./usernameGeneration/generateAvatar');
+const Study = mongoose.model('Study'); 
 
 function generateUsername() {
     const { adjective, noun } = getRandomWords();
@@ -55,7 +56,7 @@ module.exports = (app) => {
 
     // API: passwordReset
     // Used in: PasswordReset.jsx
-     // *** Note: Uses users email to find and update records
+    // *** Note: Uses users email to find and update records
     app.post('/auth/password_reset', async (req, res) => {
         const { email, currentPassword, newPassword } = req.body;
         try {
@@ -103,7 +104,6 @@ module.exports = (app) => {
                 } while (existingUser);
             }
 
-
             const salt = await bcrypt.genSalt(10); //default
             const hashed = await bcrypt.hash(password, salt);
 
@@ -121,6 +121,14 @@ module.exports = (app) => {
                 firstLogin: true
             });
             await newUser.save();
+
+            if (role === "facilitator" || role === "admin") {
+                await Study.updateMany(
+                    {},
+                    { $addToSet: { _facilitator: newUser._id } }
+                );
+            }
+
             res.json({ user: newUser });
         } catch (error) {
             console.error("Error creating user: ", error)
@@ -221,11 +229,11 @@ module.exports = (app) => {
 
     // API: updateUser
     // Used in: ParticipantInitialConfig.jsx
-    app.post('/auth/update_user', requireLogin, async(req, res) => {
-        const {username, jobRole, jobDepartment, jobYears} = req.body;
+    app.post('/auth/update_user', requireLogin, async (req, res) => {
+        const { username, jobRole, jobDepartment, jobYears } = req.body;
         try {
             const user = await User.findOneAndUpdate(
-                {username: username},
+                { username: username },
                 { jobRole, jobDepartment, jobYears, firstLogin: false },
                 { new: true }
             );
@@ -240,24 +248,24 @@ module.exports = (app) => {
             res.status(422).send(err);
         }
     });
-        // API: getUserById
+    // API: getUserById
     // Used in: StudyDashboard.jsx for resolving voter usernames
     // Takes a user ID and returns basic user info (username, etc.)
     app.get('/auth/user/:userId', async (req, res) => {
         const { userId } = req.params;
-        
+
         // Validate userId format
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ error: "Invalid user ID format" });
         }
-        
+
         try {
             const user = await User.findById(userId).select('username avatar firstName lastName');
-            
+
             if (!user) {
                 return res.status(404).json({ error: "User not found" });
             }
-            
+
             // Return basic user info
             res.json({
                 _id: user._id,

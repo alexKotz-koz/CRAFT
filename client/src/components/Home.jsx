@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 const Home = () => {
     const navigate = useNavigate();
     const { data: user, error: userError, isLoading: isLoadingUser } = useFetchUserQuery();
-    const isAdmin = user?.role === 'admin';
+    const isAdmin = user?.role === 'admin' || user?.role === 'facilitator';
 
     const {
         data: regularStudies,

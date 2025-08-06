@@ -14,7 +14,7 @@ const StudySchema = new Schema({
     },
     tasks: [{ type: Schema.Types.ObjectId, ref: 'StudyTask' }],
     _createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
-    _facilitator: { type: Schema.Types.ObjectId, ref: 'User' },
+    _facilitator: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     _dateCreated: { type: Date, default: Date.now }
 });
 
