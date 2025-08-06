@@ -27,7 +27,7 @@ const renderRubricField = (sectionId, rubricItem) => {
                                     e.preventDefault();
                                 }
                             }}
-                            required
+                            validate={required}
                         />
                         <label className="form-check-label ms-1">{capitalizeLabel(label)}</label>
                     </div>
@@ -50,6 +50,7 @@ const renderRubricField = (sectionId, rubricItem) => {
                                     e.preventDefault();
                                 }
                             }}
+                
                             required
                         />
                         <label className="form-check-label ms-1">{capitalizeLabel(label)}</label>
@@ -71,7 +72,7 @@ const renderRubricField = (sectionId, rubricItem) => {
                                 e.preventDefault();
                             }
                         }}
-                        required
+                        validate={required}
                     />
                     <label className="form-check-label ms-1">Toggle</label>
                 </div>
@@ -91,7 +92,7 @@ const renderRubricField = (sectionId, rubricItem) => {
                                 e.preventDefault();
                             }
                         }}
-                        required
+                        validate={required}
                     />
                     <div className="d-flex justify-content-between">
                         <span>0</span>
@@ -103,6 +104,8 @@ const renderRubricField = (sectionId, rubricItem) => {
             return <div className="text-muted">Unknown rubric type</div>;
     }
 };
+
+const required = value => (value == null || value === "" ? "Required" : undefined);
 
 const LLMResponseEvaluation = () => {
     const { evaluationId } = useParams();
@@ -515,17 +518,28 @@ const LLMResponseEvaluation = () => {
 
                                             <Field
                                                 name={`full_feedback_${rubricItem.itemId}`}
-                                                component="textarea"
-                                                className="form-control mb-2 w-100"
-                                                placeholder={"Enter your justification for 'yes' or 'no' here..."}
-                                                rows={6}
-                                                onKeyDown={e => {
-                                                    if (e.key === "Enter") {
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                required
-                                            />
+                                                validate={required}
+                                            >
+                                                {({ input, meta }) => (
+                                                    <div className="mb-2 position-relative">
+                                                        <textarea
+                                                            {...input}
+                                                            className={`form-control w-100${meta.touched && meta.error ? " is-invalid" : ""}`}
+                                                            placeholder={"Enter your justification for 'yes' or 'no' here..."}
+                                                            rows={6}
+                                                            onKeyDown={e => {
+                                                                if (e.key === "Enter") {
+                                                                    e.preventDefault();
+                                                                }
+                                                            }}
+                                                        />
+
+                                                        {meta.touched && meta.error && (
+                                                            <div className="invalid-feedback d-block">{meta.error}</div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </Field>
                                         </div>
                                     </div>
                                 ))}
@@ -535,16 +549,27 @@ const LLMResponseEvaluation = () => {
                             <label htmlFor="otherFeedback" className="form-label fw-semibold">Additional Feedback on Quality of Rubric Questions and AI Output</label>
                             <Field
                                 name='otherFeedback'
-                                component="textarea"
-                                className="form-control mb-2 w-100"
-                                placeholder={"Enter feedback here..."}
-                                rows={4}
-                                onKeyDown={e => {
-                                    if (e.key === "Enter") {
-                                        e.preventDefault();
-                                    }
-                                }}
-                            />
+                                validate={required}
+                            >
+                                {({ input, meta }) => (
+                                    <div className="mb-2 position-relative">
+                                        <textarea
+                                            {...input}
+                                            className={`form-control w-100${meta.touched && meta.error ? " is-invalid" : ""}`}
+                                            placeholder={"Enter feedback here..."}
+                                            rows={4}
+                                            onKeyDown={e => {
+                                                if (e.key === "Enter") {
+                                                    e.preventDefault();
+                                                }
+                                            }}
+                                        />
+                                        {meta.touched && meta.error && (
+                                            <div className="invalid-feedback d-block">{meta.error}</div>
+                                        )}
+                                    </div>
+                                )}
+                            </Field>
                         </div>
                         {formErrorSubmission ? (
                             <div className="border border-danger rounded text-danger px-2 mt-2">
