@@ -56,7 +56,8 @@ const ParticipantDashboard = () => {
 
     return (
         <div className="container ">
-            {/* <div className="row">
+            {/* Future: Add links to participant password reset, LLMRE assignment, and Study/Task assignment
+             <div className="row">
                 <div className="col-4">
                     <div className="card border border-dark rounded">
                         <div className="card-body d-flex flex-column">

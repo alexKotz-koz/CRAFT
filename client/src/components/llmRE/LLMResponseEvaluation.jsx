@@ -242,7 +242,7 @@ const LLMResponseEvaluation = () => {
 
         try {
             await createEvaluationResponse(submission).unwrap();
-            navigate('/home');
+            navigate('/llm-response-evaluation');
         } catch (err) {
             console.error("CreateEvaluationResponse: Error creating evaluation response", err);
             setFormErrorSubmission(err);
