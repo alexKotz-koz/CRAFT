@@ -217,39 +217,30 @@ const Home = () => {
 
     const renderCompletedStudyCard = (status, study) => {
         const studyId = study._id;
-        if (study.tasks.length >= 1) {
-            return (
-                <button
-                    className="btn btn-success text-decoration-none text-white w-100 mt-auto"
-                    onClick={() => navigate(`/study/response/${studyId}`)}
-                >
-                    Open Study
-                </button>
-            );
-        } else {
-            switch (status) {
-                case true:
-                    return (
-                        <div className="card-footer w-100">
-                            <button
-                                className="btn btn-secondary text-decoration-none text-white w-100"
-                                onClick={() => handleViewDiscussion(studyId)}
-                            >
-                                View Discussions
-                            </button>
-                        </div>
-                    );
-                default:
-                    return (
-                        <button
-                            className="btn btn-success text-decoration-none text-white w-100 mt-auto"
-                            onClick={() => navigate(`/study/response/${studyId}`)}
-                        >
-                            Open Study
-                        </button>
-                    );
-            }
+
+        switch (status) {
+            case true:
+                return (
+
+                    <button
+                        className="btn btn-secondary text-decoration-none text-white w-100 mt-2"
+                        onClick={() => navigate(`/study/response/${studyId}`)}
+                    >
+                        View Discussions
+                    </button>
+
+                );
+            default:
+                return (
+                    <button
+                        className="btn btn-success text-decoration-none text-white w-100 mt-auto"
+                        onClick={() => navigate(`/study/response/${studyId}`)}
+                    >
+                        Open Study
+                    </button>
+                );
         }
+
     };
 
     const renderParticipant = () => {
@@ -273,22 +264,20 @@ const Home = () => {
             return (
                 <div className="row">
                     {userStudies.map((study, studyIndex) => (
-                        <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4" key={studyIndex}>
-                            <StudyCard
-                                cardIndex={studyIndex}
-                                cardName={study.name}
-                                cardDescription={study.description}
-                                content={renderCompletedStudyCard(respondedStatus[study._id], study)}
-                            />
-                        </div>
+                        <StudyCard
+                            cardIndex={studyIndex}
+                            cardName={study.name}
+                            cardDescription={study.description}
+                            content={renderCompletedStudyCard(respondedStatus[study._id], study)}
+                            key={studyIndex}
+                        />
                     ))}
                     <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
                         <div className="card h-100">
                             <div className="card-body d-flex flex-column">
                                 <h5 className="card-title mb-2">LLM Response Evaluations</h5>
-                                <p className="card-text description">You have LLM Response Evaluations to Complete</p>
                                 <Link to="/llm-response-evaluation" className="btn btn-secondary text-decoration-none text-white mt-auto">
-                                    View Completed LLM Response Evaluations
+                                    View LLM Response Evaluations
                                 </Link>
                             </div>
                         </div>
