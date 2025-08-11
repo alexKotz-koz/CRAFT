@@ -255,35 +255,44 @@ const Home = () => {
     const renderParticipant = () => {
         if (hasLLMREs) {
             return (
-                <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
-                    <div className="card h-100">
-                        <div className="card-body d-flex flex-column">
-                            <h5 className="card-title mb-2">LLM Response Evaluations</h5>
-                            <p className="card-text description">You have LLM Response Evalutions to Complete</p>
-                            <button
-                                className='btn btn-success'
-                                type='button'
-                            >
-                                <Link to="/llm-response-evaluation" className="text-decoration-none text-white">
+                <div className="row">
+                    <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+                        <div className="card h-100">
+                            <div className="card-body d-flex flex-column">
+                                <h5 className="card-title mb-2">LLM Response Evaluations</h5>
+                                <p className="card-text description">You have LLM Response Evaluations to Complete</p>
+                                <Link to="/llm-response-evaluation" className="btn btn-success text-decoration-none text-white mt-auto">
                                     Open LLM Response Evaluations
                                 </Link>
-                            </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            )
+            );
         } else {
             return (
                 <div className="row">
                     {userStudies.map((study, studyIndex) => (
-                        <StudyCard
-                            key={studyIndex}
-                            cardIndex={studyIndex}
-                            cardName={study.name}
-                            cardDescription={study.description}
-                            content={renderCompletedStudyCard(respondedStatus[study._id], study)}
-                        />
+                        <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4" key={studyIndex}>
+                            <StudyCard
+                                cardIndex={studyIndex}
+                                cardName={study.name}
+                                cardDescription={study.description}
+                                content={renderCompletedStudyCard(respondedStatus[study._id], study)}
+                            />
+                        </div>
                     ))}
+                    <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+                        <div className="card h-100">
+                            <div className="card-body d-flex flex-column">
+                                <h5 className="card-title mb-2">LLM Response Evaluations</h5>
+                                <p className="card-text description">You have LLM Response Evaluations to Complete</p>
+                                <Link to="/llm-response-evaluation" className="btn btn-secondary text-decoration-none text-white mt-auto">
+                                    View Completed LLM Response Evaluations
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             );
         }
