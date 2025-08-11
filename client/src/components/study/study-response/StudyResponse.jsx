@@ -36,7 +36,6 @@ const StudyResponse = ({ user }) => {
             prompt: key,
             response: values[key],
         }));
-
         const response = {
             studyId: task.study,
             taskId: taskId,
@@ -48,7 +47,7 @@ const StudyResponse = ({ user }) => {
         try {
             await createResponse(response).unwrap();
             await refetchStudy();
-            navigate('/home');
+            navigate(`/study/response/${task.study}`);
         } catch (err) {
             console.error("Failed to create response: ", err);
         }
