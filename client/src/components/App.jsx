@@ -36,6 +36,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../static/custom.css';
 import AdminPasswordReset from "./auth/AdminPasswordReset";
+import ParticipantDashboard from "./participant-dashboard/ParticipantDashboard";
 
 
 
@@ -83,6 +84,7 @@ const App = () => {
                         path="/llm-response-evaluation/readonly/:evaluationId/:responseId"
                         element={<READONLY_LLMResponseEvaluation />}
                     />
+                    <Route path="/participant-dashboard" element={<ParticipantDashboard />} />
                 </Routes>
             </BrowserRouter>
         </div>

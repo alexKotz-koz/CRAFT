@@ -95,6 +95,14 @@ const Header = ({ user }) => {
                     </li>
                 )}
                 {(data?.role === "facilitator" || data?.role === "admin") && (
+                    <li className="nav-item mx-2">
+                        <Link
+                            to="/participant-dashboard"
+                            className="btn btn-light btn-sm border border-dark rounded-pill d-flex align-items-center gap-2 px-3"
+                        >Participant Dashboard</Link>
+                    </li>
+                )}
+                {(data?.role === "facilitator" || data?.role === "admin") && (
                 <li className="nav-item mx-2">
                     <Link
                         to="/llm-response-evaluation"
