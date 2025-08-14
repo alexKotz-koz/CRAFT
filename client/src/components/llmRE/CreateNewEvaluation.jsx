@@ -39,7 +39,7 @@ const LLMRECreate = () => {
     const [formErrorSubmission, setFormErrorSubmission] = useState("");
     const [sections, setSections] = useState([]);
     const [rubricItems, setRubricItems] = useState([]);
-    
+
     const [humanMessages, setHumanMessages] = useState([]);
     const [llmMessages, setLLMMessages] = useState([]);
     const humanMessageIdRef = useRef(0);
@@ -49,7 +49,7 @@ const LLMRECreate = () => {
     const [sectionLLMMessages, setSectionLLMMessages] = useState({});
     const [sectionHumanMessageIdRef, setSectionHumanMessageIdRef] = useState({});
     const [sectionLLMMessageIdRef, setSectionLLMMessageIdRef] = useState({});
-   
+
     if (isLoading || isLoadingAllUsers) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
@@ -109,14 +109,14 @@ const LLMRECreate = () => {
 
             // Determine the correct order based on firstActor selection
             const firstActor = values.firstActor || "human"; // Default to human if not specified
-            
+
             // Create alternating pattern based on first actor
             const orderedMessages = [];
             const humanMessages = messageEntries.filter(msg => msg.kind === "human");
             const llmMessages = messageEntries.filter(msg => msg.kind === "llm");
-            
+
             const maxLength = Math.max(humanMessages.length, llmMessages.length);
-            
+
             for (let i = 0; i < maxLength; i++) {
                 if (firstActor === "human") {
                     // Human first pattern: Human, LLM, Human, LLM...
@@ -173,7 +173,7 @@ const LLMRECreate = () => {
             //2. Group by sectionId
             const sectionsMap = {};
             sectionMessages.forEach(msg => {
-                if (!sectionsMap[msg.sectionId]){
+                if (!sectionsMap[msg.sectionId]) {
                     sectionsMap[msg.sectionId] = [];
                 }
                 sectionsMap[msg.sectionId].push({
@@ -186,7 +186,7 @@ const LLMRECreate = () => {
             //3. Build sections array, sorted by chatId
             const sectionsArr = Object.entries(sectionsMap).map(([sectionId, transcript]) => ({
                 sectionId: Number(sectionId),
-                transcript: transcript.sort((a,b) => a.chatId - b.chatId)
+                transcript: transcript.sort((a, b) => a.chatId - b.chatId)
             }));
 
             evaluation = {
@@ -195,15 +195,16 @@ const LLMRECreate = () => {
                 sections: sectionsArr,
                 rubricItems,
                 participants: selectedParticipants,
-                isFullTranscript: false
-            };  
+                isFullTranscript: false,
+                index: values.index
+            };
         }
 
 
         // Format data based on transcript type (Full or Sections)
         //REMOVE: For reuse (Specfically remove the "participants" item from the evaluation object)
         if (values.isFullTranscript && rubricItems.length > 0) {
-            evaluation = { "title": values.title, "instructions": values.instructions, "transcript": transcript, "rubricItems": rubricItems, "participants": selectedParticipants, "isFullTranscript": values.isFullTranscript };
+            evaluation = { "title": values.title, "instructions": values.instructions, "transcript": transcript, "rubricItems": rubricItems, "participants": selectedParticipants, "isFullTranscript": values.isFullTranscript, "index": values.index };
         }
 
         try {
@@ -450,8 +451,8 @@ const LLMRECreate = () => {
                                                                                 <button
                                                                                     className="btn btn-info mx-2 my-2 w-35"
                                                                                     onClick={e => handleAddSectionHumanMessage(
-                                                                                        e, 
-                                                                                        section.sectionId, 
+                                                                                        e,
+                                                                                        section.sectionId,
                                                                                         setSectionHumanMessages,
                                                                                         sectionHumanMessageIdRef,
                                                                                         setSectionHumanMessageIdRef
@@ -465,8 +466,8 @@ const LLMRECreate = () => {
                                                                                 <button
                                                                                     className="btn btn-warning mx-2 my-2 w-35"
                                                                                     onClick={e => handleAddSectionLLMMessage(
-                                                                                        e, 
-                                                                                        section.sectionId, 
+                                                                                        e,
+                                                                                        section.sectionId,
                                                                                         setSectionLLMMessages,
                                                                                         sectionLLMMessageIdRef,
                                                                                         setSectionLLMMessageIdRef
@@ -691,6 +692,25 @@ const LLMRECreate = () => {
                             //REMOVE: For reuse
                             Participants Selection Card 
                         */}
+                        {/** Index ID */}
+                        <div className="row my-3">
+                            <div className="card bg-body-tertiary border border-tertiary p-2 rounded">
+                                <div className="mb-3">
+                                    <label className="form-label fw-bold">Evaluation Index ID</label>
+                                    <Field
+                                        name="index"
+                                        component="input"
+                                        className="form-control"
+                                        placeholder="Enter ID for evaluation"
+                                        required
+                                    />
+                                    <Field name="instructions">
+                                        {({ meta }) => meta.error && meta.touched && <span className="text-danger">{meta.error}</span>}
+                                    </Field>
+                                </div>
+                            </div>
+                        </div>
+                        {/**Assign Participants */}
                         <div className="row my-3">
                             <div className="card bg-body-tertiary border border-tertiary p-2 rounded">
                                 <div className="mb-3">
@@ -742,7 +762,7 @@ const LLMRECreate = () => {
                         {formErrorSubmission ? (
                             <div>{formErrorSubmission}</div>
 
-                        ):<div></div>}
+                        ) : <div></div>}
                     </form>
                 )}
 

@@ -135,7 +135,7 @@ const AssignNewParticipantsTable = ({ evaluations, refetchEvaluations }) => {
                                         {userAssignedLLMREs.length > 0 ? (
                                             <ul className="list-unstyled">
                                                 {userAssignedLLMREs.map(evaluation => (
-                                                    <li key={evaluation._id}>{evaluation.title}</li>
+                                                    <li key={evaluation._id} className="my-2">{evaluation.index}: {evaluation.title}</li>
                                                 ))}
                                             </ul>
                                         ) : (

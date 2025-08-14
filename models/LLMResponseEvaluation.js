@@ -48,6 +48,7 @@ const BaseLLMResponseEvaluationSchema = new Schema({
     rubricItems: [RubricItemSchema],
     /////Remove this for future use cases/////
     participants: { type: [ParticipantSchema], required: true },
+    index: {type: Number, required: true },
 }, { discriminatorKey: 'kind', timestamps: true });
 
 // Create the base model

@@ -9,8 +9,7 @@ module.exports = (app) => {
     app.post('/api/llm-response-evaluation/create', requireFacilitatorPermissions, requireLogin, async (req, res) => {
 
         ////REMOVE: For reuse (participants)
-        const { title, instructions, isFullTranscript, transcript, sections, rubricItems, participants } = req.body;
-
+        const { title, instructions, isFullTranscript, transcript, sections, rubricItems, index, participants } = req.body;
         //REMOVE: For reuse (participants)
         try {
             let evaluation;
@@ -21,6 +20,7 @@ module.exports = (app) => {
                     instructions,
                     sections,
                     rubricItems,
+                    index,
                     participants
                 });
             } else if (isFullTranscript) {
@@ -30,6 +30,7 @@ module.exports = (app) => {
                     instructions,
                     transcript,
                     rubricItems,
+                    index,
                     participants
                 });
             }
