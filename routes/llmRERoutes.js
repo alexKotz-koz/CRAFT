@@ -209,6 +209,37 @@ module.exports = (app) => {
         }
     });
 
+    //Remove participant from llmre
+    app.post('/api/llm-response-evaluation/:evaluationId/remove-assignment', requireLogin, requireFacilitatorPermissions, async (req, res) => {
+    try {
+        const { evaluationId } = req.params;
+        const { userId } = req.body;
+        if (!evaluationId || !userId) {
+            return res.status(400).send("Missing required parameters");
+        }
+
+        // Remove the participant from the participants array
+        const updatedEvaluation = await mongoose.model('LLMResponseEvaluation').findByIdAndUpdate(
+            evaluationId,
+            {
+                $pull: {
+                    participants: { _id: userId }
+                }
+            },
+            { new: true }
+        );
+
+        if (!updatedEvaluation) {
+            return res.status(404).send('Evaluation not found');
+        }
+
+        res.status(200).json(updatedEvaluation);
+    } catch (err) {
+        console.error("Error removing assignment: ", err);
+        res.status(500).send(err);
+    }
+});
+
     app.post('/api/llm-response-evaluation/:evaluationId/edit', requireLogin, requireFacilitatorPermissions, async (req, res) => {
         try {
             const { evaluationId } = req.params;

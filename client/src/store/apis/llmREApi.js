@@ -70,6 +70,13 @@ const llmREApi = createApi({
                 }),
                 invalidatesTags: ['Assignment', 'User']
             }),
+            removeAssignment: builder.mutation({
+                query: ({ userId, evaluationId }) => ({
+                    url: `/llm-response-evaluation/${evaluationId}/remove-assignment`,
+                    method: 'POST',
+                    body: { userId }
+                }),
+            }),
             fetchEvaluationResponseById: builder.query({
                 query: ({ responseId }) => ({
                     url: `/llm-response-evaluation/response/${responseId}`,
@@ -97,6 +104,7 @@ export const {
     useFetchAllUserEvaluationResponsesQuery,
     useLazyFetchUserResponsesForDownloadQuery,
     useAssignParticipantLLMREMutation,
+    useRemoveAssignmentMutation,
     useFetchEvaluationResponseByIdQuery,
     useEditEvaluationMutation
 } = llmREApi;

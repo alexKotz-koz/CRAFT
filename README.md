@@ -1,4 +1,4 @@
-# CRAFT
+npm create vite@latest my-react-app -- --template react# CRAFT
 > The Collaborative Remote Asynchronous Feedback Tool provides a web-based, interactive, asynchronous online focus group for busy researchers in the educational, healthcare and military fields.
 
 [![NPM Version][npm-image]][npm-url]

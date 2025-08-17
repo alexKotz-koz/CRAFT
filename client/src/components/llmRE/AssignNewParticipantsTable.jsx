@@ -1,12 +1,14 @@
 import { Table, Modal, ModalHeader, ModalBody, ModalFooter, Button, FormGroup, Input, Label } from "reactstrap";
 import { useState, useEffect } from "react";
-import { useFetchAllUsersQuery, useAssignParticipantLLMREMutation } from "../../store";
+import { useFetchAllUsersQuery, useAssignParticipantLLMREMutation, useRemoveAssignmentMutation } from "../../store";
+import { GoTrash } from 'react-icons/go';
 
 const AssignNewParticipantsTable = ({ evaluations, refetchEvaluations }) => {
     const { data: allUsers, isLoading: isLoadingAllUsers, error: errorAllUsers, refetch } = useFetchAllUsersQuery();
     const participants = allUsers ? allUsers.filter(user => user.role === 'participant') : [];
 
     const [assignParticipant, { isLoading: isAssigning }] = useAssignParticipantLLMREMutation();
+    const [removeAssignment, { isLoading: isLoadingRemoveAssignment, error: errorRemoveAssignment }] = useRemoveAssignmentMutation();
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEvaluation, setSelectedEvaluation] = useState(null);
@@ -94,16 +96,34 @@ const AssignNewParticipantsTable = ({ evaluations, refetchEvaluations }) => {
             });
             toggleModal();
             refetch();
-            if (refetchEvaluations) refetchEvaluations(); 
+            if (refetchEvaluations) refetchEvaluations();
 
             setSuccessMsg(`${selectedUser.username} has been assigned to the LLM Response Evaluation: ${selectedEvaluation.title}`);
-            setTimeout(() => setSuccessMsg(""), 5000); 
+            setTimeout(() => setSuccessMsg(""), 5000);
         } catch (error) {
             console.error("Error assigning participant: ", error);
             setSuccessMsg("Failed to assign participant to LLM Response Evaluation");
             setTimeout(() => setSuccessMsg(""), 5000);
         }
     };
+
+    const handleRemoveAssignment = async (evaluationId, userId, username, title) => {
+        try {
+            await removeAssignment({
+                evaluationId,
+                userId
+            });
+            refetch();
+            if (refetchEvaluations) refetchEvaluations();
+            setSuccessMsg(`${username} has been removed from the LLM Response Evaluation: ${title}`);
+            setTimeout(() => setSuccessMsg(""), 5000);
+        } catch (error) {
+            console.error("Error removing assignment: ", error);
+            setSuccessMsg("Failed to remove participant assignment to LLM Response Evaluation");
+            setTimeout(() => setSuccessMsg(""), 5000);
+        }
+    };
+
 
     return (
         <div className="container border border-solid">
@@ -135,7 +155,15 @@ const AssignNewParticipantsTable = ({ evaluations, refetchEvaluations }) => {
                                         {userAssignedLLMREs.length > 0 ? (
                                             <ul className="list-unstyled">
                                                 {userAssignedLLMREs.map(evaluation => (
-                                                    <li key={evaluation._id} className="my-2">{evaluation.index}: {evaluation.title}</li>
+                                                    <li key={evaluation._id} className="my-2">
+                                                        <button
+                                                            className="btn btn-danger btn-sm me-2"
+                                                            onClick={() => handleRemoveAssignment(evaluation._id, user._id, user.username, evaluation.title)}
+                                                        >
+                                                            <GoTrash />
+                                                        </button>
+                                                        {evaluation.index}: {evaluation.title}
+                                                    </li>
                                                 ))}
                                             </ul>
                                         ) : (
