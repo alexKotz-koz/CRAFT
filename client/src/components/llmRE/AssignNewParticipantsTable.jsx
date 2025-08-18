@@ -14,6 +14,7 @@ const AssignNewParticipantsTable = ({ evaluations, refetchEvaluations }) => {
     const [selectedEvaluation, setSelectedEvaluation] = useState(null);
     const [selectedUser, setSelectedUser] = useState(null);
     const [successMsg, setSuccessMsg] = useState("");
+    const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
 
 
     const getAssignedLLMREs = (username) => {
@@ -88,6 +89,10 @@ const AssignNewParticipantsTable = ({ evaluations, refetchEvaluations }) => {
         setIsModalOpen(!isModalOpen);
     };
 
+    const toggleRemoveModal = () => {
+        setIsRemoveModalOpen(!isRemoveModalOpen);
+    }
+
     const handleAssignSubmit = async () => {
         try {
             await assignParticipant({
@@ -107,12 +112,29 @@ const AssignNewParticipantsTable = ({ evaluations, refetchEvaluations }) => {
         }
     };
 
+    const openRemoveModal = (evaluation, user) => {
+        setSelectedEvaluation(evaluation);
+        setSelectedUser(user);
+        setIsRemoveModalOpen(true);
+    };
+
+    const confirmRemoveAssignment = async () => {
+        if (!selectedEvaluation || !selectedUser) return;
+        await handleRemoveAssignment(
+            selectedEvaluation._id,
+            selectedUser._id,
+            selectedUser.username,
+            selectedEvaluation.title
+        );
+    };
+
     const handleRemoveAssignment = async (evaluationId, userId, username, title) => {
         try {
             await removeAssignment({
                 evaluationId,
                 userId
             });
+            toggleRemoveModal();
             refetch();
             if (refetchEvaluations) refetchEvaluations();
             setSuccessMsg(`${username} has been removed from the LLM Response Evaluation: ${title}`);
@@ -131,6 +153,9 @@ const AssignNewParticipantsTable = ({ evaluations, refetchEvaluations }) => {
                 <h4>All Users</h4>
             </div>
             <div className="row">
+                {successMsg && (
+                    <div className="alert alert-success text-center">{successMsg}</div>
+                )}
                 <Table responsive>
                     <thead>
                         <tr>
@@ -154,17 +179,20 @@ const AssignNewParticipantsTable = ({ evaluations, refetchEvaluations }) => {
                                     <td>
                                         {userAssignedLLMREs.length > 0 ? (
                                             <ul className="list-unstyled">
-                                                {userAssignedLLMREs.map(evaluation => (
-                                                    <li key={evaluation._id} className="my-2">
-                                                        <button
-                                                            className="btn btn-danger btn-sm me-2"
-                                                            onClick={() => handleRemoveAssignment(evaluation._id, user._id, user.username, evaluation.title)}
-                                                        >
-                                                            <GoTrash />
-                                                        </button>
-                                                        {evaluation.index}: {evaluation.title}
-                                                    </li>
-                                                ))}
+                                                {userAssignedLLMREs
+                                                    .slice()
+                                                    .sort((a, b) => a.index - b.index)
+                                                    .map(evaluation => (
+                                                        <li key={evaluation._id} className="my-2">
+                                                            <button
+                                                                className="btn btn-danger btn-sm me-2"
+                                                                onClick={() => openRemoveModal(evaluation, user)}
+                                                            >
+                                                                <GoTrash />
+                                                            </button>
+                                                            {evaluation.index}: {evaluation.title}
+                                                        </li>
+                                                    ))}
                                             </ul>
                                         ) : (
                                             <span>None</span>
@@ -181,9 +209,14 @@ const AssignNewParticipantsTable = ({ evaluations, refetchEvaluations }) => {
                                                 }}
                                             >
                                                 <option value="">Assign to evaluation...</option>
-                                                {userAvailableLLMREs.map(evaluation => (
-                                                    <option key={evaluation._id} value={evaluation._id}>{evaluation.title}</option>
-                                                ))}
+                                                {userAvailableLLMREs
+                                                    .slice()
+                                                    .sort((a, b) => a.index - b.index)
+                                                    .map(evaluation => (
+                                                        <option key={evaluation._id} value={evaluation._id}>
+                                                            {evaluation.index}: {evaluation.title}
+                                                        </option>
+                                                    ))}
                                             </select>
                                         ) : (
                                             <span>No available LLM response evaluations</span>
@@ -219,7 +252,28 @@ const AssignNewParticipantsTable = ({ evaluations, refetchEvaluations }) => {
                     </Button>
                 </ModalFooter>
             </Modal>
+            {/* Assignment Modal */}
+            <Modal isOpen={isRemoveModalOpen} toggle={toggleRemoveModal}>
+                <ModalHeader toggle={toggleRemoveModal}>
+                    Remove assignment to {selectedEvaluation?.title || "LLM Response Evaluation"}
+                </ModalHeader>
+                <ModalBody>
+                    <p>You are about to remove {selectedUser?.username} from {selectedEvaluation?.title}</p>
 
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="secondary" onClick={toggleRemoveModal}>
+                        Cancel
+                    </Button>
+                    <Button
+                        color="primary"
+                        onClick={confirmRemoveAssignment}
+                        disabled={isLoadingRemoveAssignment}
+                    >
+                        {isLoadingRemoveAssignment ? 'Removing...' : 'Confirm'}
+                    </Button>
+                </ModalFooter>
+            </Modal>
         </div>
     );
 

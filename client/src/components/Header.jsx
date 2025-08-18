@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useFetchUserQuery } from "../store";
-import { GoBell, GoBug } from "react-icons/go";
+import { GoBell, GoBug, GoHome } from "react-icons/go";
 import { Spinner } from "reactstrap";
 import HeaderNotificationCard from "./tools/HeaderNotificationCard";
 import ClarificationModal from "./tools/modals/ClarificationModal";
@@ -73,6 +73,15 @@ const Header = ({ user }) => {
 
         return (
             <div className="d-flex align-items-center justify-content-center">
+                <li className="nav-item mx-2">
+                    <Link
+                        to="/home"
+                        className="btn btn-light btn-sm border border-dark rounded-pill d-flex align-items-center gap-2 px-3"
+                    >
+                        <span>Home</span>
+                        <GoHome />
+                    </Link>
+                </li>
                 <li className="nav-item mx-2">
                     <a
                         href="https://forms.gle/3E1bLCKU7Teom9Ve9"
