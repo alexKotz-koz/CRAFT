@@ -7,7 +7,7 @@ import { Spinner, Badge } from "reactstrap";
 import '../static/custom.css';
 import ReactGA from 'react-ga4';
 import { Link } from 'react-router-dom';
-
+//
 const Home = () => {
     const navigate = useNavigate();
     const { data: user, error: userError, isLoading: isLoadingUser } = useFetchUserQuery();
