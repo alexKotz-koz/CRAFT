@@ -60,7 +60,7 @@ const LLMRECreate = () => {
     if (error || errorAllUsers) {
         return (
             <div className="border border-danger rounded text-danger px-2 mt-2">
-                {error}
+                {error || errorAllUsers}
             </div>
         )
     }

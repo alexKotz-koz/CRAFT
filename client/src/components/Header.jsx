@@ -96,30 +96,20 @@ const Header = ({ user }) => {
                 {(data?.role === "facilitator" || data?.role === "admin") && (
                     <li className="nav-item mx-2">
                         <Link
-                            to="/study/new"
-                            className="btn btn-light btn-sm border border-dark rounded-pill d-flex align-items-center gap-2 px-3"
-                        >
-                            New Study
-                        </Link>
-                    </li>
-                )}
-                {(data?.role === "facilitator" || data?.role === "admin") && (
-                    <li className="nav-item mx-2">
-                        <Link
                             to="/participant-dashboard"
                             className="btn btn-light btn-sm border border-dark rounded-pill d-flex align-items-center gap-2 px-3"
                         >Participant Dashboard</Link>
                     </li>
                 )}
                 {(data?.role === "facilitator" || data?.role === "admin") && (
-                <li className="nav-item mx-2">
-                    <Link
-                        to="/llm-response-evaluation"
-                        className="btn btn-light btn-sm border border-dark rounded-pill d-flex align-items-center gap-2 px-3"
-                    >
-                        LLM Response Evaluation
-                    </Link>
-                </li>
+                    <li className="nav-item mx-2">
+                        <Link
+                            to="/llm-response-evaluation"
+                            className="btn btn-light btn-sm border border-dark rounded-pill d-flex align-items-center gap-2 px-3"
+                        >
+                            LLM Response Evaluation
+                        </Link>
+                    </li>
                 )}
                 {(data?.role === "facilitator" || data?.role === "admin") && (
                     <li className="nav-item mx-2">
@@ -129,6 +119,36 @@ const Header = ({ user }) => {
                         >
                             Reset Participant Password
                         </Link>
+                    </li>
+                )}
+                {(data?.role === "facilitator" || data?.role === "admin") && (
+                    <li className="nav-item dropdown">
+                        <a
+                            className="nav-link dropdown-toggle d-flex align-items-center"
+                            href="#"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                        >
+                            Create Content
+                        </a>
+                        <ul className="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <Link to="/study/new" className="dropdown-item">
+                                    New Study
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/consent/new" className="dropdown-item">
+                                    New Consent
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/consent/assign-participant" className="dropdown-item">
+                                    Assign New Participant to Existing Consent
+                                </Link>
+                            </li>
+                        </ul>
                     </li>
                 )}
                 <li className="nav-item dropdown mx-2">
@@ -176,7 +196,6 @@ const Header = ({ user }) => {
                         </li>
                     </ul>
                 </li>
-
                 <li className="nav-item dropdown d-flex align-items-center">
                     <a className="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         {data.avatar ? <img src={data.avatar} alt={`${data.username}'s avatar`} className="avatar-img-header mr-2" /> : data.username}

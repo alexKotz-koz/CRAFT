@@ -37,6 +37,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../static/custom.css';
 import AdminPasswordReset from "./auth/AdminPasswordReset";
 import ParticipantDashboard from "./participant-dashboard/ParticipantDashboard";
+import CreateNewConsent from "./consent/CreateNewConsent";
+import AssignNewParticipantsConsent from "./consent/AssignNewParticipantsConsent";
 
 
 
@@ -85,6 +87,8 @@ const App = () => {
                         element={<READONLY_LLMResponseEvaluation />}
                     />
                     <Route path="/participant-dashboard" element={<ParticipantDashboard />} />
+                    <Route path="/consent/new" element={<CreateNewConsent />} />
+                    <Route path="/consent/assign-participant" element={<AssignNewParticipantsConsent />} />
                 </Routes>
             </BrowserRouter>
         </div>

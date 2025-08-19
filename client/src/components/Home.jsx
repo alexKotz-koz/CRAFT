@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import StudyCard from './tools/StudyCard';
-import PrefaceModal from './tools/modals/PrefaceModal';
-import { useFetchUserQuery, useFetchStudiesQuery, useFetchAllStudiesQuery, useFetchAllEvaluationsQuery } from "../store";
+import ConsentModal from './tools/modals/ConsentModal';
+import { useFetchUserQuery, useFetchStudiesQuery, useFetchAllStudiesQuery, useFetchAllEvaluationsQuery, useFetchConsentStatusQuery } from "../store";
 import { Spinner, Badge } from "reactstrap";
 import '../static/custom.css';
 import ReactGA from 'react-ga4';
@@ -11,6 +11,8 @@ import { Link } from 'react-router-dom';
 const Home = () => {
     const navigate = useNavigate();
     const { data: user, error: userError, isLoading: isLoadingUser } = useFetchUserQuery();
+    const { data: consents, isLoading: isLoadingConsents, error: errorConsents } = useFetchConsentStatusQuery();
+
     const isAdmin = user?.role === 'admin' || user?.role === 'facilitator';
 
     const {
@@ -40,8 +42,8 @@ const Home = () => {
     const refetch = isAdmin ? refetchAllStudies : refetchRegularStudies;
 
     const [respondedStatus, setRespondedStatus] = useState({});
-    const [prefaceModalOpen, setPrefaceModalOpen] = useState(false);
-    const [studyNeedingPreface, setStudyNeedingPreface] = useState(null);
+    const [consentModalOpen, setConsentModalOpen] = useState(false);
+    const [consentModalContent, setConsentModalContent] = useState([]);
 
     useEffect(() => {
         ReactGA.send({
@@ -80,24 +82,32 @@ const Home = () => {
         }
     }, [user]);
 
+
     // Centralized logic for showing preface modal
     useEffect(() => {
-        if (user && userStudies && user.role === 'participant') {
-            const study = userStudies.find(study => {
-                const participant = study.participants.find(
-                    p => p.username === user.username || p.email === user.email
-                );
-                return participant && !participant.consent;
-            });
-            if (study) {
-                setStudyNeedingPreface(study);
-                setPrefaceModalOpen(true);
-            } else {
-                setStudyNeedingPreface(null);
-                setPrefaceModalOpen(false);
-            }
-        }
-    }, [user, userStudies]);
+        if (!user || !consents || user.role !== 'participant') return;
+
+        const userMatches = (p) =>
+            p && (p.username === user.username || p.email === user.email);
+
+        const relevant = consents.filter((consent) =>
+            (consent.participants || []).some(userMatches)
+        );
+
+        setConsentModalContent(relevant || []);
+    }, [user, consents]);
+
+    // Helper: does the user have any pending (not yet consented) consents?
+    const hasPendingConsent = consentModalContent.some((c) =>
+        (c.participants || []).some(
+            (p) =>
+                (p.username === user.username || p.email === user.email) &&
+                p.consent === false
+        )
+    );
+
+    const handleOpenConsentModal = () => setConsentModalOpen(!consentModalOpen);
+
 
     const hasLLMREs = allEvaluations?.some(evaluation =>
         evaluation.participants?.find(
@@ -107,7 +117,7 @@ const Home = () => {
         )
     );
 
-    if (isLoadingUser || isLoadingStudies || isLoadingAllEvaluations) {
+    if (isLoadingUser || isLoadingStudies || isLoadingAllEvaluations || isLoadingConsents) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
                 <Spinner color="primary" />
@@ -115,8 +125,9 @@ const Home = () => {
         );
     }
 
-    if (userError || studiesError || allEvaluationsError) {
-        return <div>Error: {userError?.data?.error || studiesError?.data?.error || allEvaluationsError?.data?.error}</div>;
+    if (userError || studiesError || allEvaluationsError || errorConsents) {
+        return <div>Error: {userError?.data?.error || studiesError?.data?.error || allEvaluationsError?.data?.error || errorConsents?.data?.error}
+        </div>;
     }
 
     if (!user) {
@@ -242,48 +253,80 @@ const Home = () => {
         }
 
     };
-
     const renderParticipant = () => {
-        if (hasLLMREs) {
+        // Build the Consent card if the user has any relevant consents
+        const consentCard = consentModalContent.length > 0 ? (
+            <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4" key="consent-card">
+                <div className="card h-100">
+                    <div className="card-body d-flex flex-column">
+                        <h5 className="card-title mb-2">Study Consent</h5>
+                        <p className="card-text description">
+                            {hasPendingConsent
+                                ? 'You have a consent form to review and complete.'
+                                : 'You can view your consent form.'}
+                        </p>
+                        <button
+                            className={`btn ${hasPendingConsent ? 'btn-success' : 'btn-secondary'} text-white mt-auto`}
+                            onClick={handleOpenConsentModal}
+                        >
+                            {hasPendingConsent ? 'Open Consent' : 'View Consent'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        ) : null;
+        if (hasPendingConsent) {
             return (
                 <div className="row">
-                    <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
-                        <div className="card h-100">
-                            <div className="card-body d-flex flex-column">
-                                <h5 className="card-title mb-2">LLM Response Evaluations</h5>
-                                <p className="card-text description">You have LLM Response Evaluations to Complete</p>
-                                <Link to="/llm-response-evaluation" className="btn btn-success text-decoration-none text-white mt-auto">
-                                    Open LLM Response Evaluations
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
+                    {consentCard}
                 </div>
             );
         } else {
-            return (
-                <div className="row">
-                    {userStudies.map((study, studyIndex) => (
-                        <StudyCard
-                            cardIndex={studyIndex}
-                            cardName={study.name}
-                            cardDescription={study.description}
-                            content={renderCompletedStudyCard(respondedStatus[study._id], study)}
-                            key={studyIndex}
-                        />
-                    ))}
-                    <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
-                        <div className="card h-100">
-                            <div className="card-body d-flex flex-column">
-                                <h5 className="card-title mb-2">LLM Response Evaluations</h5>
-                                <Link to="/llm-response-evaluation" className="btn btn-secondary text-decoration-none text-white mt-auto">
-                                    View LLM Response Evaluations
-                                </Link>
+            if (hasLLMREs) {
+                return (
+                    <div className="row">
+                        {consentCard}
+                        <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+                            <div className="card h-100">
+                                <div className="card-body d-flex flex-column">
+                                    <h5 className="card-title mb-2">LLM Response Evaluations</h5>
+                                    <p className="card-text description">You have LLM Response Evaluations to Complete</p>
+                                    <Link to="/llm-response-evaluation" className="btn btn-success text-decoration-none text-white mt-auto">
+                                        Open LLM Response Evaluations
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            );
+                );
+            } else {
+                return (
+                    <div className="row">
+                        {consentCard}
+
+                        <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+                            <div className="card h-100">
+                                <div className="card-body d-flex flex-column">
+                                    <h5 className="card-title mb-2">LLM Response Evaluations</h5>
+                                    <Link to="/llm-response-evaluation" className="btn btn-secondary text-decoration-none text-white mt-auto">
+                                        View LLM Response Evaluations
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+
+                        {userStudies.map((study, studyIndex) => (
+                            <StudyCard
+                                cardIndex={studyIndex}
+                                cardName={study.name}
+                                cardDescription={study.description}
+                                content={renderCompletedStudyCard(respondedStatus[study._id], study)}
+                                key={studyIndex}
+                            />
+                        ))}
+                    </div>
+                );
+            }
         }
     };
 
@@ -298,23 +341,20 @@ const Home = () => {
                 return <div>Invalid user role</div>;
         }
     };
-
     return (
         <>
             {renderWelcomeHeader()}
             <div className="container py-0 px-5 text-start">
                 {renderContent()}
-                {studyNeedingPreface && prefaceModalOpen &&
-                    <PrefaceModal
-                        isOpen={prefaceModalOpen}
-                        setIsOpen={setPrefaceModalOpen}
-                        toggle={() => setPrefaceModalOpen(!prefaceModalOpen)}
-                        studyName={studyNeedingPreface.name}
-                        studyId={studyNeedingPreface._id}
-                        preface={studyNeedingPreface.preface}
+                {consentModalOpen && consentModalContent.length > 0 && (
+                    <ConsentModal
+                        consentContent={consentModalContent[0]}
                         userId={user._id}
+                        isOpen={consentModalOpen}
+                        setIsOpen={setConsentModalOpen}
+                        toggle={handleOpenConsentModal}
                     />
-                }
+                )}
             </div>
         </>
     );

@@ -4,6 +4,7 @@ import { authApi } from "./apis/authApi";
 import { studyApi } from "./apis/studyApi";
 import { discussionApi } from "./apis/discussionApi";
 import { llmREApi } from "./apis/llmREApi";
+import { consentApi } from "./apis/consentApi";
 
 export const store = configureStore({
   reducer: {
@@ -11,13 +12,15 @@ export const store = configureStore({
     [studyApi.reducerPath]: studyApi.reducer,
     [discussionApi.reducerPath]: discussionApi.reducer,
     [llmREApi.reducerPath]: llmREApi.reducer,
+    [consentApi.reducerPath]: consentApi.reducer,
   },
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware()
       .concat(authApi.middleware)
       .concat(studyApi.middleware)
       .concat(discussionApi.middleware)
-      .concat(llmREApi.middleware);
+      .concat(llmREApi.middleware)
+      .concat(consentApi.middleware);
   }
 });
 
@@ -50,7 +53,7 @@ export {
   useLazyFetchAllStudyResponsesQuery,
   useFetchAllStudiesQuery,
   useAssignParticipantMutation,
-  useUpdateConsentMutation
+  
 } from './apis/studyApi';
 
 export {
@@ -85,3 +88,10 @@ export {
     useFetchEvaluationResponseByIdQuery,
     useEditEvaluationMutation
 } from './apis/llmREApi';
+
+export {
+    useCreateConsentMutation,
+    useFetchConsentStatusQuery,
+    useUpdateConsentMutation,
+    useAssignNewParticipantConsentMutation
+} from './apis/consentApi';

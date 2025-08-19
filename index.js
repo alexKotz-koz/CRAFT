@@ -13,6 +13,7 @@ require('./models/Discussion');
 require('./models/Comment');
 require('./models/Notification');
 require('./models/LLMResponseEvaluation');
+require('./models/Consent');
 require('./services/passport');
 
 mongoose.Promise = global.Promise;
@@ -36,6 +37,7 @@ require('./routes/studyRoutes')(app);
 require('./routes/authRoutes')(app);
 require('./routes/discussionRoutes')(app);
 require('./routes/llmRERoutes')(app);
+require('./routes/consentRoutes')(app);
 // Error-handling middleware
 app.use((err, req, res, next) => {
     res.status(500).json({ message: 'Something went wrong!', error: err });
