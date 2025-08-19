@@ -6,7 +6,9 @@ import SimplePieChart from "./SimplePieChart";
 import TimeLinePlot from "./TimeLinePlot";
 import StudyCard from "../../tools/StudyCard";
 import AssignNewParticipants from "./AssignNewParticipants";
+import ViewConsentStatusTable from "../../consent/ViewConsentStatusTable";
 import ReactGA from 'react-ga4';
+import UnassignParticipants from "./UnassignParticipants";
 
 const StudyDashboard = () => {
 
@@ -726,6 +728,44 @@ const StudyDashboard = () => {
                         <div className="accordion-body">
                             <div className="d-flex justify-content-center gap-3">
                                 {openAccordion === '3' && <AssignNewParticipants studyId={studyId} />}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {/* Unassign Participants from Tasks */}
+                <div className="accordion-item">
+                    <h2 className="accordion-header">
+                        <button
+                            className={`accordion-button ${openAccordion !== '4' && 'collapsed'}`}
+                            type="button"
+                            onClick={() => toggleAccordion('4')}
+                        >
+                            Unassign Participants from Study Tasks
+                        </button>
+                    </h2>
+                    <div className={`accordion-collapse collapse ${openAccordion === '4' ? 'show' : ''}`}>
+                        <div className="accordion-body">
+                            <div className="d-flex justify-content-center gap-3">
+                                {openAccordion === '4' && <UnassignParticipants studyId={studyId} />}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {/* View Consent Completions */}
+                <div className="accordion-item">
+                    <h2 className="accordion-header">
+                        <button 
+                            className={`accordion-button ${openAccordion !== '5' && 'collapsed'}`}
+                            type="button"
+                            onClick={()=>toggleAccordion('5')}
+                        >
+                            View Participant Consent Status
+                        </button>
+                    </h2>
+                    <div className={`accordion-collapse collapse ${openAccordion === '5' ? 'show' : ''}`}>
+                        <div className="accordion-body">
+                            <div className="d-flex justify-content-center gap-3">
+                                {openAccordion === '5' && <ViewConsentStatusTable />}
                             </div>
                         </div>
                     </div>

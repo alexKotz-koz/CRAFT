@@ -94,6 +94,13 @@ const studyApi = createApi({
                 }),
                 invalidatesTags: ['Study']
             }),
+            unassignParticipant: builder.mutation({
+                query: ({ studyId, userId, taskIds }) => ({
+                    url: `/study/${studyId}/unassign-participant`,
+                    method: 'POST',
+                    body: { userId, taskIds }
+                })
+            })
         };
     }
 
@@ -109,5 +116,6 @@ export const {
     useLazyFetchAllStudyResponsesQuery,
     useFetchAllStudiesQuery,
     useAssignParticipantMutation,
+    useUnassignParticipantMutation,
 } = studyApi;
 export { studyApi };

@@ -53,7 +53,7 @@ export {
   useLazyFetchAllStudyResponsesQuery,
   useFetchAllStudiesQuery,
   useAssignParticipantMutation,
-  
+  useUnassignParticipantMutation
 } from './apis/studyApi';
 
 export {

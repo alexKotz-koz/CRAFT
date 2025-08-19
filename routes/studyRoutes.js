@@ -5,6 +5,7 @@ const StudyPrompt = mongoose.model('StudyPrompt');
 const { StudyTask, StudyTaskAppReview, StudyTaskSurvey } = require('../models/StudyTask');
 const Discussion = mongoose.model('Discussion');
 const Comment = mongoose.model('Comment');
+const User = mongoose.model('User');
 
 const requireLogin = require('../middlewares/requireLogin');
 const requireFacilitatorPermissions = require('../middlewares/requireFacilitatorPermissions');
@@ -520,36 +521,78 @@ module.exports = (app) => {
         }
     });
 
-    //Update consent
-    app.post('/api/study/:studyId/consent', requireLogin, async (req, res) => {
-        try {
-            const { userId } = req.body;
-            const { studyId } = req.params;
+    app.post('/api/study/:studyId/unassign-participant', requireLogin, requireFacilitatorPermissions, async (req, res) => {
+        const { studyId } = req.params;
+        const { userId, taskIds } = req.body;
 
-            if (!studyId || !userId) {
-                return res.status(400).send("Missing required parameters");
-            }
-
-            //given the study id and user id update the study.participants.consent to true
-            const user = await mongoose.model('User').findById(userId);
-            if (!user) {
-                return res.status(404).send("User not found");
-            }
-
-            const result = await Study.updateOne(
-                { _id: studyId, "participants.username": user.username },
-                { $set: { "participants.$.consent": true } }
-
-            );
-            if (result.nModified === 0) {
-                return res.status(404).send("Participant not found in this study");
-            }
-
-            res.send({ message: "Consent updated successfully" });
-        } catch (err) {
-            console.error("Error updating participant consent for the study: ", err);
-            res.status(500).send("Internal server error");
+        if (!studyId || !userId || !Array.isArray(taskIds) || taskIds.length === 0) {
+            return res.status(400).send("Missing required parameters");
         }
-    })
+
+        try {
+            const user = await User.findById(userId);
+            if (!user) return res.status(404).send("User not found");
+
+            // Validate ids (explicit callback avoids TS/JS quirks)
+            if (!mongoose.isValidObjectId(studyId) ||
+                !mongoose.isValidObjectId(userId) ||
+                !taskIds.every(id => mongoose.isValidObjectId(id))) {
+                return res.status(400).send("Invalid id format");
+            }
+
+            // Support both shapes:
+            // - participants: { user: ObjectId, email, username }
+            // - participants: { user: { email, username } }
+            const pullCriteria = {
+                $or: [
+                    { user: userId },                       // ObjectId stored at participants.user
+                    { 'user._id': userId },                 // if embedded user subdoc has _id
+                    { 'user.username': user.username },     // nested username
+                    { 'user.email': user.email },           // nested email
+                    { username: user.username },            // flat username
+                    { email: user.email }                   // flat email
+                ]
+            };
+
+            // How many tasks match by id + study?
+            const tasksToUpdate = await StudyTask.find({ _id: { $in: taskIds }, study: studyId }).select('_id taskType');
+            const foundCount = tasksToUpdate.length;
+
+            // Update both discriminators (covers any implicit discriminator filtering)
+            const [resSurvey, resApp] = await Promise.all([
+                StudyTaskSurvey.updateMany(
+                    { _id: { $in: taskIds }, study: studyId },
+                    { $pull: { participants: pullCriteria } }
+                ),
+                StudyTaskAppReview.updateMany(
+                    { _id: { $in: taskIds }, study: studyId },
+                    { $pull: { participants: pullCriteria } }
+                )
+            ]);
+
+            const matched = (resSurvey?.matchedCount || 0) + (resApp?.matchedCount || 0);
+            const modified = (resSurvey?.modifiedCount || 0) + (resApp?.modifiedCount || 0);
+
+            // If all tasks in the study were selected, also pull from Study.participants
+            const allTaskIds = await StudyTask.find({ study: studyId }).distinct('_id');
+            const allTaskIdsStr = allTaskIds.map(String);
+            const selectedIdsStr = taskIds.map(String);
+            const allSelected = allTaskIdsStr.length > 0 && allTaskIdsStr.every(id => selectedIdsStr.includes(id));
+
+            if (allSelected) {
+                await Study.findByIdAndUpdate(studyId, { $pull: { participants: pullCriteria } });
+            }
+
+            return res.send({
+                foundTasksByFilter: foundCount,
+                matched,
+                modified,
+                removedFromStudy: !!allSelected
+            });
+        } catch (err) {
+            console.error("Error unassigning participant:", err);
+            res.status(500).send("Server error unassigning participant");
+        }
+    });
 
 };
