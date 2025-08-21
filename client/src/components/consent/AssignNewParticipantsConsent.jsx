@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useFetchConsentStatusQuery, useFetchAllUsersQuery, useAssignNewParticipantConsentMutation } from "../../store";
 import { Table, Spinner } from "reactstrap";
+import { useNavigate } from 'react-router-dom'
 
 const AssignNewParticipantsConsent = () => {
+    const navigate = useNavigate();
     const { data: consents, isLoading: isLoadingConsents, error: errorConsents } = useFetchConsentStatusQuery();
     const { data: users, isLoading: isLoadingUsers, error: errorUsers } = useFetchAllUsersQuery();
     const [assignNewParticipant, { isLoading: isAssigning }] = useAssignNewParticipantConsentMutation();
@@ -39,7 +41,7 @@ const AssignNewParticipantsConsent = () => {
                 participantIds: selectedParticipantIds
             }).unwrap();
             setSelectedParticipantIds([]);
-            // Optionally refetch consents/users here
+            navigate('/home');
         } catch (err) {
             console.error(err)
         }

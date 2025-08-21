@@ -117,7 +117,9 @@ const Home = () => {
         )
     );
 
-    if (isLoadingUser || isLoadingStudies || isLoadingAllEvaluations || isLoadingConsents) {
+    const isLoadingConsentLogic = !user || !consents || (user.role === 'participant' && consentModalContent.length === 0 && consents.length > 0);
+
+    if (isLoadingUser || isLoadingStudies || isLoadingAllEvaluations || isLoadingConsents || isLoadingConsentLogic) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
                 <Spinner color="primary" />
