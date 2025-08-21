@@ -27,7 +27,7 @@ const ParticipantDashboard = () => {
         }));
     };
 
-    console.log(allUsers)
+    //console.log(allUsers)
     // console.log(allStudies)
     // console.log(allEvaluations)
 
