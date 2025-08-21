@@ -66,16 +66,25 @@ const ParticipantDashboard = () => {
             }
         });
     };
-
-    const sortedParticipants = allUsers
+const sortedParticipants = allUsers
     .filter(user => user.role === "participant")
     .slice()
     .sort((a, b) => {
+        // Handle missing cohorts
         if (!a.cohort) return 1;
         if (!b.cohort) return -1;
+
+        // Try to parse cohort as number
+        const numA = Number(a.cohort);
+        const numB = Number(b.cohort);
+
+        // If both are valid numbers, sort numerically
+        if (!isNaN(numA) && !isNaN(numB)) {
+            return numA - numB;
+        }
+        // Otherwise, sort as strings
         return a.cohort.localeCompare(b.cohort);
     });
-
 
     return (
         <div className="container ">
