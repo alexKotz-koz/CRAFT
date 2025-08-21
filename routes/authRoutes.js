@@ -86,7 +86,7 @@ module.exports = (app) => {
     // Used in: SignUp.jsx, StudyNewWizard.jsx
     app.post('/auth/create_user', async (req, res) => {
         try {
-            const { firstName, lastName, password, email, role } = req.body;
+            const { firstName, lastName, password, email, role, cohort } = req.body;
             let username = req.body.username;
             if (!email && !password) {
                 return res
@@ -116,6 +116,7 @@ module.exports = (app) => {
                 firstName,
                 lastName,
                 role,
+                cohort,
                 password: hashed,
                 avatar,
                 firstLogin: true

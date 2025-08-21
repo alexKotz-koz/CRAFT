@@ -22,7 +22,8 @@ const UserSchema = new Schema({
   firstLogin: { type: Boolean, required: true, default: true},
   jobRole: { type: String },
   jobDepartment: { type: String },
-  jobYears: {type: String}
+  jobYears: {type: String},
+  cohort: {type: String},
 });
 
 

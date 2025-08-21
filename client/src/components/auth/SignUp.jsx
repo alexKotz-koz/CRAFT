@@ -49,6 +49,8 @@ const SignUp = () => {
         const errors = {};
         const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
         FORM_FIELDS.forEach(({ name }) => {
+            if (name === "cohort" && values.role !== "participant") return;
+
             if (!values[name]) {
                 errors[name] = "You must provide a value";
             } else if (name === "email" && !emailRegex.test(values[name])) {
@@ -68,15 +70,17 @@ const SignUp = () => {
             <Form
                 onSubmit={handleFormSubmit}
                 validate={validate}
-                render={({ handleSubmit }) => (
+                render={({ handleSubmit, values }) => (
                     <form onSubmit={handleSubmit}>
-                        {FORM_FIELDS.map(({ label, name, type, options, required }) => (
+                        {FORM_FIELDS.filter(field =>
+                            field.name !== "cohort" || values.role === "participant"
+                        ).map(({ label, name, type, options, required }) => (
                             <Field
                                 key={name}
                                 name={name}
                                 type={type}
                                 options={options}
-                                required={required}
+                                required={name === "cohort" ? values.role === "participant" : required}
                             >
                                 {({ input, meta }) => (
                                     <SignUpField
@@ -85,7 +89,7 @@ const SignUp = () => {
                                         type={type}
                                         options={options}
                                         meta={meta}
-                                        required={required}
+                                        required={name === "cohort" ? values.role === "participant" : required}
                                     />
                                 )}
                             </Field>

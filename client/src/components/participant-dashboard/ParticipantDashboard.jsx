@@ -27,7 +27,7 @@ const ParticipantDashboard = () => {
         }));
     };
 
-    // console.log(allUsers)
+    console.log(allUsers)
     // console.log(allStudies)
     // console.log(allEvaluations)
 
@@ -65,7 +65,17 @@ const ParticipantDashboard = () => {
                 }
             }
         });
-    }
+    };
+
+    const sortedParticipants = allUsers
+    .filter(user => user.role === "participant")
+    .slice()
+    .sort((a, b) => {
+        if (!a.cohort) return 1;
+        if (!b.cohort) return -1;
+        return a.cohort.localeCompare(b.cohort);
+    });
+
 
     return (
         <div className="container ">
@@ -132,24 +142,33 @@ const ParticipantDashboard = () => {
                                 <table className="table table-striped d-none d-md-table">
                                     <thead>
                                         <tr>
-                                            <th scope="col">ID</th>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Cohort</th>
                                             <th scope="col">Username</th>
                                             <th scope="col">Email</th>
+                                            <th scope="col">Role</th>
                                             <th scope="col"># of Assigned LLM Response Evaluations</th>
                                             <th scope="col">Assigned LLM Response Evaluations</th>
                                             <th scope="col"># of Assigned Study Tasks</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {allUsers.map((user, index) =>
+                                        {sortedParticipants.map((user, index) =>
                                             user.role === "participant" &&
                                             (
                                                 <tr key={user._id}>
                                                     <td>{index}</td>
+                                                    <td>{user.cohort}</td>
                                                     <td>{user.username}</td>
                                                     <td>{user.email}</td>
+                                                    <td>{user.jobRole ?? 'N/A'}</td>
                                                     <td>{userStats[user._id]?.llmreCount ?? 0}</td>
-                                                    <td>{userStats[user._id]?.assignedLLMREs?.join(", ") ?? ""}</td>
+                                                    <td>
+                                                        {(userStats[user._id]?.assignedLLMREs
+                                                            ?.slice()
+                                                            .sort((a, b) => a - b)
+                                                            .join(", ")) ?? ""}
+                                                    </td>
                                                     <td>{userStats[user._id]?.studyTaskCount ?? 0}</td>
                                                 </tr>
                                             ))}
