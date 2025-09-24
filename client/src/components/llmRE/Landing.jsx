@@ -193,21 +193,23 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
     };
     // Download 3b. Format allResponses for download
     const formatDataForDownloadAllResponses = (responses, fileName) => {
-        if (!responses || !Array.isArray(responses) || responses.length === 0) return;
-        // Headers
+        if (!responses || !Array.isArray(responses) || responses.length === 0 || !allEvaluations) return;
+    
         let headers = [];
-
         const rows = [];
-
+    
         responses.forEach(response => {
-            const evalKind = response?.evaluationId?.kind || "FullLLMResponseEvaluation";
-            const rubricItems = response?.evaluationId?.rubricItems || [];
+            const evalId = response?.evaluationId?._id || response?.evaluationId;
+            const evaluation = (allEvaluations || []).find(e => e._id === evalId);
+            console.log("Evaluation: ", evaluation)
+            const evalKind = evaluation?.kind || "FullLLMResponseEvaluation";
+            const rubricItems = evaluation?.rubricItems || [];
             const isSections = evalKind === "SectionsLLMResponseEvaluation";
             const username = response.userId?.username || "";
             const email = response.userId?.email || "";
             const role = response.userId?.jobRole || "No job title provided by user";
-            const title = response.evaluationId?.title || "";
-
+            const title = evaluation?.title || "";
+    
             headers = [
                 "participantUsername",
                 "participantEmail",
@@ -218,15 +220,15 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                 "rubricItemResponse",
                 "rubricItemFeedback"
             ];
-
-
+    
             (response.responses || []).forEach(section => {
                 rubricItems.forEach(rubricItem => {
                     const rubricResponse = (section.rubricResponses || []).find(
                         rr => rr.itemId === rubricItem.itemId
                     );
+                    let responseValue = "";
+                    let feedbackValue = "";
                     if (rubricResponse) {
-                        let responseValue = "";
                         if (
                             rubricResponse.selectedRadioOption &&
                             rubricResponse.selectedRadioOption !== ""
@@ -238,19 +240,19 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                         ) {
                             responseValue = rubricResponse.selectedCheckboxOptions.join(" | ");
                         }
-
-                        rows.push([
-                            username,
-                            email,
-                            role,
-                            ...(isSections ? [String(section.sectionId)] : []),
-                            ...(!isSections ? [title] : []),
-                            rubricItem.caption,
-                            responseValue,
-                            rubricResponse.feedback || ""
-                        ]);
-
+                        feedbackValue = rubricResponse.feedback || "";
                     }
+                    // Always push a row, even if blank
+                    rows.push([
+                        username,
+                        email,
+                        role,
+                        ...(isSections ? [String(section.sectionId)] : []),
+                        ...(!isSections ? [title] : []),
+                        rubricItem.caption,
+                        responseValue,
+                        feedbackValue
+                    ]);
                 });
                 if (section.otherFeedback) {
                     rows.push([
@@ -262,12 +264,11 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                         "OtherFeedback",
                         "OtherFeedback",
                         section.otherFeedback,
-                    ])
+                    ]);
                 }
             });
-
         });
-
+    
         // Convert to CSV string
         const csvContent = [
             headers.join(","),
@@ -279,9 +280,9 @@ const LLMRELanding = ({ currentUserRole, currentUserUsername, currentUserFirst, 
                     .join(",")
             )
         ].join("\r\n");
-
+    
         const safeTitle = (fileName);
-
+    
         downloadFile(
             csvContent,
             `${safeTitle}.csv`,
