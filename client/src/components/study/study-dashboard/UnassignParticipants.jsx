@@ -1,7 +1,7 @@
 import { useFetchAllUsersQuery, useFetchAllStudiesQuery, useUnassignParticipantMutation } from "../../../store";
 import { Table, Modal, ModalHeader, ModalBody, ModalFooter, Button, FormGroup, Input, Label } from "reactstrap";
 import { useState, useEffect } from "react";
-import Spinner from "reactstrap";
+import {Spinner} from "reactstrap";
 
 const UnassignParticipants = () => {
     const { data: allUsers, isLoading: isLoadingAllUsers, error: errorAllUsers } = useFetchAllUsersQuery();
