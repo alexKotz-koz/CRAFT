@@ -49,19 +49,19 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: 'Something went wrong!', error: err.message });
 });
 
+// Alternative catch-all route - replace the existing one
 if (process.env.NODE_ENV === 'production') {
-    // Express will serve up production assets (main.js, main.css)
+    // Serve static files from the React app build directory
     app.use(express.static(path.join(__dirname, 'client/dist')));
-
-    // Express will serve up the index.html file if it doesn't recognize the route
-    // This MUST be the last route
-    app.get('*', (req, res) => {
-        try {
-            res.sendFile(path.resolve(__dirname, 'client', 'dist', 'index.html'));
-        } catch (error) {
-            console.error('Error serving index.html:', error);
-            res.status(500).send('Server Error');
-        }
+    
+    // Handle React routing, return all requests to React app
+    app.get('/*', (req, res) => {
+        res.sendFile(path.join(__dirname, 'client/dist', 'index.html'), (err) => {
+            if (err) {
+                console.error('Error serving file:', err);
+                res.status(500).send('Error serving page');
+            }
+        });
     });
 }
 
