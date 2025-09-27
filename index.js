@@ -13,6 +13,7 @@ require('./models/Discussion');
 require('./models/Comment');
 require('./models/Notification');
 require('./models/LLMResponseEvaluation');
+require('./models/LLMResponseEvaluationResponse');
 require('./models/Consent');
 require('./services/passport');
 

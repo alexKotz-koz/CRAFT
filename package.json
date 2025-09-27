@@ -15,20 +15,20 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
-    "body-parser": "^1.20.3",
-    "canvas": "^3.1.0",
-    "concurrently": "^9.1.2",
-    "cookie-session": "^2.1.0",
-    "dompurify": "^3.2.5",
-    "express": "^4.21.2",
-    "express-session": "^1.18.1",
+    "body-parser": "^2.2.0",
+    "canvas": "^3.2.0",
+    "concurrently": "^9.2.1",
+    "cookie-session": "^2.1.1",
+    "dompurify": "^3.2.7",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
     "lodash": "^4.17.21",
-    "mongoose": "^8.13.2",
-    "nodemon": "^3.1.9",
+    "mongoose": "^8.18.2",
+    "nodemon": "^3.1.10",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-local": "^1.0.0",
     "path-parser": "^6.1.0",
-    "react-router-dom": "^7.1.1"
+    "react-router-dom": "^7.9.2"
   }
 }

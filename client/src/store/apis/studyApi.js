@@ -100,7 +100,19 @@ const studyApi = createApi({
                     method: 'POST',
                     body: { userId, taskIds }
                 })
-            })
+            }),
+            fetchUserIds: builder.query({
+                query: () => ({
+                    url: '/study-dashboard/user-ids',
+                    method: 'GET',
+                })
+            }),
+            fetchUserData: builder.query({
+                query: ({ username, userId }) => ({
+                    url: `/study-dashboard/fetch-user-data/${username}/${userId}`,
+                    method: 'GET',
+                })
+            }),
         };
     }
 
@@ -117,5 +129,7 @@ export const {
     useFetchAllStudiesQuery,
     useAssignParticipantMutation,
     useUnassignParticipantMutation,
+    useFetchUserIdsQuery,
+    useLazyFetchUserDataQuery,
 } = studyApi;
 export { studyApi };

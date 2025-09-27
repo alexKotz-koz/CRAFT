@@ -6,6 +6,9 @@ const { StudyTask, StudyTaskAppReview, StudyTaskSurvey } = require('../models/St
 const Discussion = mongoose.model('Discussion');
 const Comment = mongoose.model('Comment');
 const User = mongoose.model('User');
+const Consent = mongoose.model('Consent');
+const LLMResponseEvaluation = mongoose.model('LLMResponseEvaluation');
+const LLMResponseEvaluationResponse = mongoose.model('LLMResponseEvaluationResponse');
 
 const requireLogin = require('../middlewares/requireLogin');
 const requireFacilitatorPermissions = require('../middlewares/requireFacilitatorPermissions');
@@ -28,9 +31,9 @@ module.exports = (app) => {
                     model: 'StudyTask'
                 });
             res.send(allStudies);
-        } catch (err) {
-            console.error("Error fetching all studies: ", err);
-            res.status(500).send(err);
+        } catch (error) {
+            console.error("error fetching all studies: ", error);
+            res.status(500).send(error);
         }
     });
     // Create a new study
@@ -129,9 +132,9 @@ module.exports = (app) => {
             }
 
             res.send({ study });
-        } catch (err) {
-            console.error("Error creating study:", err);
-            res.status(422).send({ error: "Failed to create study", details: err.message });
+        } catch (error) {
+            console.error("error creating study:", error);
+            res.status(422).send({ error: "Failed to create study", details: error.message });
         }
     });
 
@@ -223,9 +226,9 @@ module.exports = (app) => {
             }
 
 
-        } catch (err) {
-            console.error("Error creating initial study response:", err);
-            res.status(422).send(err);
+        } catch (error) {
+            console.error("error creating initial study response:", error);
+            res.status(422).send(error);
         }
     });
 
@@ -303,9 +306,9 @@ module.exports = (app) => {
             }
 
             res.send(study);
-        } catch (err) {
-            console.error("Error fetching study:", err);
-            res.status(422).send({ error: "Failed to fetch study", details: err.message });
+        } catch (error) {
+            console.error("error fetching study:", error);
+            res.status(422).send({ error: "Failed to fetch study", details: error.message });
         }
     });
 
@@ -317,10 +320,10 @@ module.exports = (app) => {
         try {
             const comments = await Comment.find({ studyId: studyId });
             res.send(comments);
-        } catch (err) {
-            console.error("Error fetching comments for study:", JSON.stringify(err));
+        } catch (error) {
+            console.error("error fetching comments for study:", JSON.stringify(error));
 
-            res.status(500).send(err)
+            res.status(500).send(error)
         }
     });
 
@@ -345,10 +348,10 @@ module.exports = (app) => {
             }
             res.send(task);
 
-        } catch (err) {
-            console.error("Error fetching task:", JSON.stringify(err));
+        } catch (error) {
+            console.error("error fetching task:", JSON.stringify(error));
 
-            res.status(500).send(err)
+            res.status(500).send(error)
         }
 
     });
@@ -371,9 +374,9 @@ module.exports = (app) => {
             res.send(tasks);
 
 
-        } catch (err) {
-            console.error("Error fetching tasks: ", JSON.stringify(err));
-            res.status(500).send(err);
+        } catch (error) {
+            console.error("error fetching tasks: ", JSON.stringify(error));
+            res.status(500).send(error);
         }
     });
 
@@ -416,9 +419,9 @@ module.exports = (app) => {
 
             res.send(studyResponses);
 
-        } catch (err) {
-            console.error("Error fetching study responses: ", JSON.stringify(err));
-            res.status(500).send(err);
+        } catch (error) {
+            console.error("error fetching study responses: ", JSON.stringify(error));
+            res.status(500).send(error);
         }
     });
 
@@ -515,9 +518,9 @@ module.exports = (app) => {
             }
 
             res.send({ message: "Participant assigned successfully" });
-        } catch (err) {
-            console.error("Error assigning participant:", err);
-            res.status(500).send(err);
+        } catch (error) {
+            console.error("error assigning participant:", error);
+            res.status(500).send(error);
         }
     });
 
@@ -589,9 +592,49 @@ module.exports = (app) => {
                 modified,
                 removedFromStudy: !!allSelected
             });
-        } catch (err) {
-            console.error("Error unassigning participant:", err);
+        } catch (error) {
+            console.error("error unassigning participant:", error);
             res.status(500).send("Server error unassigning participant");
+        }
+    });
+
+    app.get('/api/study-dashboard/user-ids', requireLogin, requireFacilitatorPermissions, async (req, res) => {
+        try {
+            const users = await User.find();
+            const userIds = users.map(user => [user._id, user.username]);
+            res.send(userIds);
+        } catch (error) {
+            console.error("error fetching user ids: ", JSON.stringify(error));
+            res.status(500).send(error);
+        }
+    });
+
+    app.get('/api/study-dashboard/fetch-user-data/:username/:userId', requireLogin, requireFacilitatorPermissions, async (req, res) => {
+        const { username, userId } = req.params;
+
+        try {
+            let userData = {};
+            const user = await User.findById(userId);
+            const consent = await Consent.find({'participants.username': username});
+            const studyTasks = await StudyTask.find({ 'participants.username': username }).select('name taskType');
+            const studyResponses = await StudyResponse.find({_participant: userId});
+            const llmRE = await LLMResponseEvaluation.find({'participants._id': userId}).select('title index');
+            const llmREResponses = await LLMResponseEvaluationResponse.find({userId: userId});
+
+            
+
+            userData = {
+                'user': user,
+                'consent': consent.length > 0 ? consent : 'No Consent Found',
+                'studyTasks': studyTasks.length > 0 ? studyTasks : 'No Study Tasks Assigned',
+                'studyResponses': studyResponses.length > 0 ? studyResponses : 'No Study Task Responses Found',
+                'llmRE': llmRE.length > 0 ? llmRE : 'No LLM Response Evaluations Assigned',
+                'llmREResponses': llmREResponses.length > 0 ? llmREResponses : 'No LLM Response Evaluation Responses Found'
+            }
+            res.send(userData)
+        } catch (error) {
+            console.log("error fetching user data: ", error);
+            res.status(500).send(error);
         }
     });
 

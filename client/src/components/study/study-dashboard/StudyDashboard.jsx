@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Spinner, Accordion, AccordionItem, AccordionHeader, AccordionBody } from "reactstrap";
-import { useLazyFetchDiscussionQuery, useFetchStudyCommentsQuery, useFetchStudyQuery, useLazyFetchAllStudyResponsesQuery, useLazyFetchCompleteDiscussionQuery, useLazyGetUserByIdQuery } from "../../../store";
+import { useLazyFetchDiscussionQuery, useFetchStudyCommentsQuery, useFetchStudyQuery, useLazyFetchAllStudyResponsesQuery, useLazyFetchCompleteDiscussionQuery, useLazyGetUserByIdQuery, useFetchUserIdsQuery, useLazyFetchUserDataQuery } from "../../../store";
 import SimplePieChart from "./SimplePieChart";
 import TimeLinePlot from "./TimeLinePlot";
 import StudyCard from "../../tools/StudyCard";
@@ -31,7 +31,13 @@ const StudyDashboard = () => {
     const [fetchAllStudyResponses, { data: allStudyResponses, isLoading: isLoadingAllStudyResponses, error: errorAllStudyResponses }] = useLazyFetchAllStudyResponsesQuery();
     const [fetchCompleteDiscussion, {error: errorCompleteDiscussion, isLoading: isLoadingCompleteDiscussion}] = useLazyFetchCompleteDiscussionQuery();
     const [getUsernameById, {error: errorGetUsername, isLoading: isLoadingGetUsername}] = useLazyGetUserByIdQuery();
+
+    const { data: userIds, error: errorUserIds, isLoading: isLoadingUserIds } = useFetchUserIdsQuery();
+    const [fetchUserData, { data: userData, error: errorUserData, isLoading: isLoadingUserData}] = useLazyFetchUserDataQuery();
+
     const [taskDiscussions, setTaskDiscussions] = useState({});
+    const [userDataMap, setUserDataMap] = useState({});
+
 
     const toggleAccordion = (id) => {
         if (openAccordion === id) {
@@ -51,7 +57,20 @@ const StudyDashboard = () => {
         }
     }, [study, fetchTaskDiscussion]);
 
-    if (isLoadingStudy || isLoadingComments || isLoadingTaskDiscussion || isLoadingAllStudyResponses || isLoadingCompleteDiscussion) {
+
+    useEffect(() => {
+        if (userIds) {
+            userIds.forEach(async (item) => {
+                const id = item[0];
+                const username = item[1];
+                const userDataResults = await fetchUserData({username: username, userId: id}).unwrap();
+                setUserDataMap(prev => ({ ...prev, [id]: userDataResults}));
+            });
+        }
+    }, [userIds, useFetchUserIdsQuery]);
+
+
+    if (isLoadingStudy || isLoadingComments || isLoadingTaskDiscussion || isLoadingAllStudyResponses || isLoadingCompleteDiscussion || isLoadingUserIds || isLoadingUserData) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
                 <Spinner color="primary" />
@@ -59,11 +78,22 @@ const StudyDashboard = () => {
         );
     }
 
-    if (errorStudy || errorComments || errorTaskDiscussion || errorAllStudyResponses) {
-        return <div>Error: {errorStudy.data || errorComments.data || errorTaskDiscussion?.data || errorAllStudyResponses}</div>;
+    if (errorStudy || errorComments || errorTaskDiscussion || errorAllStudyResponses || errorUserIds || errorUserData) {
+        console.log("here")
+        return <div>Error: {errorStudy?.data || errorComments?.data || errorTaskDiscussion?.data || errorAllStudyResponses || errorUserIds || errorUserData}</div>;
     }
 
+
+    console.log("fetchTaskDiscussions: ", taskDiscussion)
+    console.log("allStudyResponses: ", allStudyResponses)
+    console.log("study: ",study)
+    console.log("userIds: ", userIds)
+    console.log("userDataMap: ", userDataMap)
+
+
+
     const { dateCreated, dateModified, description, instructions, name, participants, prompts, responses } = study;
+
 
     const participantsCompletedStudy = participants.filter(p => p.responded).length;
     const participantsUncompletedStudy = participants.length - participantsCompletedStudy;
