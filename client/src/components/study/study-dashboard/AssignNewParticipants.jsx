@@ -1,5 +1,5 @@
 import { useFetchAllUsersQuery, useFetchAllStudiesQuery, useAssignParticipantMutation } from "../../../store";
-import { Table, Modal, ModalHeader, ModalBody, ModalFooter, Button, FormGroup, Input, Label } from "reactstrap";
+import { Spinner, Table, Modal, ModalHeader, ModalBody, ModalFooter, Button, FormGroup, Input, Label } from "reactstrap";
 import { useState, useEffect } from "react";
 
 const AssignNewParticipants = () => {
@@ -7,7 +7,7 @@ const AssignNewParticipants = () => {
     const { data: allStudies, isLoading: isLoadingAllStudies, error: errorAllStudies } = useFetchAllStudiesQuery();
     const [assignParticipant, { isLoading: isAssigning }] = useAssignParticipantMutation();
     const [participants, setParticipants] = useState([]);
-    
+
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedStudy, setSelectedStudy] = useState(null);
@@ -20,22 +20,22 @@ const AssignNewParticipants = () => {
             setParticipants(filteredUsers);
         }
     }, [allUsers]);
-    
+
     // Get studies that a user is assigned to (using username)
     const getAssignedStudies = (username) => {
         if (!allStudies) return [];
-        
+
         return allStudies.filter(study => {
             // Check if the study has participants
             if (!study.participants || !study.participants.length) return false;
-            
+
             // Check if user's username is in the study's participants
             return study.participants.some(participant => {
                 // If participant is an object with username property
                 if (typeof participant === 'object' && participant.username) {
                     return participant.username === username;
                 }
-                
+
                 // If participant is an ID, find the corresponding user
                 if (allUsers) {
                     const matchedUser = allUsers.find(user => {
@@ -47,27 +47,27 @@ const AssignNewParticipants = () => {
                     });
                     return matchedUser?.username === username;
                 }
-                
+
                 return false;
             });
         });
     };
-    
+
     // Get studies that a user is NOT assigned to (using username)
     const getAvailableStudies = (username) => {
         if (!allStudies) return [];
-        
+
         return allStudies.filter(study => {
             // If no participants, the user isn't assigned
             if (!study.participants || !study.participants.length) return true;
-            
+
             // Check that user is NOT in participants
             return !study.participants.some(participant => {
                 // If participant is an object with username property
                 if (typeof participant === 'object' && participant.username) {
                     return participant.username === username;
                 }
-                
+
                 // If participant is an ID, find the corresponding user
                 if (allUsers) {
                     const matchedUser = allUsers.find(user => {
@@ -79,12 +79,12 @@ const AssignNewParticipants = () => {
                     });
                     return matchedUser?.username === username;
                 }
-                
+
                 return false;
             });
         });
     };
-    
+
     // Handle study selection change
     const handleStudySelect = (studyId, user) => {
         const study = allStudies.find(s => s._id === studyId);
@@ -102,7 +102,7 @@ const AssignNewParticipants = () => {
             setIsModalOpen(true);
         }
     };
-    
+
     // Handle checkbox change
     const handleTaskCheckboxChange = (taskId) => {
         setSelectedTasks(prev => ({
@@ -110,26 +110,26 @@ const AssignNewParticipants = () => {
             [taskId]: !prev[taskId]
         }));
     };
-    
+
     // Handle modal close
     const toggleModal = () => {
         setIsModalOpen(!isModalOpen);
     };
-    
+
     // Handle assignment submission
     const handleAssignSubmit = async () => {
         try {
             const tasksToAssign = Object.entries(selectedTasks)
                 .filter(([_, isSelected]) => isSelected)
                 .map(([taskId]) => taskId);
-                
+
             if (tasksToAssign.length > 0) {
                 await assignParticipant({
                     studyId: selectedStudy._id,
                     userId: selectedUser._id,
                     taskIds: tasksToAssign
                 });
-                
+
                 // Close the modal and show success message
                 toggleModal();
                 alert(`${selectedUser.username} has been assigned to the selected tasks in ${selectedStudy.name}`);
@@ -141,17 +141,19 @@ const AssignNewParticipants = () => {
             alert("Failed to assign participant to tasks");
         }
     };
-    
+
     if (isLoadingAllUsers || isLoadingAllStudies) {
-        return <div>Loading users and studies...</div>;
+        return <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+            <Spinner color="primary" />
+        </div>;
     }
 
     if (errorAllUsers || errorAllStudies) {
         return <div>Error loading data</div>;
     }
-    
+
     return (
-        <div className="container border border-solid">
+        <div className="container border border-solid my-4 rounded">
             <div className="row d-flex text-center">
                 <h4>All Users</h4>
             </div>
@@ -170,7 +172,7 @@ const AssignNewParticipants = () => {
                         {participants && participants.map((user, idx) => {
                             const userAssignedStudies = getAssignedStudies(user.username);
                             const userAvailableStudies = getAvailableStudies(user.username);
-                            
+
                             return (
                                 <tr key={user._id}>
                                     <th>{idx + 1}</th>
@@ -189,7 +191,7 @@ const AssignNewParticipants = () => {
                                     </td>
                                     <td>
                                         {userAvailableStudies.length > 0 ? (
-                                            <select 
+                                            <select
                                                 className="form-select"
                                                 onChange={(e) => {
                                                     if (e.target.value) {
@@ -212,7 +214,7 @@ const AssignNewParticipants = () => {
                     </tbody>
                 </Table>
             </div>
-            
+
             {/* Assignment Modal */}
             <Modal isOpen={isModalOpen} toggle={toggleModal}>
                 <ModalHeader toggle={toggleModal}>
@@ -266,9 +268,9 @@ const AssignNewParticipants = () => {
                     <Button color="secondary" onClick={toggleModal}>
                         Cancel
                     </Button>
-                    <Button 
-                        color="primary" 
-                        onClick={handleAssignSubmit} 
+                    <Button
+                        color="primary"
+                        onClick={handleAssignSubmit}
                         disabled={isAssigning || !Object.values(selectedTasks).some(isSelected => isSelected)}
                     >
                         {isAssigning ? 'Assigning...' : 'Submit'}

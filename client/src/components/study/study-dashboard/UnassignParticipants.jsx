@@ -1,6 +1,7 @@
 import { useFetchAllUsersQuery, useFetchAllStudiesQuery, useUnassignParticipantMutation } from "../../../store";
 import { Table, Modal, ModalHeader, ModalBody, ModalFooter, Button, FormGroup, Input, Label } from "reactstrap";
 import { useState, useEffect } from "react";
+import Spinner from "reactstrap";
 
 const UnassignParticipants = () => {
     const { data: allUsers, isLoading: isLoadingAllUsers, error: errorAllUsers } = useFetchAllUsersQuery();
@@ -132,7 +133,7 @@ const UnassignParticipants = () => {
     }
 
     return (
-        <div className="container border border-solid">
+        <div className="container border border-solid my-4 rounded">
             <div className="row d-flex text-center">
                 <h4>All Users</h4>
             </div>

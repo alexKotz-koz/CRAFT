@@ -6,11 +6,13 @@ const ViewConsentStatusTable = () => {
 
     const { data, isLoading, error } = useFetchConsentStatusQuery();
 
-    if (isLoading) return <Spinner />;
+    if (isLoading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+        <Spinner color="primary" />
+    </div>;
     if (error) return <div>{error}</div>;
 
     return (
-        <div className="container">
+        <div className="container border border-solid my-4 rounded">
             <Table>
                 <thead>
                     <tr>

@@ -1,17 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Spinner, Accordion, AccordionItem, AccordionHeader, AccordionBody, Card, CardBody, CardTitle, CardSubtitle, CardText, Button } from "reactstrap";
-import { GoPeople, GoPaste, GoPerson } from 'react-icons/go';
-import { useLazyFetchDiscussionQuery, useFetchStudyCommentsQuery, useFetchStudyQuery, useLazyFetchAllStudyResponsesQuery, useLazyFetchCompleteDiscussionQuery, useLazyGetUserByIdQuery, useFetchUserIdsQuery, useLazyFetchUserDataQuery } from "../../../store";
-import SimplePieChart from "./SimplePieChart";
-import TimeLinePlot from "./TimeLinePlot";
-import StudyCard from "../../tools/StudyCard";
-import AssignNewParticipants from "./AssignNewParticipants";
-import ViewConsentStatusTable from "../../consent/ViewConsentStatusTable";
+import { Spinner, Card, CardBody, CardTitle, CardSubtitle, CardText, Button } from "reactstrap";
+import { GoPeople, GoPerson, GoSearch, GoFilter } from 'react-icons/go';
+import { useFetchStudyCommentsQuery, useFetchStudyQuery, useLazyFetchAllStudyResponsesQuery, useLazyFetchCompleteDiscussionQuery, useLazyGetUserByIdQuery, useFetchUserIdsQuery, useLazyFetchUserDataQuery } from "../../../store";
 import ReactGA from 'react-ga4';
-import UnassignParticipants from "./UnassignParticipants";
-import { isInteger, isNumber, toInteger } from "lodash";
-import { toNumber } from "lodash";
+import { isNumber } from "lodash";
+import { Link } from "react-router-dom";
 
 const StudyDashboard = () => {
 
@@ -30,7 +24,6 @@ const StudyDashboard = () => {
 
     const { data: study, error: errorStudy, isLoading: isLoadingStudy } = useFetchStudyQuery(studyId);
     const { data: comments, error: errorComments, isLoading: isLoadingComments } = useFetchStudyCommentsQuery(studyId);
-    const [fetchTaskDiscussion, { data: taskDiscussion, error: errorTaskDiscussion, isLoading: isLoadingTaskDiscussion }] = useLazyFetchDiscussionQuery();
     const [fetchAllStudyResponses, { data: allStudyResponses, isLoading: isLoadingAllStudyResponses, error: errorAllStudyResponses }] = useLazyFetchAllStudyResponsesQuery();
     const [fetchCompleteDiscussion, { error: errorCompleteDiscussion, isLoading: isLoadingCompleteDiscussion }] = useLazyFetchCompleteDiscussionQuery();
     const [getUsernameById, { error: errorGetUsername, isLoading: isLoadingGetUsername }] = useLazyGetUserByIdQuery();
@@ -40,7 +33,8 @@ const StudyDashboard = () => {
 
     const [taskDiscussions, setTaskDiscussions] = useState({});
     const [userDataMap, setUserDataMap] = useState({});
-
+    const [sortType, setSortType] = useState(0);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const toggleAccordion = (id) => {
         if (openAccordion === id) {
@@ -49,16 +43,6 @@ const StudyDashboard = () => {
             setOpenAccordion(id);
         }
     };
-
-    useEffect(() => {
-        if (study && study.tasks) {
-            study.tasks.forEach(async (task) => {
-                const taskId = task._id;
-                const taskResults = await fetchTaskDiscussion(taskId).unwrap();
-                setTaskDiscussions(prev => ({ ...prev, [taskId]: taskResults }));
-            });
-        }
-    }, [study, fetchTaskDiscussion]);
 
 
     useEffect(() => {
@@ -73,7 +57,7 @@ const StudyDashboard = () => {
     }, [userIds, useFetchUserIdsQuery]);
 
 
-    if (isLoadingStudy || isLoadingComments || isLoadingTaskDiscussion || isLoadingAllStudyResponses || isLoadingCompleteDiscussion || isLoadingUserIds || isLoadingUserData) {
+    if (isLoadingStudy || isLoadingComments || isLoadingAllStudyResponses || isLoadingCompleteDiscussion || isLoadingUserIds || isLoadingUserData) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
                 <Spinner color="primary" />
@@ -81,8 +65,8 @@ const StudyDashboard = () => {
         );
     }
 
-    if (errorStudy || errorComments || errorTaskDiscussion || errorAllStudyResponses || errorUserIds || errorUserData) {
-        return <div>Error: {errorStudy?.data || errorComments?.data || errorTaskDiscussion?.data || errorAllStudyResponses || errorUserIds || errorUserData}</div>;
+    if (errorStudy || errorComments || errorAllStudyResponses || errorUserIds || errorUserData) {
+        return <div>Error: {errorStudy?.data || errorComments?.data || errorAllStudyResponses || errorUserIds || errorUserData}</div>;
     }
 
     const { dateCreated, dateModified, description, instructions, name, participants, prompts, responses } = study;
@@ -118,47 +102,6 @@ const StudyDashboard = () => {
         return acc;
     }, []);
     aggregatedCommentData.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    const renderResponded = ({ task }) => {
-        return (
-            <p>Responded: {task.participants.filter(p => p.responded).length}/{task.participants.length}</p>
-        );
-    };
-
-    const renderDiscussions = ({ promptsWithDiscussion }) => {
-        return (
-            <p className={promptsWithDiscussion > 0 ? 'text-success' : 'text-danger'}>Discussions: {promptsWithDiscussion}</p>
-        );
-    };
-
-    const renderViewDiscussion = ({ link }) => {
-        return (
-            <div className="mt-auto">
-                <div className="btn-group w-100">
-                    <button className="btn btn-secondary card-link" onClick={() => navigate(link)}>Go To Discussion</button>
-                </div>
-            </div>
-        );
-    };
-
-    const renderFooter = ({ task }) => {
-        return (
-            <div className="card-footer">
-                <small className="text-body-secondary">Date Created: {new Date(task._dateCreated).toLocaleDateString()}</small>
-            </div>
-        );
-    };
-
-    const renderTaskContent = (task, link, promptsWithDiscussion) => {
-        return (
-            <>
-                {renderResponded({ task })}
-                {renderDiscussions({ promptsWithDiscussion })}
-                {renderViewDiscussion({ link })}
-                {renderFooter({ task })}
-            </>
-        );
-    };
 
     /********** DOWNLOAD RESPONSES **********/
     const handleDownloadResponses = async (downloadType) => {
@@ -705,400 +648,487 @@ const StudyDashboard = () => {
 
     }
 
+
+    const sortUsers = (a, b) => {
+        if (sortType === 0) {
+            // Sort by firstName
+            const firstNameA = a.user.firstName || '';
+            const firstNameB = b.user.firstName || '';
+            return firstNameA.localeCompare(firstNameB);
+        } else if (sortType === 1) {
+            // Sort by cohort
+            const cohortA = a.user.cohort || '';
+            const cohortB = b.user.cohort || '';
+            const numA = parseInt(cohortA, 10);
+            const numB = parseInt(cohortB, 10);
+
+            // If both are valid numbers, sort numerically
+            if (!isNaN(numA) && !isNaN(numB)) {
+                return numA - numB;
+            }
+            return cohortA.localeCompare(cohortB);
+        }
+        return 0;
+    };
+
+    const filterUsers = (users) => {
+        if (!searchTerm.trim()) return users;
+
+        const searchLower = searchTerm.toLowerCase().trim();
+
+        return users.filter(user => {
+            const firstName = (user.user.firstName || '').toLowerCase();
+            const lastName = (user.user.lastName || '').toLowerCase();
+            const cohort = (user.user.cohort || '').toLowerCase();
+            const username = (user.user.username || '').toLowerCase();
+
+            return firstName.includes(searchLower) ||
+                lastName.includes(searchLower) ||
+                cohort.includes(searchLower) ||
+                username.includes(searchLower);
+        });
+    };
+
+
     return (
         <div className="container-fluid bg-secondary-subtle rounded py-2">
             <h3 className="text-center mb-4">Study Dashboard</h3>
 
             <div className="mx-2 my-3 px-2 py-2">
-                <div className="container border border-solid">
-                    {/** Summary Cards */}
-                    <div className="row g-3 mb-3">
-                        <div className="col-md-3">
-                            <Card className="h-100">
-                                <CardBody className="d-flex flex-column justify-content-center">
-                                    <CardTitle className="text-center">
-                                        <strong>Total Users in Study</strong>
-                                    </CardTitle>
-                                    <CardSubtitle className="d-flex justify-content-center my-3">
-                                        <GoPeople style={{ color: '#87CEEB', fontSize: '1.75rem' }} />
-                                    </CardSubtitle>
-                                    <CardText className="text-center fs-4 fw-bold">
-                                        {countParticipants}
-                                    </CardText>
-                                </CardBody>
-                            </Card>
+
+                <div className="row">
+                    <div className="col-2 bg-white rounded shadow-sm py-3 px-0 mb-3">
+                        {/** Side Nav Header */}
+                        <div className="px-3 mb-3">
+                            <h6 className="text-uppercase text-muted small fw-bold mb-0" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>Auxiliary Functions</h6>
                         </div>
-                        <div className="col-md-3">
-                            <Card className="h-100">
-                                <CardBody className="d-flex flex-column justify-content-center">
-                                    <CardTitle className="text-center">
-                                        <strong>Completed Consents</strong>
-                                    </CardTitle>
-                                    <CardSubtitle className="d-flex justify-content-center my-3">
-                                        <GoPerson style={{ color: '#eb8787ff', fontSize: '1.75rem' }} />
-                                    </CardSubtitle>
-                                    <CardText className="text-center fs-4 fw-bold">
-                                        {consentedUsers}
-                                    </CardText>
-                                </CardBody>
-                            </Card>
-                        </div>
-                        <div className="col-md-3">
-                            <Card className="h-100">
-                                <CardBody className="d-flex flex-column justify-content-center">
-                                    <CardTitle className="text-center">
-                                        <strong>Completed All Assigned LLM Response Evaluations</strong>
-                                    </CardTitle>
-                                    <CardSubtitle className="d-flex justify-content-center my-3">
-                                        <GoPerson style={{ color: '#87eb87ff', fontSize: '1.75rem' }} />
-                                    </CardSubtitle>
-                                    <CardText className="text-center fs-4 fw-bold">
-                                        {/* Add your third metric here */}
-                                        {calculateLLMRECompletions(userDataMap)}
-                                    </CardText>
-                                </CardBody>
-                            </Card>
-                        </div>
-                        <div className="col-md-3">
-                            <Card className="h-100">
-                                <CardBody className="d-flex flex-column justify-content-center">
-                                    <CardTitle className="text-center">
-                                        <strong>Completed All Assigned Study Tasks</strong>
-                                    </CardTitle>
-                                    <CardSubtitle className="d-flex justify-content-center my-3">
-                                        <GoPerson style={{ color: '#a787ebff', fontSize: '1.75rem' }} />
-                                    </CardSubtitle>
-                                    <CardText className="text-center fs-4 fw-bold">
-                                        {/* Add your third metric here */}
-                                        {calculateStudyCompletions(userDataMap)}
-                                    </CardText>
-                                </CardBody>
-                            </Card>
+
+                        <nav className="nav flex-column">
+                            {/**Task Discussions */}
+                            <Link
+                                to={`/study-dashboard/task-discussions/${studyId}`}
+                                className="nav-link d-flex align-items-center justify-content-between px-3 py-2 text-decoration-none border-0 text-dark nav-link-hover"
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.classList.add('bg-info-subtle');
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.classList.remove('bg-info-subtle');
+                                }}
+                            >
+                                <div className="d-flex align-items-center">
+                                    <span className="small">Task Discussions</span>
+                                </div>
+                            </Link>
+                            <Link
+                                to={`/study-dashboard/assign-participants/${studyId}`}
+                                c className="nav-link d-flex align-items-center px-3 py-2 text-decoration-none border-0 text-dark"
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.classList.add('bg-info-subtle');
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.classList.remove('bg-info-subtle');
+                                }}
+                            >
+                                <div className="d-flex align-items-center">
+                                    <span className="small">Assign Participants</span>
+                                </div>
+                            </Link>
+
+                            <Link
+                                to={`/study-dashboard/unassign-participants/${studyId}`}
+                                className="nav-link d-flex align-items-center px-3 py-2 text-decoration-none border-0 text-dark"
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.classList.add('bg-info-subtle');
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.classList.remove('bg-info-subtle');
+                                }}
+                            >
+                                <div className="d-flex align-items-center">
+                                    <span className="small">Unassign Participants</span>
+                                </div>
+                            </Link>
+
+                            <Link
+                                to={`/study-dashboard/consent-table`}
+                                className="nav-link d-flex align-items-center px-3 py-2 text-decoration-none border-0 text-dark"
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.classList.add('bg-info-subtle');
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.classList.remove('bg-info-subtle');
+                                }}
+                            >
+                                <div className="d-flex align-items-center">
+                                    <span className="small">View Consent Table</span>
+                                </div>
+                            </Link>
+                        </nav>
+                        {/* Download Section */}
+
+                        <div className="accordion accordion-flush mb-4 mt-4" id="studyDashboardAccordion">
+                            {/* Download Data Section */}
+                            <div className="accordion-item border-0">
+                                <h5 className="accordion-header">
+                                    <button
+                                        className={`accordion-button ${openAccordion !== '2' && 'collapsed'} bg-transparent border-0 px-3 py-3`}
+                                        type="button"
+                                        onClick={() => toggleAccordion('2')}
+                                        style={{
+                                            boxShadow: 'none',
+                                            fontSize: '14px'
+                                        }}
+                                    >
+                                        <i className="bi bi-download me-3 text-primary"></i>
+                                        <span>Download Data</span>
+                                    </button>
+                                </h5>
+                                {/**Download Data */}
+                                <div className={`accordion-collapse collapse ${openAccordion === '2' ? 'show' : ''}`}>
+                                    <div className="accordion-body px-3 py-3">
+                                        <div className="row g-2">
+                                            <div className="col-6">
+                                                <button
+                                                    className="btn btn-outline-primary btn-sm w-100 d-flex align-items-center justify-content-center"
+                                                    onClick={() => handleDownloadResponses("json")}
+                                                >
+                                                    <i className="bi bi-file-earmark-code me-2"></i>
+                                                    {'{}'} JSON
+                                                </button>
+                                            </div>
+                                            <div className="col-6">
+                                                <button
+                                                    className="btn btn-outline-secondary btn-sm w-100 d-flex align-items-center justify-content-center"
+                                                    onClick={() => handleDownloadResponses("csv")}
+                                                >
+                                                    <i className="bi bi-file-earmark-spreadsheet me-2"></i>
+                                                    {'<,>'} CSV
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="text-center my-2">
+                                            <small className="text-muted">Responses</small>
+                                        </div>
+                                        <div className="row g-2">
+                                            <div className="col-6">
+                                                <button
+                                                    className="btn btn-outline-primary btn-sm w-100 d-flex align-items-center justify-content-center"
+                                                    onClick={() => handleDownloadDiscussion("json")}
+                                                >
+                                                    <i className="bi bi-file-earmark-code me-2"></i>
+                                                    {'{}'} JSON
+                                                </button>
+                                            </div>
+                                            <div className="col-6">
+                                                <button
+                                                    className="btn btn-outline-secondary btn-sm w-100 d-flex align-items-center justify-content-center"
+                                                    onClick={() => handleDownloadDiscussion("csv")}
+                                                >
+                                                    <i className="bi bi-file-earmark-spreadsheet me-2"></i>
+                                                    {'<,>'} CSV
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="text-center mt-2">
+                                            <small className="text-muted">Discussions</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                    {/** Summary Cards */}
+                    <div className="col-10">
+                        <div className="row g-3 mb-3">
+                            <div className="col-md-3">
+                                <Card className="h-100">
+                                    <CardBody className="d-flex flex-column justify-content-center">
+                                        <CardTitle className="text-center">
+                                            <strong>Total Users in Study</strong>
+                                        </CardTitle>
+                                        <CardSubtitle className="d-flex justify-content-center my-3">
+                                            <GoPeople style={{ color: '#87CEEB', fontSize: '1.75rem' }} />
+                                        </CardSubtitle>
+                                        <CardText className="text-center fs-4 fw-bold">
+                                            {countParticipants}
+                                        </CardText>
+                                    </CardBody>
+                                </Card>
+                            </div>
+                            <div className="col-md-3">
+                                <Card className="h-100">
+                                    <CardBody className="d-flex flex-column justify-content-center">
+                                        <CardTitle className="text-center">
+                                            <strong>Completed Consents</strong>
+                                        </CardTitle>
+                                        <CardSubtitle className="d-flex justify-content-center my-3">
+                                            <GoPerson style={{ color: '#eb8787ff', fontSize: '1.75rem' }} />
+                                        </CardSubtitle>
+                                        <CardText className="text-center fs-4 fw-bold">
+                                            {consentedUsers}
+                                        </CardText>
+                                    </CardBody>
+                                </Card>
+                            </div>
+                            <div className="col-md-3">
+                                <Card className="h-100">
+                                    <CardBody className="d-flex flex-column justify-content-center">
+                                        <CardTitle className="text-center">
+                                            <strong>Completed All Assigned LLM Response Evaluations</strong>
+                                        </CardTitle>
+                                        <CardSubtitle className="d-flex justify-content-center my-3">
+                                            <GoPerson style={{ color: '#87eb87ff', fontSize: '1.75rem' }} />
+                                        </CardSubtitle>
+                                        <CardText className="text-center fs-4 fw-bold">
+                                            {/* Add your third metric here */}
+                                            {calculateLLMRECompletions(userDataMap)}
+                                        </CardText>
+                                    </CardBody>
+                                </Card>
+                            </div>
+                            <div className="col-md-3">
+                                <Card className="h-100">
+                                    <CardBody className="d-flex flex-column justify-content-center">
+                                        <CardTitle className="text-center">
+                                            <strong>Completed All Assigned Study Tasks</strong>
+                                        </CardTitle>
+                                        <CardSubtitle className="d-flex justify-content-center my-3">
+                                            <GoPerson style={{ color: '#a787ebff', fontSize: '1.75rem' }} />
+                                        </CardSubtitle>
+                                        <CardText className="text-center fs-4 fw-bold">
+                                            {/* Add your third metric here */}
+                                            {calculateStudyCompletions(userDataMap)}
+                                        </CardText>
+                                    </CardBody>
+                                </Card>
+                            </div>
+                        </div>
 
-                    {/** Add search bar to search by cohort or name */}
+                        {/** Participant Stats*/}
+                        <div className="row my-2">
+                            <div className="col-12">
+                                <hr className="mb-3" />
+                                <h3 className="text-center">Participants</h3>
+                                <div className="d-flex justify-content-evenly align-items-center py-2 px-3 bg-light rounded">
+                                    {/**Search */}
+                                    <div className="d-flex align-items-center gap-2" style={{ flex: '0 0 75%' }}>
+                                        <div className="position-relative w-100">
+                                            <span className="position-absolute start-0 top-50 translate-middle-y ms-2 text-muted">
+                                                <GoSearch />
+                                            </span>
+                                            <input
+                                                id="searchInput"
+                                                type="text"
+                                                className="form-control form-control-sm ps-4 w-100"
+                                                placeholder="Search participants by name, username, or cohort..."
+                                                style={{ width: '200px' }}
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                        </div>
+                                        {searchTerm && (
+                                            <button
+                                                className="btn btn-sm btn-outline-secondary"
+                                                onClick={() => setSearchTerm('')}
+                                                title="Clear search"
+                                            >
+                                                ×
+                                            </button>
+                                        )}
+                                    </div>
+                                    {/** Sort */}
+                                    <div className="d-flex align-items-center gap-2 justify-content-end" style={{ flex: '0 0 25%' }}>
+                                        <span className="position-relative">
+                                            <span className="text-muted"><GoFilter /></span>
+                                        </span>
+                                        <select
+                                            id="sortSelect"
+                                            className="form-select form-select-sm border-0 bg-transparent"
+                                            style={{ width: 'auto' }}
+                                            value={sortType}
+                                            onChange={(e) => setSortType(parseInt(e.target.value))}
+                                        >
+                                            <option value={0}>Name</option>
+                                            <option value={1}>Cohort</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="row px-2 py-2 rounded">
+                            <div className="my-2 py-2"></div>
+                            <div className="col">
+                                {filterUsers(Object.values(userDataMap)
+                                    .filter(user => user.user.role === "participant"))
+                                    .sort(sortUsers)
+                                    .map((user, index) => {
 
-                    {/** Participant Stats*/}
-                    <div className="row px-2 py-2 rounded">
-                        <div className="my-2 py-2"></div>
-                        <div className="col">
+                                        //Calculate the user study task completion rate
+                                        let assignedStudyTasks = 0;
+                                        let completedStudyTasks = 0;
+                                        let userCompletedStudyTaskRate = 0;
+                                        let userStudyTaskIds = [];
 
-                            {Object.values(userDataMap)
-                                .filter(user => user.user.role === "participant")
-                                .sort((a, b) => {
-                                    const firstNameA = a.user.firstName || '';
-                                    const firstNameB = b.user.firstName || '';
-                                    return firstNameA.localeCompare(firstNameB);
-                                })
-                                .map((user, index) => {
+                                        if (user.studyTasks && Array.isArray(user.studyTasks) && user.studyTasks.length > 0) {
+                                            assignedStudyTasks = user.studyTasks.length;
+                                            user.studyTasks.forEach(task => {
+                                                userStudyTaskIds.push(task._id);
+                                            })
+                                        }
 
-                                    //Calculate the user study task completion rate
-                                    let assignedStudyTasks = 0;
-                                    let completedStudyTasks = 0;
-                                    let userCompletedStudyTaskRate = 0;
-                                    let userStudyTaskIds = [];
+                                        if (user.studyResponses && Array.isArray(user.studyResponses) && user.studyResponses.length > 0) {
+                                            user.studyResponses.forEach(response => {
+                                                if (userStudyTaskIds.includes(response.task)) {
+                                                    completedStudyTasks += 1;
+                                                }
+                                            })
+                                        }
 
-                                    if (user.studyTasks && Array.isArray(user.studyTasks) && user.studyTasks.length > 0) {
-                                        assignedStudyTasks = user.studyTasks.length;
-                                        user.studyTasks.forEach(task => {
-                                            userStudyTaskIds.push(task._id);
-                                        })
-                                    }
-
-                                    if (user.studyResponses && Array.isArray(user.studyResponses) && user.studyResponses.length > 0) {
-                                        user.studyResponses.forEach(response => {
-                                            if (userStudyTaskIds.includes(response.task)) {
-                                                completedStudyTasks += 1;
-                                            }
-                                        })
-                                    }
-
-                                    if (assignedStudyTasks <= 0) {
-                                        userCompletedStudyTaskRate = 'No tasks assigned';
-                                    } else {
-                                        userCompletedStudyTaskRate = Math.round((completedStudyTasks / assignedStudyTasks) * 100 * 100) / 100;
-                                    }
+                                        if (assignedStudyTasks <= 0) {
+                                            userCompletedStudyTaskRate = 'No tasks assigned';
+                                        } else {
+                                            userCompletedStudyTaskRate = Math.round((completedStudyTasks / assignedStudyTasks) * 100 * 100) / 100;
+                                        }
 
 
-                                    // Calculate the user LLM RE completion rate
-                                    let assignedLLMREs = 0;
-                                    let completedLLMREs = 0;
-                                    let userCompletedLLMRERate = 0;
-                                    let userLLMREIds = []
+                                        // Calculate the user LLM RE completion rate
+                                        let assignedLLMREs = 0;
+                                        let completedLLMREs = 0;
+                                        let userCompletedLLMRERate = 0;
+                                        let userLLMREIds = []
 
-                                    if (user.llmRE && Array.isArray(user.llmRE) && user.llmRE.length > 0) {
-                                        assignedLLMREs = user.llmRE.length;
-                                        user.llmRE.forEach(llmRE => {
-                                            userLLMREIds.push(llmRE._id);
-                                        })
-                                    }
-                                    if (user.llmREResponses && Array.isArray(user.llmREResponses) && user.llmREResponses.length > 0) {
-                                        user.llmREResponses.forEach(response => {
-                                            if (userLLMREIds.includes(response.evaluationId)) {
-                                                completedLLMREs += 1;
-                                            }
-                                        })
-                                    }
+                                        if (user.llmRE && Array.isArray(user.llmRE) && user.llmRE.length > 0) {
+                                            assignedLLMREs = user.llmRE.length;
+                                            user.llmRE.forEach(llmRE => {
+                                                userLLMREIds.push(llmRE._id);
+                                            })
+                                        }
+                                        if (user.llmREResponses && Array.isArray(user.llmREResponses) && user.llmREResponses.length > 0) {
+                                            user.llmREResponses.forEach(response => {
+                                                if (userLLMREIds.includes(response.evaluationId)) {
+                                                    completedLLMREs += 1;
+                                                }
+                                            })
+                                        }
 
-                                    if (assignedLLMREs <= 0) {
-                                        userCompletedLLMRERate = 'No LLM response evaluations assigned';
-                                    } else {
-                                        userCompletedLLMRERate = Math.round((completedLLMREs / assignedLLMREs) * 100 * 100) / 100;
-                                    }
+                                        if (assignedLLMREs <= 0) {
+                                            userCompletedLLMRERate = 'No LLM response evaluations assigned';
+                                        } else {
+                                            userCompletedLLMRERate = Math.round((completedLLMREs / assignedLLMREs) * 100 * 100) / 100;
+                                        }
 
-                                    {/** Card per Participant */ }
-                                    return (
-                                        <Card key={index} className="mb-3">
-                                            <CardBody className="p-3">
-                                                <div className="d-flex align-items-center justify-content-between">
-                                                    {/** User Demo */}
-                                                    <div className="d-flex align-items-center">
-                                                        {user.user.avatar && (
-                                                            <img
-                                                                src={user.user.avatar}
-                                                                alt={`${user.user.username}'s avatar`}
-                                                                className="rounded-circle me-3"
-                                                                style={{ width: '50px', height: '50px', objectFit: 'cover' }}
-                                                            />
-                                                        )}
-                                                        <div>
-                                                            <div className="d-flex align-items-center">
-                                                                <h6 className="mb-0 fw-bold">{user.user.firstName} {user.user.lastName}</h6>
-                                                                <span className="badge bg-primary ms-2">Participant</span>
+                                        {/** Card per Participant */ }
+                                        return (
+                                            <Card key={index} className="mb-3">
+                                                <CardBody className="p-3">
+                                                    <div className="d-flex align-items-center justify-content-between">
+                                                        {/** User Demo */}
+                                                        <div className="d-flex align-items-center">
+                                                            {user.user.avatar && (
+                                                                <img
+                                                                    src={user.user.avatar}
+                                                                    alt={`${user.user.username}'s avatar`}
+                                                                    className="rounded-circle me-3"
+                                                                    style={{ width: '50px', height: '50px', objectFit: 'cover' }}
+                                                                />
+                                                            )}
+                                                            <div>
+                                                                <div className="d-flex align-items-center">
+                                                                    <h6 className="mb-0 fw-bold">{user.user.firstName} {user.user.lastName}</h6>
+                                                                    <span className="badge bg-primary ms-2">Participant</span>
+                                                                </div>
+                                                                <small className="text-muted">
+                                                                    {user.user.jobRole} • {user.user.jobDepartment} • {user.user.jobYears}
+                                                                </small>
+                                                                <div className="text-muted">
+                                                                    <small>
+                                                                        Cohort: {user.user.cohort ? user.user.cohort : 'No cohort assigned'}
+                                                                    </small>
+
+                                                                </div>
+                                                                <div className="text-muted small">@{user.user.username}</div>
                                                             </div>
-                                                            <small className="text-muted">
-                                                                {user.user.jobRole} • {user.user.jobDepartment} • {user.user.jobYears}
-                                                            </small>
-                                                            <div className="text-muted small">@{user.user.username}</div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <hr className="my-3" />
-                                                {/* Progress bars section */}
-                                                <div className="mt-3">
-                                                    <div className="row">
-                                                        <div className="col">
-                                                            <div className="d-flex align-items-center mb-2">
-                                                                <p className="text-muted me-2 mb-0">Tasks</p>
-                                                                <span className="badge bg-info">
-                                                                    {!isNumber(userCompletedStudyTaskRate) ? userCompletedStudyTaskRate : `${completedStudyTasks}/${assignedStudyTasks}`}
-                                                                </span>
+                                                    <hr className="my-3" />
+                                                    {/* Progress bars section */}
+                                                    <div className="mt-3">
+                                                        <div className="row">
+                                                            <div className="col">
+                                                                <div className="d-flex align-items-center mb-2">
+                                                                    <p className="text-muted me-2 mb-0">Tasks</p>
+                                                                    <span className="badge bg-info">
+                                                                        {!isNumber(userCompletedStudyTaskRate) ? userCompletedStudyTaskRate : `${completedStudyTasks}/${assignedStudyTasks}`}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="progress" style={{ height: '6px' }}>
+                                                                    <div className="progress-bar bg-info" style={{ width: `${userCompletedStudyTaskRate}%` }}></div>
+                                                                </div>
                                                             </div>
-                                                            <div className="progress" style={{ height: '6px' }}>
-                                                                <div className="progress-bar bg-info" style={{ width: `${userCompletedStudyTaskRate}%` }}></div>
+                                                            <div className="col">
+                                                                <div className="d-flex align-items-center mb-2">
+                                                                    <p className="text-muted me-2 mb-0">LLM Evals</p>
+                                                                    <span className="badge bg-success">
+                                                                        {!isNumber(userCompletedLLMRERate) ? userCompletedLLMRERate : `${completedLLMREs}/${assignedLLMREs}`}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="progress" style={{ height: '6px' }}>
+                                                                    <div className="progress-bar bg-success" style={{ width: `${userCompletedLLMRERate}%` }}></div>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <div className="col">
-                                                            <div className="d-flex align-items-center mb-2">
-                                                                <p className="text-muted me-2 mb-0">LLM Evals</p>
-                                                                <span className="badge bg-success">
-                                                                    {!isNumber(userCompletedLLMRERate) ? userCompletedLLMRERate : `${completedLLMREs}/${assignedLLMREs}`}
-                                                                </span>
-                                                            </div>
-                                                            <div className="progress" style={{ height: '6px' }}>
-                                                                <div className="progress-bar bg-success" style={{ width: `${userCompletedLLMRERate}%` }}></div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="col">
-                                                            <div className="d-flex align-items-center mb-2">
-                                                                <p className="text-muted me-2 mb-0">Consented?</p>
-                                                                <span className={`badge ${Array.isArray(user.consent) &&
+                                                            <div className="col">
+                                                                <div className="d-flex align-items-center mb-2">
+                                                                    <p className="text-muted me-2 mb-0">Consented?</p>
+                                                                    <span className={`badge ${Array.isArray(user.consent) &&
                                                                         user.consent.length > 0 &&
                                                                         user.consent[0]?.participantData?.consent === true
                                                                         ? 'bg-success'
                                                                         : Array.isArray(user.consent) && user.consent.length > 0
                                                                             ? 'bg-danger'
                                                                             : 'bg-warning'
-                                                                    }`}>
-                                                                    {
-                                                                        Array.isArray(user.consent) &&
-                                                                            user.consent.length > 0 &&
-                                                                            user.consent[0]?.participantData?.consent === true
-                                                                            ? 'Yes'
-                                                                            : Array.isArray(user.consent) && user.consent.length > 0
-                                                                                ? 'No'
-                                                                                : 'No consent data'
-                                                                    }
-                                                                </span>
+                                                                        }`}>
+                                                                        {
+                                                                            Array.isArray(user.consent) &&
+                                                                                user.consent.length > 0 &&
+                                                                                user.consent[0]?.participantData?.consent === true
+                                                                                ? 'Yes'
+                                                                                : Array.isArray(user.consent) && user.consent.length > 0
+                                                                                    ? 'No'
+                                                                                    : 'No consent data'
+                                                                        }
+                                                                    </span>
+                                                                </div>
                                                             </div>
+                                                            {/* <div className="col-4">
+                                                                    <div className="d-flex align-items-center mb-2">
+                                                                        <small className="text-muted me-2">Discussions</small>
+                                                                        <span className="badge bg-warning">45%</span>
+                                                                    </div>
+                                                                    <div className="progress" style={{ height: '6px' }}>
+                                                                        <div className="progress-bar bg-warning" style={{ width: '45%' }}></div>
+                                                                    </div>
+                                                                </div> 
+                                                            */}
                                                         </div>
-                                                        {/* <div className="col-4">
-                                                        <div className="d-flex align-items-center mb-2">
-                                                            <small className="text-muted me-2">Discussions</small>
-                                                            <span className="badge bg-warning">45%</span>
-                                                        </div>
-                                                        <div className="progress" style={{ height: '6px' }}>
-                                                            <div className="progress-bar bg-warning" style={{ width: '45%' }}></div>
-                                                        </div>
-                                                    </div> */}
                                                     </div>
-                                                </div>
-                                            </CardBody>
-                                        </Card>
-                                    )
-                                })
-                            }
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-            <div className="accordion mb-4" id="studyDashboardAccordion">
-
-                {/* Task Discussions Section - Open by Default */}
-                <div className="accordion-item">
-                    <h2 className="accordion-header">
-                        <button
-                            className={`accordion-button ${openAccordion !== '0' && 'collapsed'}`}
-                            type="button"
-                            onClick={() => toggleAccordion('0')}
-                        >
-                            Task Discussions
-                        </button>
-                    </h2>
-                    <div className={`accordion-collapse collapse ${openAccordion === '0' ? 'show' : ''}`}>
-                        <div className="accordion-body">
-                            <div className="row">
-                                {study.tasks.map((task, idx) => {
-                                    const taskId = task._id;
-                                    const discussionLink = `/discussion/${taskId}`;
-                                    const taskResults = taskDiscussions[taskId];
-                                    let numComments = 0;
-                                    let promptsWithDiscussion = 0;
-                                    if (taskResults) {
-                                        taskResults.initialResponses.forEach((response) => {
-                                            response.responses.forEach((res) => {
-                                                numComments += res.comments.length;
-                                                if (res.comments.length > 0) {
-                                                    promptsWithDiscussion++;
-                                                }
-                                            });
-                                        });
-                                    }
-
-                                    return (
-                                        <StudyCard
-                                            key={idx}
-                                            cardIndex={idx}
-                                            cardName={task?.name ?? study.name}
-                                            cardDescription={task.instructions}
-                                            content={renderTaskContent(task, discussionLink, promptsWithDiscussion)}
-                                        />
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Statistics Section */}
-                <div className="accordion-item">
-                    <h2 className="accordion-header">
-                        <button
-                            className={`accordion-button ${openAccordion !== '1' && 'collapsed'}`}
-                            type="button"
-                            onClick={() => toggleAccordion('1')}
-                        >
-                            Statistics
-                        </button>
-                    </h2>
-                    <div className={`accordion-collapse collapse ${openAccordion === '1' ? 'show' : ''}`}>
-                        <div className="accordion-body">
-                            <div className="row">
-                                <SimplePieChart data={respondedData} title="Responded" />
-                                <TimeLinePlot data={aggregatedCommentData} title="Comments" lineDataKey="count" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Download Section */}
-                <div className="accordion-item">
-                    <h2 className="accordion-header">
-                        <button
-                            className={`accordion-button ${openAccordion !== '2' && 'collapsed'}`}
-                            type="button"
-                            onClick={() => toggleAccordion('2')}
-                        >
-                            Download Data
-                        </button>
-                    </h2>
-                    <div className={`accordion-collapse collapse ${openAccordion === '2' ? 'show' : ''}`}>
-                        <div className="accordion-body">
-                            <div className="d-flex justify-content-center gap-3 mb-3">
-                                <button className="btn btn-primary" onClick={() => handleDownloadResponses("json")}>
-                                    Download Responses (JSON)
-                                </button>
-                                <button className="btn btn-secondary" onClick={() => handleDownloadResponses("csv")}>
-                                    Download Responses (CSV)
-                                </button>
-                            </div>
-                            <div className="d-flex justify-content-center gap-3">
-                                <button className="btn btn-primary" onClick={() => handleDownloadDiscussion("json")}>
-                                    Download Discussion (JSON)
-                                </button>
-                                <button className="btn btn-secondary" onClick={() => handleDownloadDiscussion("csv")}>
-                                    Download Discussion (CSV)
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {/* Assign New Participants - Study */}
-                <div className="accordion-item">
-                    <h2 className="accordion-header">
-                        <button
-                            className={`accordion-button ${openAccordion !== '3' && 'collapsed'}`}
-                            type="button"
-                            onClick={() => toggleAccordion('3')}
-                        >
-                            Assign New Participants - Study
-                        </button>
-                    </h2>
-                    <div className={`accordion-collapse collapse ${openAccordion === '3' ? 'show' : ''}`}>
-                        <div className="accordion-body">
-                            <div className="d-flex justify-content-center gap-3">
-                                {openAccordion === '3' && <AssignNewParticipants studyId={studyId} />}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {/* Unassign Participants from Tasks */}
-                <div className="accordion-item">
-                    <h2 className="accordion-header">
-                        <button
-                            className={`accordion-button ${openAccordion !== '4' && 'collapsed'}`}
-                            type="button"
-                            onClick={() => toggleAccordion('4')}
-                        >
-                            Unassign Participants from Study Tasks
-                        </button>
-                    </h2>
-                    <div className={`accordion-collapse collapse ${openAccordion === '4' ? 'show' : ''}`}>
-                        <div className="accordion-body">
-                            <div className="d-flex justify-content-center gap-3">
-                                {openAccordion === '4' && <UnassignParticipants studyId={studyId} />}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {/* View Consent Completions */}
-                <div className="accordion-item">
-                    <h2 className="accordion-header">
-                        <button
-                            className={`accordion-button ${openAccordion !== '5' && 'collapsed'}`}
-                            type="button"
-                            onClick={() => toggleAccordion('5')}
-                        >
-                            View Participant Consent Status
-                        </button>
-                    </h2>
-                    <div className={`accordion-collapse collapse ${openAccordion === '5' ? 'show' : ''}`}>
-                        <div className="accordion-body">
-                            <div className="d-flex justify-content-center gap-3">
-                                {openAccordion === '5' && <ViewConsentStatusTable />}
+                                                </CardBody>
+                                            </Card>
+                                        )
+                                    })
+                                }
+                                {/* Show message when no results found */}
+                                {searchTerm && filterUsers(Object.values(userDataMap)
+                                    .filter(user => user.user.role === "participant")).length === 0 && (
+                                        <div className="text-center text-muted py-4">
+                                            <p>No participants found matching "{searchTerm}"</p>
+                                            <button
+                                                className="btn btn-sm btn-outline-primary"
+                                                onClick={() => setSearchTerm('')}
+                                            >
+                                                Clear search
+                                            </button>
+                                        </div>
+                                    )}
                             </div>
                         </div>
                     </div>

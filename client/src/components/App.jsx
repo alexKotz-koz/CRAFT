@@ -19,6 +19,7 @@ import LLMRECreate from './llmRE/CreateNewEvaluation';
 import LLMResponseEvaluation from "./llmRE/LLMResponseEvaluation";
 import READONLY_LLMResponseEvaluation from "./llmRE/READONLY_LLMResponseEvaluation";
 import EditExistingEvaluation from "./llmRE/EditExistingEvaluation";
+import TaskDiscussion from "./study/study-dashboard/TaskDiscussions";
 import ReactGA from 'react-ga4';
 
 //Prod
@@ -39,6 +40,9 @@ import AdminPasswordReset from "./auth/AdminPasswordReset";
 import ParticipantDashboard from "./participant-dashboard/ParticipantDashboard";
 import CreateNewConsent from "./consent/CreateNewConsent";
 import AssignNewParticipantsConsent from "./consent/AssignNewParticipantsConsent";
+import AssignNewParticipants from "./study/study-dashboard/AssignNewParticipants";
+import UnassignParticipants from "./study/study-dashboard/UnassignParticipants";
+import ViewConsentStatusTable from "./consent/ViewConsentStatusTable";
 
 
 
@@ -65,6 +69,11 @@ const App = () => {
                     <Route path="/study/:studyId" element={<Study user={user} />} />
                     <Route path='/study/new' element={<StudyNewWizard />} />
                     <Route path='/study/dashboard/:studyId' element={<StudyDashboard />} />
+                    <Route path='/study-dashboard/task-discussions/:studyId' element={<TaskDiscussion />} />
+                    <Route path='/study-dashboard/assign-participants/:studyId' element={<AssignNewParticipants />} />
+                    <Route path='/study-dashboard/unassign-participants/:studyId' element={<UnassignParticipants />} />
+                    <Route path='/study-dashboard/consent-table' element={<ViewConsentStatusTable />} />
+
                     <Route path='/study/response/:studyId' element={<StudyResponseWizard user={user} />} />
                     <Route path='/study/response/task/:taskId' element={<StudyResponse user={user} />} />
                     <Route path='/password_reset' element={<PasswordReset />} />
