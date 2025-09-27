@@ -3,7 +3,9 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const passport = require('passport');
 const bodyParser = require('body-parser');
+const path = require('path'); // Move this to the top with other imports
 const keys = require('./config/keys');
+
 require('./models/User');
 require('./models/Study');
 require('./models/StudyTask');
@@ -25,37 +27,46 @@ const app = express();
 app.use(bodyParser.json());
 app.use(
     session({
-      secret: keys.cookieKey,
-      resave: false, // Forces the session to be saved back to the session store, even if it was never modified during the request
-      saveUninitialized: false, // Forces a session that is "unitinitialized" to be saved to the store
-      cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
+        secret: keys.cookieKey,
+        resave: false, // Forces the session to be saved back to the session store, even if it was never modified during the request
+        saveUninitialized: false, // Forces a session that is "unitinitialized" to be saved to the store
+        cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
     })
-  );
+);
 app.use(passport.initialize()); // Passport initialize session communication via cookies
-app.use(passport.session()); 
+app.use(passport.session());
 
+// API routes MUST come before the catch-all route
 require('./routes/studyRoutes')(app);
 require('./routes/authRoutes')(app);
 require('./routes/discussionRoutes')(app);
 require('./routes/llmRERoutes')(app);
 require('./routes/consentRoutes')(app);
+
 // Error-handling middleware
 app.use((err, req, res, next) => {
-    res.status(500).json({ message: 'Something went wrong!', error: err });
-  });
+    console.error('Server error:', err);
+    res.status(500).json({ message: 'Something went wrong!', error: err.message });
+});
 
 if (process.env.NODE_ENV === 'production') {
     // Express will serve up production assets (main.js, main.css)
-    app.use(express.static('client/dist'));
+    app.use(express.static(path.join(__dirname, 'client/dist')));
 
     // Express will serve up the index.html file if it doesn't recognize the route
-    const path = require('path');
+    // This MUST be the last route
     app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'client', 'dist', 'index.html'));
+        try {
+            res.sendFile(path.resolve(__dirname, 'client', 'dist', 'index.html'));
+        } catch (error) {
+            console.error('Error serving index.html:', error);
+            res.status(500).send('Server Error');
+        }
     });
 }
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
 });
