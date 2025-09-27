@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Spinner, Accordion, AccordionItem, AccordionHeader, AccordionBody } from "reactstrap";
+import { Spinner, Accordion, AccordionItem, AccordionHeader, AccordionBody, Card, CardBody, CardTitle, CardSubtitle, CardText, Button } from "reactstrap";
+import { GoPeople, GoPaste, GoPerson } from 'react-icons/go';
 import { useLazyFetchDiscussionQuery, useFetchStudyCommentsQuery, useFetchStudyQuery, useLazyFetchAllStudyResponsesQuery, useLazyFetchCompleteDiscussionQuery, useLazyGetUserByIdQuery, useFetchUserIdsQuery, useLazyFetchUserDataQuery } from "../../../store";
 import SimplePieChart from "./SimplePieChart";
 import TimeLinePlot from "./TimeLinePlot";
@@ -9,6 +10,8 @@ import AssignNewParticipants from "./AssignNewParticipants";
 import ViewConsentStatusTable from "../../consent/ViewConsentStatusTable";
 import ReactGA from 'react-ga4';
 import UnassignParticipants from "./UnassignParticipants";
+import { isInteger, isNumber, toInteger } from "lodash";
+import { toNumber } from "lodash";
 
 const StudyDashboard = () => {
 
@@ -23,17 +26,17 @@ const StudyDashboard = () => {
     const { studyId } = useParams();
     const navigate = useNavigate();
 
-    const [openAccordion, setOpenAccordion] = useState('0');
+    const [openAccordion, setOpenAccordion] = useState('');
 
     const { data: study, error: errorStudy, isLoading: isLoadingStudy } = useFetchStudyQuery(studyId);
     const { data: comments, error: errorComments, isLoading: isLoadingComments } = useFetchStudyCommentsQuery(studyId);
     const [fetchTaskDiscussion, { data: taskDiscussion, error: errorTaskDiscussion, isLoading: isLoadingTaskDiscussion }] = useLazyFetchDiscussionQuery();
     const [fetchAllStudyResponses, { data: allStudyResponses, isLoading: isLoadingAllStudyResponses, error: errorAllStudyResponses }] = useLazyFetchAllStudyResponsesQuery();
-    const [fetchCompleteDiscussion, {error: errorCompleteDiscussion, isLoading: isLoadingCompleteDiscussion}] = useLazyFetchCompleteDiscussionQuery();
-    const [getUsernameById, {error: errorGetUsername, isLoading: isLoadingGetUsername}] = useLazyGetUserByIdQuery();
+    const [fetchCompleteDiscussion, { error: errorCompleteDiscussion, isLoading: isLoadingCompleteDiscussion }] = useLazyFetchCompleteDiscussionQuery();
+    const [getUsernameById, { error: errorGetUsername, isLoading: isLoadingGetUsername }] = useLazyGetUserByIdQuery();
 
     const { data: userIds, error: errorUserIds, isLoading: isLoadingUserIds } = useFetchUserIdsQuery();
-    const [fetchUserData, { data: userData, error: errorUserData, isLoading: isLoadingUserData}] = useLazyFetchUserDataQuery();
+    const [fetchUserData, { data: userData, error: errorUserData, isLoading: isLoadingUserData }] = useLazyFetchUserDataQuery();
 
     const [taskDiscussions, setTaskDiscussions] = useState({});
     const [userDataMap, setUserDataMap] = useState({});
@@ -63,8 +66,8 @@ const StudyDashboard = () => {
             userIds.forEach(async (item) => {
                 const id = item[0];
                 const username = item[1];
-                const userDataResults = await fetchUserData({username: username, userId: id}).unwrap();
-                setUserDataMap(prev => ({ ...prev, [id]: userDataResults}));
+                const userDataResults = await fetchUserData({ username: username, userId: id }).unwrap();
+                setUserDataMap(prev => ({ ...prev, [id]: userDataResults }));
             });
         }
     }, [userIds, useFetchUserIdsQuery]);
@@ -79,21 +82,10 @@ const StudyDashboard = () => {
     }
 
     if (errorStudy || errorComments || errorTaskDiscussion || errorAllStudyResponses || errorUserIds || errorUserData) {
-        console.log("here")
         return <div>Error: {errorStudy?.data || errorComments?.data || errorTaskDiscussion?.data || errorAllStudyResponses || errorUserIds || errorUserData}</div>;
     }
 
-
-    console.log("fetchTaskDiscussions: ", taskDiscussion)
-    console.log("allStudyResponses: ", allStudyResponses)
-    console.log("study: ",study)
-    console.log("userIds: ", userIds)
-    console.log("userDataMap: ", userDataMap)
-
-
-
     const { dateCreated, dateModified, description, instructions, name, participants, prompts, responses } = study;
-
 
     const participantsCompletedStudy = participants.filter(p => p.responded).length;
     const participantsUncompletedStudy = participants.length - participantsCompletedStudy;
@@ -177,7 +169,7 @@ const StudyDashboard = () => {
 
             responseData.forEach(responseObj => {
                 const participant = responseObj._participant;
-                const email = participant.email; 
+                const email = participant.email;
                 const userInfo = {
                     'email': participant.email,
                     'username': participant.username,
@@ -281,58 +273,58 @@ const StudyDashboard = () => {
                 alert("No tasks found in this study");
                 return;
             }
-    
+
             // Create a combined data structure for all tasks
             const studyData = {
                 study: study.name,
                 tasks: []
             };
-            
+
             let hasData = false;
-            
+
             // Process each task
             for (const taskId of taskIds) {
                 try {
                     // Use the complete discussion endpoint to get all nested comments
                     const completeData = await fetchCompleteDiscussion({ taskId }).unwrap();
-                    
+
                     // Skip tasks with no responses
                     if (!completeData || !completeData.initialResponses || completeData.initialResponses.length === 0) {
                         //console.log(`Task ${taskId} has no responses, skipping`);
                         continue;
                     }
-                    
+
                     hasData = true;
-                    
+
                     // Get task name
                     const task = study.tasks.find(t => t._id === taskId);
                     const taskName = task?.name || 'Unnamed Task';
-                    
+
                     // Format this task's data
                     const taskData = {
                         name: taskName,
                         prompts: []
                     };
-                    
+
                     // Create a map of comment details for easy lookup
                     const commentDetailsMap = {};
-                    
+
                     // Collect all comment IDs from the task
                     const allCommentIds = [];
                     for (const initialResponse of completeData.initialResponses) {
                         for (const respObj of initialResponse.responses) {
                             if (respObj.comments && respObj.comments.length > 0) {
                                 // Check if comments are IDs or objects
-                                const commentIds = respObj.comments.map(comment => 
-                                    typeof comment === 'string' ? comment : 
-                                    (comment._id ? comment._id.toString() : null)
+                                const commentIds = respObj.comments.map(comment =>
+                                    typeof comment === 'string' ? comment :
+                                        (comment._id ? comment._id.toString() : null)
                                 ).filter(id => id !== null);
-                                
+
                                 allCommentIds.push(...commentIds);
                             }
                         }
                     }
-                    
+
                     // Fetch comment details if we have comment IDs
                     if (allCommentIds.length > 0) {
                         for (const commentId of allCommentIds) {
@@ -370,13 +362,13 @@ const StudyDashboard = () => {
                             }
                         }
                     }
-                    
+
                     // Helper function to extract voter username
                     async function extractVoterUsername(vote) {
                         if (vote.voter && typeof vote.voter === 'object' && vote.voter.username) {
                             return vote.voter.username;
                         }
-                        
+
                         if (vote.voter && typeof vote.voter === 'string') {
                             try {
                                 const userFound = await getUsernameById({ userId: vote.voter }).unwrap();
@@ -386,14 +378,14 @@ const StudyDashboard = () => {
                                 return "Unknown Voter";
                             }
                         }
-                        
+
                         return "Unknown Voter";
                     }
-                    
+
                     // Helper function to process subcomments recursively
                     async function processSubComments(comments, targetArray) {
                         if (!comments || !comments.length) return;
-                        
+
                         for (const comment of comments) {
                             // Check if comment is an ID or an object
                             if (!comment.user && typeof comment === 'string') {
@@ -407,7 +399,7 @@ const StudyDashboard = () => {
                                         subcomments: [],
                                         votes: []
                                     };
-                                    
+
                                     // Add votes for this subcomment
                                     if (commentData.votes && commentData.votes.length > 0) {
                                         for (const vote of commentData.votes) {
@@ -419,12 +411,12 @@ const StudyDashboard = () => {
                                             });
                                         }
                                     }
-                                    
+
                                     // Process child comments if any
                                     if (commentData.comments && commentData.comments.length > 0) {
                                         await processSubComments(commentData.comments, subComment.subcomments);
                                     }
-                                    
+
                                     targetArray.push(subComment);
                                 }
                             } else {
@@ -436,7 +428,7 @@ const StudyDashboard = () => {
                                     subcomments: [],
                                     votes: []
                                 };
-                                
+
                                 // Add votes for this subcomment
                                 if (comment.votes && comment.votes.length > 0) {
                                     for (const vote of comment.votes) {
@@ -448,24 +440,24 @@ const StudyDashboard = () => {
                                         });
                                     }
                                 }
-                                
+
                                 // Recursive call for nested comments
                                 if (comment.comments && comment.comments.length > 0) {
                                     await processSubComments(comment.comments, subComment.subcomments);
                                 }
-                                
+
                                 targetArray.push(subComment);
                             }
                         }
                     }
-                    
+
                     // Process each prompt
                     for (const promptObj of completeData.prompts) {
                         const prompt = {
                             prompt: promptObj.question.replace(/<[^>]*>/g, ''),
                             responses: []
                         };
-                        
+
                         // Find all responses for this prompt
                         for (const initialResponse of completeData.initialResponses) {
                             for (const respObj of initialResponse.responses) {
@@ -478,18 +470,18 @@ const StudyDashboard = () => {
                                         comments: [],
                                         votes: []
                                     };
-                                    
+
                                     // Add comments with recursive subcomment processing
                                     if (respObj.comments && respObj.comments.length > 0) {
                                         for (const commentRef of respObj.comments) {
-                                            const commentId = typeof commentRef === 'string' ? commentRef : 
+                                            const commentId = typeof commentRef === 'string' ? commentRef :
                                                 (commentRef._id ? commentRef._id.toString() : null);
-                                            
+
                                             if (!commentId) continue;
-                                            
-                                            const comment = typeof commentRef === 'object' && commentRef.user ? 
+
+                                            const comment = typeof commentRef === 'object' && commentRef.user ?
                                                 commentRef : commentDetailsMap[commentId];
-                                            
+
                                             if (comment) {
                                                 const commentObj = {
                                                     user: comment.user.username,
@@ -498,7 +490,7 @@ const StudyDashboard = () => {
                                                     subcomments: [],
                                                     votes: []
                                                 };
-                                                
+
                                                 // Add votes for this comment
                                                 if (comment.votes && comment.votes.length > 0) {
                                                     for (const vote of comment.votes) {
@@ -510,17 +502,17 @@ const StudyDashboard = () => {
                                                         });
                                                     }
                                                 }
-                                                
+
                                                 // Process nested comments if they exist
                                                 if (comment.comments && comment.comments.length > 0) {
                                                     await processSubComments(comment.comments, commentObj.subcomments);
                                                 }
-                                                
+
                                                 responseObj.comments.push(commentObj);
                                             }
                                         }
                                     }
-                                    
+
                                     // Add votes
                                     if (respObj.votes && respObj.votes.length > 0) {
                                         for (const vote of respObj.votes) {
@@ -532,67 +524,67 @@ const StudyDashboard = () => {
                                             });
                                         }
                                     }
-                                    
+
                                     prompt.responses.push(responseObj);
                                 }
                             }
                         }
-                        
+
                         taskData.prompts.push(prompt);
                     }
-                    
+
                     // Add this task's data to the study data
                     studyData.tasks.push(taskData);
-                    
+
                 } catch (error) {
                     console.error(`Error processing task ${taskId}:`, error);
                     // Continue with other tasks even if one fails
                 }
             }
-            
+
             if (!hasData) {
                 alert("No discussion data found for any tasks in this study");
                 return;
             }
-            
+
             const studyName = study.name || 'study';
             const fileName = `study-${studyName}-all-discussions`.replace(/\s+/g, '-');
-            
+
             // Download in requested format
             if (downloadType === "json") {
                 const jsonData = JSON.stringify(studyData, null, 2);
                 downloadFile(jsonData, `${fileName}.json`, 'application/json');
-            } 
+            }
             else if (downloadType === "csv") {
                 let csvContent = "study,taskName,prompt,username,response,responseDate,commentUsername,comment,commentDate,replyLevel,replyToUsername,voteUsername,voteValue\n";
-                
+
                 // Helper function for CSV escaping
                 const escapeCsv = (field) => {
                     if (field === null || field === undefined) return '';
                     const str = String(field).replace(/"/g, '""');
                     return str.includes(',') ? `"${str}"` : str;
                 };
-                
+
                 // Process all tasks
                 studyData.tasks.forEach(taskData => {
                     const taskName = escapeCsv(taskData.name);
-                    
+
                     // Process all prompts in this task
                     taskData.prompts.forEach(prompt => {
                         const promptText = escapeCsv(prompt.prompt);
-                        
+
                         // Process all responses to this prompt
                         prompt.responses.forEach(response => {
                             const studyNameCsv = escapeCsv(studyData.study);
                             const username = escapeCsv(response.user);
                             const responseText = escapeCsv(response.response);
                             const responseDate = escapeCsv(response.dateCreated);
-                            
+
                             // If no comments or votes, output just the response row
                             if (response.comments.length === 0 && response.votes.length === 0) {
                                 csvContent += `${studyNameCsv},${taskName},${promptText},${username},${responseText},${responseDate},,,,,,\n`;
                             }
-                            
+
                             // Add rows for response votes
                             if (response.votes.length > 0) {
                                 response.votes.forEach(vote => {
@@ -600,7 +592,7 @@ const StudyDashboard = () => {
                                     csvContent += `${escapeCsv(username)},"Vote on response",${escapeCsv(responseDate)},-1,,${escapeCsv(vote.user)},${vote.vote}\n`;
                                 });
                             }
-                            
+
                             // Process comments with nested structure
                             if (response.comments.length > 0) {
                                 // Recursively add comments, their votes, and their subcomments
@@ -609,7 +601,7 @@ const StudyDashboard = () => {
                                         // For each comment, add a row
                                         csvContent += `${studyNameCsv},${taskName},${promptText},${username},${responseText},${responseDate},`;
                                         csvContent += `${escapeCsv(comment.user)},${escapeCsv(comment.comment)},${escapeCsv(comment.dateCreated)},${level},${level > 0 ? escapeCsv(parentUser) : ''},${escapeCsv('')},${escapeCsv('')}\n`;
-                                        
+
                                         // Add rows for comment votes
                                         if (comment.votes && comment.votes.length > 0) {
                                             comment.votes.forEach(vote => {
@@ -617,20 +609,20 @@ const StudyDashboard = () => {
                                                 csvContent += `${escapeCsv(comment.user)},"${escapeCsv(comment.comment.substring(0, 20))}...",${escapeCsv(comment.dateCreated)},${level},${level > 0 ? escapeCsv(parentUser) : ''},${escapeCsv(vote.user)},${vote.vote}\n`;
                                             });
                                         }
-                                        
+
                                         // If there are subcomments, process them as well
                                         if (comment.subcomments && comment.subcomments.length > 0) {
                                             flattenCommentsAndVotes(comment.subcomments, level + 1, comment.user);
                                         }
                                     });
                                 };
-                                
+
                                 flattenCommentsAndVotes(response.comments, 0, '');
                             }
                         });
                     });
                 });
-                
+
                 downloadFile(csvContent, `${fileName}.csv`, 'text/csv');
             }
         } catch (error) {
@@ -638,10 +630,321 @@ const StudyDashboard = () => {
             alert("Failed to download discussion data. See console for details.");
         }
     };
+
+    /********** RETURN *******************/
+    const countParticipants = userIds ? userIds.filter(user => user[2] === "participant").length : 0;
+    const consentedUsers = Object.values(userDataMap).filter(user => {
+        return user?.consent &&
+            Array.isArray(user.consent) &&
+            user.consent.length > 0 &&
+            user.consent[0]?.participantData?.consent === true;
+    }).length;
+
+
+    const calculateLLMRECompletions = (userDataMap) => {
+        if (!userDataMap || Object.keys(userDataMap).length === 0) {
+            return 0;
+        }
+
+        let usersWithCompletedLLMRE = 0;
+
+        Object.values(userDataMap).forEach(user => {
+            let completedLLMREs = 0;
+            let userLLMREIds = []
+
+            if (user.llmRE && Array.isArray(user.llmRE) && user.llmRE.length > 0) {
+                user.llmRE.forEach(llmRE => {
+                    userLLMREIds.push(llmRE._id);
+                })
+            }
+            if (user.llmREResponses && Array.isArray(user.llmREResponses) && user.llmREResponses.length > 0) {
+                user.llmREResponses.forEach(response => {
+                    if (userLLMREIds.includes(response.evaluationId)) {
+                        completedLLMREs += 1;
+                    }
+                })
+            }
+            // Check if user completed all their LLMREs
+            if (userLLMREIds.length > 0 && completedLLMREs === userLLMREIds.length) {
+                usersWithCompletedLLMRE += 1;
+            }
+        });
+        return usersWithCompletedLLMRE;
+    }
+
+    const calculateStudyCompletions = (userDataMap) => {
+        if (!userDataMap || Object.keys(userDataMap).length === 0) {
+            return 0;
+        }
+
+        let usersWithCompletedStudyTasks = 0;
+
+        Object.values(userDataMap).forEach(user => {
+            let completedStudyTasks = 0;
+            let userStudyTaskIds = [];
+
+            if (user.studyTasks && Array.isArray(user.studyTasks) && user.studyTasks.length > 0) {
+                user.studyTasks.forEach(task => {
+                    userStudyTaskIds.push(task._id);
+                })
+            }
+
+            if (user.studyResponses && Array.isArray(user.studyResponses) && user.studyResponses.length > 0) {
+                user.studyResponses.forEach(response => {
+                    if (userStudyTaskIds.includes(response.task)) {
+                        completedStudyTasks += 1;
+                    }
+                })
+            }
+
+            if (userStudyTaskIds.length > 0 && completedStudyTasks == userStudyTaskIds.length) {
+                usersWithCompletedStudyTasks += 1;
+            }
+        });
+        return usersWithCompletedStudyTasks;
+
+    }
+
     return (
-        <div className="container-fluid">
+        <div className="container-fluid bg-secondary-subtle rounded py-2">
             <h3 className="text-center mb-4">Study Dashboard</h3>
 
+            <div className="mx-2 my-3 px-2 py-2">
+                <div className="container border border-solid">
+                    {/** Summary Cards */}
+                    <div className="row g-3 mb-3">
+                        <div className="col-md-3">
+                            <Card className="h-100">
+                                <CardBody className="d-flex flex-column justify-content-center">
+                                    <CardTitle className="text-center">
+                                        <strong>Total Users in Study</strong>
+                                    </CardTitle>
+                                    <CardSubtitle className="d-flex justify-content-center my-3">
+                                        <GoPeople style={{ color: '#87CEEB', fontSize: '1.75rem' }} />
+                                    </CardSubtitle>
+                                    <CardText className="text-center fs-4 fw-bold">
+                                        {countParticipants}
+                                    </CardText>
+                                </CardBody>
+                            </Card>
+                        </div>
+                        <div className="col-md-3">
+                            <Card className="h-100">
+                                <CardBody className="d-flex flex-column justify-content-center">
+                                    <CardTitle className="text-center">
+                                        <strong>Completed Consents</strong>
+                                    </CardTitle>
+                                    <CardSubtitle className="d-flex justify-content-center my-3">
+                                        <GoPerson style={{ color: '#eb8787ff', fontSize: '1.75rem' }} />
+                                    </CardSubtitle>
+                                    <CardText className="text-center fs-4 fw-bold">
+                                        {consentedUsers}
+                                    </CardText>
+                                </CardBody>
+                            </Card>
+                        </div>
+                        <div className="col-md-3">
+                            <Card className="h-100">
+                                <CardBody className="d-flex flex-column justify-content-center">
+                                    <CardTitle className="text-center">
+                                        <strong>Completed All Assigned LLM Response Evaluations</strong>
+                                    </CardTitle>
+                                    <CardSubtitle className="d-flex justify-content-center my-3">
+                                        <GoPerson style={{ color: '#87eb87ff', fontSize: '1.75rem' }} />
+                                    </CardSubtitle>
+                                    <CardText className="text-center fs-4 fw-bold">
+                                        {/* Add your third metric here */}
+                                        {calculateLLMRECompletions(userDataMap)}
+                                    </CardText>
+                                </CardBody>
+                            </Card>
+                        </div>
+                        <div className="col-md-3">
+                            <Card className="h-100">
+                                <CardBody className="d-flex flex-column justify-content-center">
+                                    <CardTitle className="text-center">
+                                        <strong>Completed All Assigned Study Tasks</strong>
+                                    </CardTitle>
+                                    <CardSubtitle className="d-flex justify-content-center my-3">
+                                        <GoPerson style={{ color: '#a787ebff', fontSize: '1.75rem' }} />
+                                    </CardSubtitle>
+                                    <CardText className="text-center fs-4 fw-bold">
+                                        {/* Add your third metric here */}
+                                        {calculateStudyCompletions(userDataMap)}
+                                    </CardText>
+                                </CardBody>
+                            </Card>
+                        </div>
+                    </div>
+
+                    {/** Add search bar to search by cohort or name */}
+
+                    {/** Participant Stats*/}
+                    <div className="row px-2 py-2 rounded">
+                        <div className="my-2 py-2"></div>
+                        <div className="col">
+
+                            {Object.values(userDataMap)
+                                .filter(user => user.user.role === "participant")
+                                .sort((a, b) => {
+                                    const firstNameA = a.user.firstName || '';
+                                    const firstNameB = b.user.firstName || '';
+                                    return firstNameA.localeCompare(firstNameB);
+                                })
+                                .map((user, index) => {
+
+                                    //Calculate the user study task completion rate
+                                    let assignedStudyTasks = 0;
+                                    let completedStudyTasks = 0;
+                                    let userCompletedStudyTaskRate = 0;
+                                    let userStudyTaskIds = [];
+
+                                    if (user.studyTasks && Array.isArray(user.studyTasks) && user.studyTasks.length > 0) {
+                                        assignedStudyTasks = user.studyTasks.length;
+                                        user.studyTasks.forEach(task => {
+                                            userStudyTaskIds.push(task._id);
+                                        })
+                                    }
+
+                                    if (user.studyResponses && Array.isArray(user.studyResponses) && user.studyResponses.length > 0) {
+                                        user.studyResponses.forEach(response => {
+                                            if (userStudyTaskIds.includes(response.task)) {
+                                                completedStudyTasks += 1;
+                                            }
+                                        })
+                                    }
+
+                                    if (assignedStudyTasks <= 0) {
+                                        userCompletedStudyTaskRate = 'No tasks assigned';
+                                    } else {
+                                        userCompletedStudyTaskRate = Math.round((completedStudyTasks / assignedStudyTasks) * 100 * 100) / 100;
+                                    }
+
+
+                                    // Calculate the user LLM RE completion rate
+                                    let assignedLLMREs = 0;
+                                    let completedLLMREs = 0;
+                                    let userCompletedLLMRERate = 0;
+                                    let userLLMREIds = []
+
+                                    if (user.llmRE && Array.isArray(user.llmRE) && user.llmRE.length > 0) {
+                                        assignedLLMREs = user.llmRE.length;
+                                        user.llmRE.forEach(llmRE => {
+                                            userLLMREIds.push(llmRE._id);
+                                        })
+                                    }
+                                    if (user.llmREResponses && Array.isArray(user.llmREResponses) && user.llmREResponses.length > 0) {
+                                        user.llmREResponses.forEach(response => {
+                                            if (userLLMREIds.includes(response.evaluationId)) {
+                                                completedLLMREs += 1;
+                                            }
+                                        })
+                                    }
+
+                                    if (assignedLLMREs <= 0) {
+                                        userCompletedLLMRERate = 'No LLM response evaluations assigned';
+                                    } else {
+                                        userCompletedLLMRERate = Math.round((completedLLMREs / assignedLLMREs) * 100 * 100) / 100;
+                                    }
+
+                                    {/** Card per Participant */ }
+                                    return (
+                                        <Card key={index} className="mb-3">
+                                            <CardBody className="p-3">
+                                                <div className="d-flex align-items-center justify-content-between">
+                                                    {/** User Demo */}
+                                                    <div className="d-flex align-items-center">
+                                                        {user.user.avatar && (
+                                                            <img
+                                                                src={user.user.avatar}
+                                                                alt={`${user.user.username}'s avatar`}
+                                                                className="rounded-circle me-3"
+                                                                style={{ width: '50px', height: '50px', objectFit: 'cover' }}
+                                                            />
+                                                        )}
+                                                        <div>
+                                                            <div className="d-flex align-items-center">
+                                                                <h6 className="mb-0 fw-bold">{user.user.firstName} {user.user.lastName}</h6>
+                                                                <span className="badge bg-primary ms-2">Participant</span>
+                                                            </div>
+                                                            <small className="text-muted">
+                                                                {user.user.jobRole} • {user.user.jobDepartment} • {user.user.jobYears}
+                                                            </small>
+                                                            <div className="text-muted small">@{user.user.username}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <hr className="my-3" />
+                                                {/* Progress bars section */}
+                                                <div className="mt-3">
+                                                    <div className="row">
+                                                        <div className="col">
+                                                            <div className="d-flex align-items-center mb-2">
+                                                                <p className="text-muted me-2 mb-0">Tasks</p>
+                                                                <span className="badge bg-info">
+                                                                    {!isNumber(userCompletedStudyTaskRate) ? userCompletedStudyTaskRate : `${completedStudyTasks}/${assignedStudyTasks}`}
+                                                                </span>
+                                                            </div>
+                                                            <div className="progress" style={{ height: '6px' }}>
+                                                                <div className="progress-bar bg-info" style={{ width: `${userCompletedStudyTaskRate}%` }}></div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="col">
+                                                            <div className="d-flex align-items-center mb-2">
+                                                                <p className="text-muted me-2 mb-0">LLM Evals</p>
+                                                                <span className="badge bg-success">
+                                                                    {!isNumber(userCompletedLLMRERate) ? userCompletedLLMRERate : `${completedLLMREs}/${assignedLLMREs}`}
+                                                                </span>
+                                                            </div>
+                                                            <div className="progress" style={{ height: '6px' }}>
+                                                                <div className="progress-bar bg-success" style={{ width: `${userCompletedLLMRERate}%` }}></div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="col">
+                                                            <div className="d-flex align-items-center mb-2">
+                                                                <p className="text-muted me-2 mb-0">Consented?</p>
+                                                                <span className={`badge ${Array.isArray(user.consent) &&
+                                                                        user.consent.length > 0 &&
+                                                                        user.consent[0]?.participantData?.consent === true
+                                                                        ? 'bg-success'
+                                                                        : Array.isArray(user.consent) && user.consent.length > 0
+                                                                            ? 'bg-danger'
+                                                                            : 'bg-warning'
+                                                                    }`}>
+                                                                    {
+                                                                        Array.isArray(user.consent) &&
+                                                                            user.consent.length > 0 &&
+                                                                            user.consent[0]?.participantData?.consent === true
+                                                                            ? 'Yes'
+                                                                            : Array.isArray(user.consent) && user.consent.length > 0
+                                                                                ? 'No'
+                                                                                : 'No consent data'
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        {/* <div className="col-4">
+                                                        <div className="d-flex align-items-center mb-2">
+                                                            <small className="text-muted me-2">Discussions</small>
+                                                            <span className="badge bg-warning">45%</span>
+                                                        </div>
+                                                        <div className="progress" style={{ height: '6px' }}>
+                                                            <div className="progress-bar bg-warning" style={{ width: '45%' }}></div>
+                                                        </div>
+                                                    </div> */}
+                                                    </div>
+                                                </div>
+                                            </CardBody>
+                                        </Card>
+                                    )
+                                })
+                            }
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
             <div className="accordion mb-4" id="studyDashboardAccordion">
 
                 {/* Task Discussions Section - Open by Default */}
@@ -784,10 +1087,10 @@ const StudyDashboard = () => {
                 {/* View Consent Completions */}
                 <div className="accordion-item">
                     <h2 className="accordion-header">
-                        <button 
+                        <button
                             className={`accordion-button ${openAccordion !== '5' && 'collapsed'}`}
                             type="button"
-                            onClick={()=>toggleAccordion('5')}
+                            onClick={() => toggleAccordion('5')}
                         >
                             View Participant Consent Status
                         </button>

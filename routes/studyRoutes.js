@@ -601,7 +601,7 @@ module.exports = (app) => {
     app.get('/api/study-dashboard/user-ids', requireLogin, requireFacilitatorPermissions, async (req, res) => {
         try {
             const users = await User.find();
-            const userIds = users.map(user => [user._id, user.username]);
+            const userIds = users.map(user => [user._id, user.username, user.role]);
             res.send(userIds);
         } catch (error) {
             console.error("error fetching user ids: ", JSON.stringify(error));
@@ -615,17 +615,31 @@ module.exports = (app) => {
         try {
             let userData = {};
             const user = await User.findById(userId);
-            const consent = await Consent.find({'participants.username': username});
-            const studyTasks = await StudyTask.find({ 'participants.username': username }).select('name taskType');
-            const studyResponses = await StudyResponse.find({_participant: userId});
-            const llmRE = await LLMResponseEvaluation.find({'participants._id': userId}).select('title index');
-            const llmREResponses = await LLMResponseEvaluationResponse.find({userId: userId});
+            const consentDocs = await Consent.find({ 'participants.username': username });
+            let userConsent = 'No Consent Found';
 
-            
+            if (consentDocs.length > 0) {
+                // Extract only the specific participant's consent info from each document
+                userConsent = consentDocs.map(doc => {
+                    const userParticipant = doc.participants.find(p => p.username === username);
+                    return {
+                        _id: doc._id,
+                        studyName: doc.studyName,
+                        consent: doc.consent,
+                        participantData: userParticipant // Only this user's participant data
+                    };
+                });
+            }
+            const studyTasks = await StudyTask.find({ 'participants.username': username }).select('name taskType');
+            const studyResponses = await StudyResponse.find({ _participant: userId });
+            const llmRE = await LLMResponseEvaluation.find({ 'participants._id': userId }).select('title index');
+            const llmREResponses = await LLMResponseEvaluationResponse.find({ userId: userId });
+
+
 
             userData = {
                 'user': user,
-                'consent': consent.length > 0 ? consent : 'No Consent Found',
+                'consent': userConsent,
                 'studyTasks': studyTasks.length > 0 ? studyTasks : 'No Study Tasks Assigned',
                 'studyResponses': studyResponses.length > 0 ? studyResponses : 'No Study Task Responses Found',
                 'llmRE': llmRE.length > 0 ? llmRE : 'No LLM Response Evaluations Assigned',
