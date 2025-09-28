@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const passport = require('passport');
 const bodyParser = require('body-parser');
-const path = require('path'); // Move this to the top with other imports
+const path = require('path');
 const keys = require('./config/keys');
 
 require('./models/User');
@@ -28,12 +28,12 @@ app.use(bodyParser.json());
 app.use(
     session({
         secret: keys.cookieKey,
-        resave: false, // Forces the session to be saved back to the session store, even if it was never modified during the request
-        saveUninitialized: false, // Forces a session that is "unitinitialized" to be saved to the store
-        cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
+        resave: false,
+        saveUninitialized: false,
+        cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }
     })
 );
-app.use(passport.initialize()); // Passport initialize session communication via cookies
+app.use(passport.initialize());
 app.use(passport.session());
 
 // API routes MUST come before the catch-all route
@@ -49,13 +49,12 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: 'Something went wrong!', error: err.message });
 });
 
-// Alternative catch-all route - replace the existing one
 if (process.env.NODE_ENV === 'production') {
     // Serve static files from the React app build directory
     app.use(express.static(path.join(__dirname, 'client/dist')));
     
-    // Handle React routing, return all requests to React app
-    app.get('*', (req, res) => {
+    // Use a more specific pattern instead of '*'
+    app.get(/^(?!\/api).*/, (req, res) => {
         res.sendFile(path.join(__dirname, 'client/dist', 'index.html'), (err) => {
             if (err) {
                 console.error('Error serving file:', err);
