@@ -4,7 +4,7 @@ import { Spinner, Card, CardBody, CardTitle, CardSubtitle, CardText, Button } fr
 import { GoPeople, GoPerson, GoSearch, GoFilter } from 'react-icons/go';
 import { useFetchStudyCommentsQuery, useFetchStudyQuery, useLazyFetchAllStudyResponsesQuery, useLazyFetchCompleteDiscussionQuery, useLazyGetUserByIdQuery, useFetchUserIdsQuery, useLazyFetchUserDataQuery } from "../../../store";
 import ReactGA from 'react-ga4';
-import { isNumber } from "lodash";
+import { isArray, isNumber } from "lodash";
 import { Link } from "react-router-dom";
 
 const StudyDashboard = () => {
@@ -648,7 +648,6 @@ const StudyDashboard = () => {
 
     }
 
-
     const sortUsers = (a, b) => {
         if (sortType === 0) {
             // Sort by firstName
@@ -667,6 +666,92 @@ const StudyDashboard = () => {
                 return numA - numB;
             }
             return cohortA.localeCompare(cohortB);
+        } else if (sortType === 2) {
+            // Sort by consent status
+            const getConsentStatus = (user) => {
+                if (user.consent && Array.isArray(user.consent) && user.consent.length > 0) {
+                    return user.consent[0].participantData.consent === true ? 1 : 0;
+                }
+                return -1; // No consent data comes first
+            };
+
+            const consentA = getConsentStatus(a);
+            const consentB = getConsentStatus(b);
+
+            // Primary sort: consent status
+            if (consentA !== consentB) {
+                return consentA - consentB;
+            }
+
+            // Secondary sort: firstName alphabetically
+            const firstNameA = a.user.firstName || '';
+            const firstNameB = b.user.firstName || '';
+            return firstNameA.localeCompare(firstNameB);
+
+        } else if (sortType === 3) {
+            // Sort by study task completion
+            const getTaskCompletion = (user) => {
+                let assignedTasks = 0;
+                let completedTasks = 0;
+                let taskIds = [];
+
+                if (user.studyTasks && Array.isArray(user.studyTasks)) {
+                    assignedTasks = user.studyTasks.length;
+                    taskIds = user.studyTasks.map(task => task._id);
+                }
+
+                if (user.studyResponses && Array.isArray(user.studyResponses)) {
+                    completedTasks = user.studyResponses.filter(response =>
+                        taskIds.includes(response.task)
+                    ).length;
+                }
+
+                return assignedTasks > 0 ? completedTasks / assignedTasks : 0;
+            }; 
+            
+            const completionA = getTaskCompletion(a);
+            const completionB = getTaskCompletion(b);
+
+            if (completionA !== completionB) {
+                return completionA - completionB;
+            }
+
+            // Secondary sort: firstName alphabetically
+            const firstNameA = a.user.firstName || '';
+            const firstNameB = b.user.firstName || '';
+            return firstNameA.localeCompare(firstNameB);
+
+        } else if (sortType === 4) {
+            // Sort by LLM evaluation completion
+            const getLLMCompletion = (user) => {
+                let assignedLLMREs = 0;
+                let completedLLMREs = 0;
+                let llmREIds = [];
+
+                if (user.llmRE && Array.isArray(user.llmRE)) {
+                    assignedLLMREs = user.llmRE.length;
+                    llmREIds = user.llmRE.map(llmRE => llmRE._id);
+                }
+
+                if (user.llmREResponses && Array.isArray(user.llmREResponses)) {
+                    completedLLMREs = user.llmREResponses.filter(response =>
+                        llmREIds.includes(response.evaluationId)
+                    ).length;
+                }
+
+                return assignedLLMREs > 0 ? completedLLMREs / assignedLLMREs : 0;
+            };
+
+            const completionA = getLLMCompletion(a);
+            const completionB = getLLMCompletion(b);
+            if (completionA !== completionB) {
+                return completionA - completionB;
+            }
+
+            // Secondary sort: firstName alphabetically
+            const firstNameA = a.user.firstName || '';
+            const firstNameB = b.user.firstName || '';
+            return firstNameA.localeCompare(firstNameB);
         }
         return 0;
     };
@@ -950,6 +1035,9 @@ const StudyDashboard = () => {
                                         >
                                             <option value={0}>Name</option>
                                             <option value={1}>Cohort</option>
+                                            <option value={2}>Consent</option>
+                                            <option value={3}>Study Task</option>
+                                            <option value={4}>LLM Response Evaluation</option>
                                         </select>
                                     </div>
                                 </div>
