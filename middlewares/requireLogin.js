@@ -2,6 +2,5 @@ module.exports = (req, res, next) => {
     if(!req.user) {
         return res.status(401).json({ error: 'You must log in first', message: 'You must log in first'});
     }
-
     next();
 };

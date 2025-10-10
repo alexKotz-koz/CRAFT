@@ -12,6 +12,7 @@ import ButtonLink from '../tools/ButtonLink';
 
 import { useEffect } from 'react';
 import ReactGA from 'react-ga4';
+import { useFetchUserQuery } from '../../store';
 
 const Login = () => {
 
@@ -24,8 +25,8 @@ const Login = () => {
     }, []);
 
     const navigate = useNavigate();
-
     const [loginUser, { isLoading: isLoadingLogin, error: errorLogin }] = useLoginUserMutation();
+    const { refetch: refetchUser } = useFetchUserQuery();
 
     if (isLoadingLogin) {
         return (
@@ -38,6 +39,7 @@ const Login = () => {
     const handleFormSubmit = async (values) => {
         try {
             await loginUser(values).unwrap();
+            await refetchUser();
             navigate('/home');
         } catch (error) {
 
@@ -71,7 +73,7 @@ const Login = () => {
                                 )}
                             </Field>
                         ))}
-                        {errorLogin && <div style={{ color: 'red' }}>{errorLogin.data.error.error}</div>}
+                        {errorLogin && <div style={{ color: 'red' }}>{JSON.stringify(errorLogin)}</div>}
                         <div className='d-grid gap-2 d-sm-flex justify-content-sm-center'>
                             <button type="submit" disabled={isLoadingLogin} className='btn btn-primary px-4 gap-3' >Login</button>
                             <ButtonLink to='/password_reset' text='Reset Password' additionalClasses='btn btn-secondary px-4' />

@@ -97,6 +97,7 @@ const Home = () => {
         setConsentModalContent(relevant || []);
     }, [user, consents]);
 
+
     // Helper: does the user have any pending (not yet consented) consents?
     const hasPendingConsent = consentModalContent.some((c) =>
         (c.participants || []).some(
@@ -105,6 +106,21 @@ const Home = () => {
                 p.consent === false
         )
     );
+    const hasAssignedConsent = consents?.some(consent =>
+        (consent.participants || []).some(
+            p =>
+                p.username === user.username ||
+                p.email === user.email
+        )
+    );
+
+    if (!hasAssignedConsent && !isAdmin){
+        return (
+            <div className='mt-2 mb-2 ps-2 text-danger'>
+                You do not have an assigned consent, please contact the facilitator of the study and show them this error message
+            </div>
+        )
+    }
 
     const handleOpenConsentModal = () => setConsentModalOpen(!consentModalOpen);
 
@@ -118,7 +134,6 @@ const Home = () => {
     );
 
     const isLoadingConsentLogic = !user || !consents || (user.role === 'participant' && consentModalContent.length === 0 && consents.length > 0);
-
     if (isLoadingUser || isLoadingStudies || isLoadingAllEvaluations || isLoadingConsents || isLoadingConsentLogic) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>

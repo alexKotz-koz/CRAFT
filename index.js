@@ -46,7 +46,7 @@ require('./routes/consentRoutes')(app);
 // Error-handling middleware
 app.use((err, req, res, next) => {
     console.error('Server error:', err);
-    res.status(500).json({ message: 'Something went wrong!', error: err.message });
+    res.status(500).json({ message: 'Something went wrong!', error: err.error || err.message });
 });
 
 if (process.env.NODE_ENV === 'production') {

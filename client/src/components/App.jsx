@@ -44,7 +44,7 @@ import AssignNewParticipants from "./study/study-dashboard/AssignNewParticipants
 import UnassignParticipants from "./study/study-dashboard/UnassignParticipants";
 import ViewConsentStatusTable from "./consent/ViewConsentStatusTable";
 
-
+import ProtectedRoute from "./ProtectedRoute";
 
 
 
@@ -62,42 +62,141 @@ const App = () => {
 
                 <Routes>
                     <Route path='/' element={<Landing />} />
-                    <Route path='/home' element={<Home />} />
-                    <Route path='/login' element={<Login />} />
-                    <Route path='/participant-config' element={<ParticipantInitialConfig user={user} />} />
-                    <Route path="/signup" element={<SignUp />} />
-                    <Route path="/study/:studyId" element={<Study user={user} />} />
-                    <Route path='/study/new' element={<StudyNewWizard />} />
-                    <Route path='/study/dashboard/:studyId' element={<StudyDashboard />} />
-                    <Route path='/study-dashboard/task-discussions/:studyId' element={<TaskDiscussion />} />
-                    <Route path='/study-dashboard/assign-participants/:studyId' element={<AssignNewParticipants />} />
-                    <Route path='/study-dashboard/unassign-participants/:studyId' element={<UnassignParticipants />} />
-                    <Route path='/study-dashboard/consent-table' element={<ViewConsentStatusTable />} />
+                    <Route path='/home' element={
+                        <ProtectedRoute>
+                            <Home />
+                        </ProtectedRoute>
 
-                    <Route path='/study/response/:studyId' element={<StudyResponseWizard user={user} />} />
-                    <Route path='/study/response/task/:taskId' element={<StudyResponse user={user} />} />
+                    } />
+                    <Route path='/login' element={<Login />} />
+                    <Route path='/participant-config' element={
+                        <ProtectedRoute>
+                            <ParticipantInitialConfig user={user} />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/signup" element={<SignUp />} />
+                    <Route path="/study/:studyId" element={
+                        <ProtectedRoute>
+                            <Study user={user} />
+
+                        </ProtectedRoute>
+                    } />
+                    <Route path='/study/new' element={
+                        <ProtectedRoute>
+                            <StudyNewWizard />
+                        </ProtectedRoute>
+
+
+                    } />
+                    <Route path='/study/dashboard/:studyId' element={
+                        <ProtectedRoute>
+                            <StudyDashboard />
+                        </ProtectedRoute>
+
+                    } />
+                    <Route path='/study-dashboard/task-discussions/:studyId' element={
+                        <ProtectedRoute>
+                            <TaskDiscussion />
+                        </ProtectedRoute>
+
+                    } />
+                    <Route path='/study-dashboard/assign-participants/:studyId' element={
+                        <ProtectedRoute>
+                            <AssignNewParticipants />
+                        </ProtectedRoute>
+
+                    } />
+                    <Route path='/study-dashboard/unassign-participants/:studyId' element={
+                        <ProtectedRoute>
+                            <UnassignParticipants />
+                        </ProtectedRoute>
+
+                    } />
+                    <Route path='/study-dashboard/consent-table' element={
+                        <ProtectedRoute>
+                            <ViewConsentStatusTable />
+                        </ProtectedRoute>
+
+                    } />
+
+                    <Route path='/study/response/:studyId' element={
+                        <ProtectedRoute>
+                            <StudyResponseWizard user={user} />
+
+                        </ProtectedRoute>
+                    } />
+                    <Route path='/study/response/task/:taskId' element={
+                        <ProtectedRoute>
+                            <StudyResponse user={user} />
+                        </ProtectedRoute>
+
+                    } />
                     <Route path='/password_reset' element={<PasswordReset />} />
-                    <Route path='/discussion/:taskId' element={<DiscussionBoard />} />
-                    <Route path='/discussion/landing/:studyId' element={<DiscussionBoardLanding />} />
+                    <Route path='/discussion/:taskId' element={
+                        <ProtectedRoute>
+                            <DiscussionBoard />
+                        </ProtectedRoute>
+
+                    } />
+                    <Route path='/discussion/landing/:studyId' element={
+                        <ProtectedRoute>
+                            <DiscussionBoardLanding />
+                        </ProtectedRoute>
+                    } />
                     <Route path='/admin/password-reset' element={<AdminPasswordReset />} />
                     <Route path='/llm-response-evaluation' element={
-                        <LLMRELanding
-                            currentUserRole={user?.role}
-                            currentUserFirst={user?.firstName}
-                            currentUserLast={user?.lastName}
-                            currentUserUsername={user?.username}
-                        />
+                        <ProtectedRoute>
+                            <LLMRELanding
+                                currentUserRole={user?.role}
+                                currentUserFirst={user?.firstName}
+                                currentUserLast={user?.lastName}
+                                currentUserUsername={user?.username}
+                            />
+                        </ProtectedRoute>
+
                     } />
-                    <Route path='/llm-response-evaluation/create' element={<LLMRECreate />} />
-                    <Route path="/llm-response-evaluation/:evaluationId" element={<LLMResponseEvaluation />} />
-                    <Route path="/llm-response-evaluation/:evaluationId/edit" element={<EditExistingEvaluation />} />
+                    <Route path='/llm-response-evaluation/create' element={
+                        <ProtectedRoute>
+                            <LLMRECreate />
+                        </ProtectedRoute>
+
+                    } />
+                    <Route path="/llm-response-evaluation/:evaluationId" element={
+                        <ProtectedRoute>
+                            <LLMResponseEvaluation />
+                        </ProtectedRoute>
+
+                    } />
+                    <Route path="/llm-response-evaluation/:evaluationId/edit" element={
+                        <ProtectedRoute>
+                            <EditExistingEvaluation />
+                        </ProtectedRoute>
+                    } />
                     <Route
                         path="/llm-response-evaluation/readonly/:evaluationId/:responseId"
-                        element={<READONLY_LLMResponseEvaluation />}
+                        element={
+                            <ProtectedRoute>
+                                <READONLY_LLMResponseEvaluation />
+
+                            </ProtectedRoute>
+                        }
                     />
-                    <Route path="/participant-dashboard" element={<ParticipantDashboard />} />
-                    <Route path="/consent/new" element={<CreateNewConsent />} />
-                    <Route path="/consent/assign-participant" element={<AssignNewParticipantsConsent />} />
+                    <Route path="/participant-dashboard" element={
+                        <ProtectedRoute>
+                            <ParticipantDashboard />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/consent/new" element={
+                        <ProtectedRoute>
+                            <CreateNewConsent />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/consent/assign-participant" element={
+                        <ProtectedRoute>
+                            <AssignNewParticipantsConsent />
+                        </ProtectedRoute>
+
+                    } />
                 </Routes>
             </BrowserRouter>
         </div>
