@@ -574,6 +574,111 @@ const StudyDashboard = () => {
         }
     };
 
+    /********** DOWNLOAD PARTICIPANT SUMMARY **********/
+    const handleDownloadParticipantSummary = () => {
+        try {
+            // CSV header
+            let csvContent = "Name,Email,Username,Tasks Completed,Evals Completed,Consent Completed\n";
+
+            const escapeCsv = (field) => {
+                if (field === null || field === undefined) return '';
+                const str = String(field).replace(/"/g, '""');
+                return str.includes(',') || str.includes('\n') || str.includes('"') ? `"${str}"` : str;
+            };
+
+            let totalParticipants = 0;
+            let totalConsented = 0;
+
+            // Filter and sort participants
+            const participants = Object.values(userDataMap)
+                .filter(user => user.user.role === "participant")
+                .sort(sortUsers);
+
+            participants.forEach(user => {
+                totalParticipants++;
+
+                // Name
+                const name = `${user.user.firstName || ''} ${user.user.lastName || ''}`.trim();
+                const email = user.user.email || '';
+                const username = user.user.username || '';
+
+                // Calculate tasks completed
+                let completedStudyTasks = 0;
+                let assignedStudyTasks = 0;
+                let userStudyTaskIds = [];
+
+                if (user.studyTasks && Array.isArray(user.studyTasks) && user.studyTasks.length > 0) {
+                    assignedStudyTasks = user.studyTasks.length;
+                    user.studyTasks.forEach(task => {
+                        userStudyTaskIds.push(task._id);
+                    });
+                }
+
+                if (user.studyResponses && Array.isArray(user.studyResponses) && user.studyResponses.length > 0) {
+                    user.studyResponses.forEach(response => {
+                        if (userStudyTaskIds.includes(response.task)) {
+                            completedStudyTasks += 1;
+                        }
+                    });
+                }
+
+                const tasksCompleted = `${completedStudyTasks}/${assignedStudyTasks}`;
+
+                // Calculate LLM evals completed
+                let completedLLMREs = 0;
+                let assignedLLMREs = 0;
+                let userLLMREIds = [];
+
+                if (user.llmRE && Array.isArray(user.llmRE) && user.llmRE.length > 0) {
+                    assignedLLMREs = user.llmRE.length;
+                    user.llmRE.forEach(llmRE => {
+                        userLLMREIds.push(llmRE._id);
+                    });
+                }
+
+                if (user.llmREResponses && Array.isArray(user.llmREResponses) && user.llmREResponses.length > 0) {
+                    user.llmREResponses.forEach(response => {
+                        if (userLLMREIds.includes(response.evaluationId)) {
+                            completedLLMREs += 1;
+                        }
+                    });
+                }
+
+                const evalsCompleted = `${completedLLMREs}/${assignedLLMREs}`;
+
+                // Check consent status
+                let consentStatus = 'No';
+                if (user.consent && Array.isArray(user.consent) && user.consent.length > 0) {
+                    if (user.consent[0]?.participantData?.consent === true) {
+                        consentStatus = 'Yes';
+                        totalConsented++;
+                    }
+                }
+
+                // Add row to CSV
+                csvContent += [
+                    escapeCsv(name),
+                    escapeCsv(email),
+                    escapeCsv(username),
+                    escapeCsv(tasksCompleted),
+                    escapeCsv(evalsCompleted),
+                    escapeCsv(consentStatus)
+                ].join(',') + '\n';
+            });
+
+            // Add summary row
+            csvContent += '\n';
+            csvContent += `"TOTALS","","","","",""\n`;
+            csvContent += `"Total Participants: ${totalParticipants}","","","","",""\n`;
+            csvContent += `"Consented Participants: ${totalConsented}","","","","",""\n`;
+
+            downloadFile(csvContent, `study-${study.name}-participant-summary.csv`, 'text/csv');
+        } catch (error) {
+            console.error("Error generating participant summary:", error);
+            alert("Failed to generate participant summary. See console for details.");
+        }
+    };
+
     /********** RETURN *******************/
     const countParticipants = userIds ? userIds.filter(user => user[2] === "participant").length : 0;
     const consentedUsers = Object.values(userDataMap).filter(user => {
@@ -916,6 +1021,18 @@ const StudyDashboard = () => {
                                         </div>
                                         <div className="text-center mt-2">
                                             <small className="text-muted">Discussions</small>
+                                        </div>
+                                        <hr className="my-3" />
+                                        <div className="row g-2">
+                                            <div className="col-12">
+                                                <button
+                                                    className="btn btn-outline-success btn-sm w-100 d-flex align-items-center justify-content-center"
+                                                    onClick={handleDownloadParticipantSummary}
+                                                >
+                                                    <i className="bi bi-file-earmark-spreadsheet me-2"></i>
+                                                    {'<,>'} Participant Summary
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
